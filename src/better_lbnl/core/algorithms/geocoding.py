@@ -9,9 +9,8 @@ from typing import Tuple, Optional
 
 import geocoder
 import numpy as np
-from better_lbnl.data.models import LocationInfo
-from better_lbnl.interfaces.weather_source import WeatherStationFinder
-from better_lbnl.utils import haversine_distance
+from better_lbnl.domain.models import LocationInfo
+from better_lbnl.utils.geography import haversine_distance
 
 logger = logging.getLogger(__name__)
 
