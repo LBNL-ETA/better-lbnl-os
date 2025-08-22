@@ -15,6 +15,9 @@ class LocationInfo(BaseModel):
     zipcode: Optional[str] = Field(None, description="Postal/ZIP code")
     state: Optional[str] = Field(None, description="State or province")
     country_code: str = Field(default="US", description="ISO country code")
+    noaa_station_id: Optional[str] = Field(None, description="NOAA weather station ID")
+    noaa_station_name: Optional[str] = Field(None, description="NOAA weather station name")
+    egrid_sub_region: Optional[str] = Field(None, description="eGrid subregion for emissions")
     
     def is_valid_coordinates(self) -> bool:
         """Check if coordinates are within valid ranges.

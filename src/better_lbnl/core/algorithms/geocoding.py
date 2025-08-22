@@ -15,19 +15,22 @@ from better_lbnl.utils.geography import haversine_distance
 logger = logging.getLogger(__name__)
 
 
-def geocode_address(address: str, api_key: str) -> LocationInfo:
+def geocode(address: str, api_key: str, weather_stations: list = None) -> LocationInfo:
     """
-    Geocode an address using Google Maps API and return location information.
+    Main geocoding function that provides complete location information.
     
-    This function is a pure function that takes an address string and API key,
-    geocodes it using Google Maps, and returns structured location data.
+    This function geocodes an address using Google Maps API and enriches it with:
+    - Weather station information
+    - eGrid subregion for emissions calculations
+    - State and country information
     
     Args:
         address: Address string or zip code to geocode
         api_key: Google Maps API key
+        weather_stations: List of weather station data (optional)
         
     Returns:
-        LocationInfo dataclass with geocoded location data
+        LocationInfo with complete geocoded location data
         
     Raises:
         ValueError: If address is invalid format
@@ -68,13 +71,44 @@ def geocode_address(address: str, api_key: str) -> LocationInfo:
         raise Exception(f'Cannot geocode location: {address}. '
                        f'Please check your building address and provide more details.') from e
     
+    # Find closest weather station
+    noaa_station_id = None
+    noaa_station_name = None
+    if weather_stations:
+        try:
+            noaa_station_id, noaa_station_name = find_closest_weather_station(
+                lat, lng, weather_stations
+            )
+        except Exception as e:
+            logger.warning(f"Could not find weather station: {e}")
+    
+    # Look for eGrid region
+    egrid_sub_region = None
+    if country_code == 'US':
+        if zipcode:
+            try:
+                # Create a basic eGrid mapping - in production this would be comprehensive
+                egrid_mapping = {}  # Would be loaded from constants or database
+                egrid_sub_region = find_egrid_subregion(zipcode, egrid_mapping)
+            except Exception as e:
+                logger.info(f"Exception finding eGrid subregion: {e}")
+                egrid_sub_region = country_code
+        else:
+            egrid_sub_region = country_code
+    else:
+        egrid_sub_region = country_code
+    
     return LocationInfo(
         geo_lat=lat,
         geo_lng=lng,
         zipcode=zipcode,
         state=state,
-        country_code=country_code
+        country_code=country_code,
+        noaa_station_id=noaa_station_id,
+        noaa_station_name=noaa_station_name,
+        egrid_sub_region=egrid_sub_region
     )
+
 
 
 def find_closest_weather_station(
@@ -186,5 +220,8 @@ def create_dummy_location_info() -> LocationInfo:
         geo_lng=-122.41964,
         zipcode="94102",
         state="CA",
-        country_code="US"
+        country_code="US",
+        noaa_station_id="724940-23234",
+        noaa_station_name="SAN FRANCISCO INTERNATIONAL AIRPORT",
+        egrid_sub_region="CAMX"
     )

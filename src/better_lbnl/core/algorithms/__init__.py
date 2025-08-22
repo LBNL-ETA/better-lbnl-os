@@ -13,6 +13,13 @@ from better_lbnl.core.algorithms.statistics import (
     calculate_mape,
 )
 
+# Note: geocoding requires 'geocoder' package - import conditionally
+try:
+    from better_lbnl.core.algorithms.geocoding import geocode
+    _geocoding_available = True
+except ImportError:
+    _geocoding_available = False
+
 __all__ = [
     # Change-point models
     "fit_changepoint_model",
@@ -25,3 +32,7 @@ __all__ = [
     "calculate_nmbe",
     "calculate_mape",
 ]
+
+# Add geocoding if available
+if _geocoding_available:
+    __all__.append("geocode")
