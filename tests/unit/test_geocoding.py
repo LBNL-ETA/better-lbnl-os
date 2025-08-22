@@ -5,7 +5,7 @@ from unittest.mock import Mock, patch
 import pytest
 
 from better_lbnl.core.algorithms.geocoding import (
-    geocode_address,
+    geocode,
     find_closest_weather_station,
     find_egrid_subregion,
     create_dummy_location_info,
@@ -18,7 +18,7 @@ class TestGeocoding:
     """Test suite for geocoding functionality."""
 
     @patch('better_lbnl.core.algorithms.geocoding.geocoder')
-    def test_geocode_address_success(self, mock_geocoder):
+    def test_geocode_success(self, mock_geocoder):
         """Test successful address geocoding."""
         # Mock the geocoder response
         mock_result = Mock()
@@ -32,7 +32,7 @@ class TestGeocoding:
         api_key = "test_api_key"
         address = "San Francisco, CA"
         
-        result = geocode_address(address, api_key)
+        result = geocode(address, api_key)
         
         assert isinstance(result, LocationInfo)
         assert result.geo_lat == 37.7749
@@ -45,7 +45,7 @@ class TestGeocoding:
         mock_geocoder.google.assert_called_with(address, key=api_key)
 
     @patch('better_lbnl.core.algorithms.geocoding.geocoder')
-    def test_geocode_address_api_denied(self, mock_geocoder):
+    def test_geocode_api_denied(self, mock_geocoder):
         """Test geocoding when API request is denied."""
         # Mock the geocoder response with API denial
         mock_result = Mock()
@@ -56,10 +56,10 @@ class TestGeocoding:
         address = "San Francisco, CA"
         
         with pytest.raises(Exception, match="Google Maps API denied"):
-            geocode_address(address, api_key)
+            geocode(address, api_key)
 
     @patch('better_lbnl.core.algorithms.geocoding.geocoder')  
-    def test_geocode_address_international(self, mock_geocoder):
+    def test_geocode_international(self, mock_geocoder):
         """Test geocoding for international address."""
         # Mock the geocoder response for non-US location
         mock_result = Mock()
@@ -73,7 +73,7 @@ class TestGeocoding:
         api_key = "test_api_key"
         address = "London, UK"
         
-        result = geocode_address(address, api_key)
+        result = geocode(address, api_key)
         
         assert result.country_code == "GB"
         assert result.state == "INT"  # Should be set to 'INT' for non-US
@@ -84,7 +84,7 @@ class TestGeocoding:
         invalid_address = []  # List instead of string
         
         with pytest.raises(ValueError, match="Invalid address"):
-            geocode_address(invalid_address, api_key)
+            geocode(invalid_address, api_key)
 
 
 class TestWeatherStationFinder:
