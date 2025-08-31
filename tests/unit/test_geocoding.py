@@ -4,14 +4,14 @@ Tests for geocoding algorithms.
 from unittest.mock import Mock, patch
 import pytest
 
-from better_lbnl.core.algorithms.geocoding import (
+from better_lbnl.utils.geocoding import (
     geocode,
     find_closest_weather_station,
     find_egrid_subregion,
     create_dummy_location_info,
     _check_special_regions
 )
-from better_lbnl.domain.models import LocationInfo
+from better_lbnl.data.models import LocationInfo
 
 
 class TestGeocoding:

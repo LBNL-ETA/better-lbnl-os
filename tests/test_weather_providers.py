@@ -6,7 +6,7 @@ from datetime import date, datetime
 import asyncio
 
 from better_lbnl.core.weather.providers import OpenMeteoProvider, NOAAProvider
-from better_lbnl.domain.models import WeatherData, WeatherStation
+from better_lbnl.data.models import WeatherData, WeatherStation
 
 
 class TestOpenMeteoProvider(unittest.TestCase):

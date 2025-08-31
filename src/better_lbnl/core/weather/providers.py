@@ -9,9 +9,9 @@ import pandas as pd
 import requests
 from requests.exceptions import RequestException
 
-from better_lbnl.core.algorithms.weather import calculate_monthly_average
-from better_lbnl.domain.models import WeatherData, WeatherStation
-from .interfaces import WeatherDataProvider
+from better_lbnl.core.weather.calculations import calculate_monthly_average
+from better_lbnl.data.models import WeatherData, WeatherStation
+from better_lbnl.interfaces.weather_source import WeatherDataProvider
 
 
 logger = logging.getLogger(__name__)

@@ -71,95 +71,131 @@ class BuildingAnalytics(models.Model):
         self.save()
 ```
 
-### Option 2: Class Extraction Without ORM (Moderate Refactoring)
+### Option 2: Domain Models with Behavior (Recommended Component)
 
-**Approach**: Keep existing class structures but remove Django dependencies. Classes return dictionaries or simple dataclasses instead of Django models.
+**Approach**: Create rich domain models using Pydantic/dataclasses that include both data and business logic methods.
 
 **Advantages**:
-- Preserves object-oriented design
-- Better encapsulation of related logic
-- Easier state management
-- More intuitive API
+- Encapsulates business rules within domain objects
+- Self-validating and self-documenting
+- More intuitive API with methods like `building.calculate_eui()`
+- Better code organization
 
 **Disadvantages**:
-- Requires more refactoring
+- Requires thoughtful design of domain boundaries
 - Need to carefully separate Django-specific code
-- May require some interface changes
+- Initial learning curve for domain-driven design
 
 **Implementation Example**:
 ```python
-# Library: better_core/models/changepoint.py
-class ChangePointModel:
-    """Pure Python implementation without Django dependencies"""
-    
-    def __init__(self, temperature: np.ndarray, eui: np.ndarray, **kwargs):
-        self.temperature = temperature
-        self.eui = eui
-        self.min_r_squared = kwargs.get('min_r_squared', 0.6)
-        
-    def fit(self) -> dict:
-        # Fitting logic
-        return {
-            'coefficients': self.coefficients,
-            'metrics': self.metrics
-        }
+# Library: better_lbnl/domain/models.py
+from pydantic import BaseModel, Field
+from typing import Optional
 
-# Django wrapper
-class InverseModel(models.Model):
-    model_coeffs = JSONField()
+class ChangePointModelResult(BaseModel):
+    """Domain model with data + business logic methods"""
+    heating_slope: Optional[float]
+    cooling_slope: Optional[float]
+    baseload: float
+    r_squared: float
+    cvrmse: float
     
-    def fit_model(self):
-        from better_core.models import ChangePointModel
-        model = ChangePointModel(self.temps, self.eui)
-        self.model_coeffs = model.fit()
-        self.save()
+    def is_valid(self) -> bool:
+        """Check if model meets quality thresholds"""
+        return self.r_squared >= 0.6 and self.cvrmse <= 0.5
+    
+    def get_model_type(self) -> str:
+        """Determine model type from coefficients"""
+        if self.heating_slope and self.cooling_slope:
+            return "5P"
+        elif self.heating_slope:
+            return "3P-H"
+        elif self.cooling_slope:
+            return "3P-C"
+        return "1P"
+
+# Pure function for algorithm
+def fit_changepoint_model(temp: np.ndarray, energy: np.ndarray) -> ChangePointModelResult:
+    # Fitting logic
+    return ChangePointModelResult(
+        heating_slope=hsl,
+        cooling_slope=csl,
+        baseload=base,
+        r_squared=r2,
+        cvrmse=cv
+    )
+
+# Django adapter
+class InverseModelAdapter:
+    def fit_model(self, django_model):
+        from better_lbnl import fit_changepoint_model
+        result = fit_changepoint_model(django_model.temps, django_model.eui)
+        # Use domain model methods
+        if result.is_valid():
+            django_model.model_coeffs = result.dict()
+            django_model.model_type = result.get_model_type()
+            django_model.save()
 ```
 
-### Option 3: Full Abstraction with Adapters (Maximum Flexibility)
+### Option 3: Adapter Pattern (Recommended for Django Integration)
 
-**Approach**: Create complete abstraction layer with dataclasses/Pydantic models and adapter pattern for Django integration.
+**Approach**: Create adapter layer in Django app to bridge between Django models and the pure Python library.
 
 **Advantages**:
 - Complete separation of concerns
 - Framework-agnostic library
-- Strong type safety
+- Django app changes are isolated to adapter layer
+- Easy to test library independently
 - Most flexible for future changes
 
 **Disadvantages**:
-- Significant refactoring required
-- Complexity of adapter layers
-- Longer implementation timeline
-- Potential performance overhead
+- Additional adapter layer to maintain
+- Initial setup complexity
+- Need to maintain mappings between Django and domain models
 
-**Not recommended for initial implementation** due to complexity.
+**This is the recommended integration approach** - adapters provide clean separation while minimizing disruption to existing Django code.
 
-## Recommended Approach: Hybrid Strategy
+## Recommended Approach: Hybrid Strategy with Domain Models
 
-### Phase 1: Start with Option 1 (Quick Wins)
-- Extract pure mathematical functions
-- Focus on ChangePointModel algorithms
-- Benchmark calculations
-- Statistical utilities
+Based on architectural review, we recommend a **hybrid approach** that combines the best of all options:
 
-### Phase 2: Move to Option 2 (Consolidation)
-- Refactor related functions into classes
-- Group functionality logically
-- Add better error handling
-- Improve API design
+### Core Architecture Components
 
-### Phase 3: Enhance as Needed
-- Add type hints throughout
-- Consider Pydantic for complex data structures
-- Optimize performance-critical sections
-- Add comprehensive documentation
+1. **Pure Functions for Algorithms**: Mathematical algorithms (change-point fitting, statistical calculations) as pure functions
+2. **Rich Domain Models**: Pydantic/dataclass models that include both data AND business logic methods
+3. **Service Layer**: Orchestration classes that coordinate between domain models and algorithms
+4. **Adapter Pattern**: Clean separation between Django and the library through adapter layers
+
+### Implementation Phases
+
+#### Phase 1: Domain Models with Behavior (Week 1-2)
+- Create Pydantic models that encapsulate both data and methods
+- Example: `BuildingData` with methods like `calculate_eui()`, `validate_bills()`
+- Domain models handle their own validation, conversion, and business rules
+
+#### Phase 2: Extract Pure Algorithms (Week 3-4)
+- Extract mathematical functions as pure, side-effect-free functions
+- Focus on ChangePointModel fitting, benchmark calculations, statistical utilities
+- Functions take simple inputs (arrays, primitives) and return domain models or dataclasses
+
+#### Phase 3: Build Service Layer (Week 5-6)
+- Create service classes that orchestrate complex workflows
+- Services use both domain models and pure functions
+- Example: `BuildingAnalyticsService` that coordinates the full analysis pipeline
+
+#### Phase 4: Implement Adapter Pattern (Week 7-8)
+- Create adapter layer in Django app (NOT in the library)
+- Adapters convert between Django models and domain models
+- This is the ONLY place where Django touches the library
+- Ensures complete framework independence
 
 ## Implementation Plan
 
 ### Directory Structure
 ```
-better-core/
+better-lbnl/
 ├── src/
-│   └── better_core/
+│   └── better_lbnl/
 │       ├── __init__.py
 │       ├── models/
 │       │   ├── changepoint.py      # Inverse modeling
@@ -228,11 +264,12 @@ mkdir -p src/better_core tests docs
 5. Verify output matches original
 
 ### Step 3: Update Django App
-1. Add better-core as dependency
-2. Import library functions
-3. Replace internal implementation
-4. Run integration tests
-5. Verify backward compatibility
+1. Add better-lbnl as dependency
+2. Create adapter layer in Django app
+3. Import library through adapters only
+4. Replace internal implementation gradually
+5. Run integration tests
+6. Verify backward compatibility
 
 ### Step 4: Iterate
 1. Extract next component

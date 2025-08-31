@@ -3,7 +3,7 @@
 import asyncio
 from datetime import date
 
-from better_lbnl.core.algorithms.weather import (
+from better_lbnl.core.weather.calculations import (
     celsius_to_fahrenheit,
     fahrenheit_to_celsius,
     calculate_heating_degree_days,
@@ -11,7 +11,7 @@ from better_lbnl.core.algorithms.weather import (
     validate_temperature_range
 )
 from better_lbnl.core.weather import WeatherService, OpenMeteoProvider
-from better_lbnl.domain.models import LocationInfo, WeatherData
+from better_lbnl.data.models import LocationInfo, WeatherData
 
 
 def test_temperature_conversions():

@@ -7,7 +7,7 @@ and calculate degree days for a location.
 
 import asyncio
 from better_lbnl.core.weather import WeatherService, OpenMeteoProvider
-from better_lbnl.domain.models import LocationInfo
+from better_lbnl.data.models import LocationInfo
 
 
 async def main():

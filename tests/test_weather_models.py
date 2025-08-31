@@ -4,7 +4,7 @@ import unittest
 from datetime import date
 import calendar
 
-from better_lbnl.domain.models import WeatherData, WeatherStation
+from better_lbnl.data.models import WeatherData, WeatherStation
 
 
 class TestWeatherDataModel(unittest.TestCase):

@@ -6,8 +6,8 @@ from datetime import date
 import asyncio
 
 from better_lbnl.core.weather.service import WeatherService
-from better_lbnl.core.weather.interfaces import WeatherDataProvider
-from better_lbnl.domain.models import LocationInfo, WeatherData, WeatherStation
+from better_lbnl.interfaces.weather_source import WeatherDataProvider
+from better_lbnl.data.models import LocationInfo, WeatherData, WeatherStation
 
 
 class MockWeatherProvider(WeatherDataProvider):

@@ -243,14 +243,14 @@ class WeatherData(BaseModel):
     @property
     def avg_temp_f(self) -> float:
         """Average temperature in Fahrenheit."""
-        from better_lbnl.core.algorithms.weather import celsius_to_fahrenheit
+        from better_lbnl.core.weather.calculations import celsius_to_fahrenheit
         return celsius_to_fahrenheit(self.avg_temp_c)
     
     @property
     def min_temp_f(self) -> Optional[float]:
         """Minimum temperature in Fahrenheit."""
         if self.min_temp_c is not None:
-            from better_lbnl.core.algorithms.weather import celsius_to_fahrenheit
+            from better_lbnl.core.weather.calculations import celsius_to_fahrenheit
             return celsius_to_fahrenheit(self.min_temp_c)
         return None
     
@@ -258,7 +258,7 @@ class WeatherData(BaseModel):
     def max_temp_f(self) -> Optional[float]:
         """Maximum temperature in Fahrenheit."""
         if self.max_temp_c is not None:
-            from better_lbnl.core.algorithms.weather import celsius_to_fahrenheit
+            from better_lbnl.core.weather.calculations import celsius_to_fahrenheit
             return celsius_to_fahrenheit(self.max_temp_c)
         return None
 
@@ -272,7 +272,7 @@ class WeatherData(BaseModel):
         Returns:
             HDD value
         """
-        from better_lbnl.core.algorithms.weather import (
+        from better_lbnl.core.weather.calculations import (
             calculate_heating_degree_days, 
             estimate_monthly_hdd,
             convert_temperature_list
@@ -298,7 +298,7 @@ class WeatherData(BaseModel):
         Returns:
             CDD value
         """
-        from better_lbnl.core.algorithms.weather import (
+        from better_lbnl.core.weather.calculations import (
             calculate_cooling_degree_days,
             estimate_monthly_cdd,
             convert_temperature_list
@@ -316,7 +316,7 @@ class WeatherData(BaseModel):
     
     def is_valid_temperature(self) -> bool:
         """Validate temperature is within reasonable range."""
-        from better_lbnl.core.algorithms.weather import validate_temperature_range
+        from better_lbnl.core.weather.calculations import validate_temperature_range
         return validate_temperature_range(self.avg_temp_c)
 
 

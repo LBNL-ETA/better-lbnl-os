@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 from scipy import optimize, stats
 
-from better_lbnl.domain.models import ChangePointModelResult
+from better_lbnl.data.models import ChangePointModelResult
 
 logger = logging.getLogger(__name__)
 

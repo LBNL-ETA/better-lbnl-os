@@ -4,8 +4,8 @@ import logging
 from datetime import date, datetime
 from typing import List, Optional, Dict, Any
 
-from better_lbnl.domain.models import LocationInfo, WeatherData, WeatherStation
-from .interfaces import WeatherDataProvider
+from better_lbnl.data.models import LocationInfo, WeatherData, WeatherStation
+from better_lbnl.interfaces.weather_source import WeatherDataProvider
 from .providers import OpenMeteoProvider
 
 

@@ -4,14 +4,14 @@ Tests for change-point modeling algorithms.
 import numpy as np
 import pytest
 
-from better_lbnl.core.algorithms.changepoint import (
+from better_lbnl.core.changepoint import (
     fit_changepoint_model,
     piecewise_linear_5p, 
     calculate_r_squared,
     calculate_cvrmse,
     _validate_model_inputs
 )
-from better_lbnl.domain.models import ChangePointModelResult
+from better_lbnl.data.models import ChangePointModelResult
 
 
 class TestChangePointModeling:
