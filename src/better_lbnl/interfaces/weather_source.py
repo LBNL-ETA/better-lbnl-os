@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from datetime import date
 from typing import List, Optional, Dict, Any
 
-from better_lbnl.domain.models import WeatherData, WeatherStation
+from better_lbnl.data.models import WeatherData, WeatherStation
 
 
 class WeatherDataProvider(ABC):

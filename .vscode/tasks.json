@@ -10,9 +10,9 @@
                 "python",
                 "-m",
                 "pytest",
-                "tests",
-                "--no-cov",
-                "-v"
+                "--import-mode=importlib",
+                "-vv",
+                "tests"
             ],
             "group": {
                 "kind": "test",
@@ -37,8 +37,12 @@
                 "python",
                 "-m",
                 "pytest",
-                "tests",
-                "-v"
+                "--import-mode=importlib",
+                "--cov=better_lbnl",
+                "--cov-report=term-missing",
+                "--cov-report=html",
+                "-vv",
+                "tests"
             ],
             "group": "test",
             "presentation": {
@@ -60,9 +64,9 @@
                 "python",
                 "-m",
                 "pytest",
-                "tests/unit",
-                "--no-cov",
-                "-v"
+                "--import-mode=importlib",
+                "-vv",
+                "tests/unit"
             ],
             "group": "test",
             "presentation": {

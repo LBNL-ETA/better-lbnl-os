@@ -23,21 +23,26 @@ DEFAULT_SIGNIFICANT_PVAL = 0.1
 
 
 def fit_changepoint_model(
-    temperature: np.ndarray,
-    energy_use: np.ndarray,
+    x: np.ndarray,
+    y: np.ndarray,
     min_r_squared: float = DEFAULT_R2_THRESHOLD,
     max_cv_rmse: float = DEFAULT_CVRMSE_THRESHOLD
 ) -> ChangePointModelResult:
     """
-    Fit a change-point model to temperature and energy use data.
+    Fit a change-point model to any x,y data relationship.
     
     This is the main entry point for change-point model fitting. It automatically
     determines the best model type (1P, 3P, or 5P) based on statistical significance
     and model quality metrics.
     
+    Common usage examples:
+    - Energy analysis: x=temperature, y=energy_use  
+    - Price analysis: x=price, y=demand
+    - Time series: x=time, y=usage
+    
     Args:
-        temperature: Array of temperature values (typically in Celsius)
-        energy_use: Array of energy use intensity values (kWh/m²/day)
+        x: Array of independent variable values (e.g., temperature, price, time)
+        y: Array of dependent variable values (e.g., energy_use, demand, usage)
         min_r_squared: Minimum R² threshold for model acceptance
         max_cv_rmse: Maximum CV-RMSE threshold for model acceptance
         
@@ -49,25 +54,25 @@ def fit_changepoint_model(
         Exception: If model fitting fails
     """
     # Input validation
-    _validate_model_inputs(temperature, energy_use)
+    _validate_model_inputs(x, y)
     
     # Set up bounds for model fitting
-    bounds = _create_model_bounds(temperature, energy_use)
+    bounds = _create_model_bounds(x, y)
     
     # Try fitting with different change-point bounds
-    search_bounds = _create_changepoint_search_bounds(temperature, n_bins=8)
+    search_bounds = _create_changepoint_search_bounds(x, n_bins=8)
     fit_results = []
     
     for cp_bounds in search_bounds:
         try:
             # Update bounds for this iteration
             iteration_bounds = bounds.copy()
-            iteration_bounds[0][1] = cp_bounds[0][0]  # heating changepoint lower
-            iteration_bounds[1][1] = cp_bounds[0][1]  # heating changepoint upper  
-            iteration_bounds[0][3] = cp_bounds[1][0]  # cooling changepoint lower
-            iteration_bounds[1][3] = cp_bounds[1][1]  # cooling changepoint upper
+            iteration_bounds[0][1] = cp_bounds[0][0]  # left changepoint lower
+            iteration_bounds[1][1] = cp_bounds[0][1]  # left changepoint upper  
+            iteration_bounds[0][3] = cp_bounds[1][0]  # right changepoint lower
+            iteration_bounds[1][3] = cp_bounds[1][1]  # right changepoint upper
             
-            result = _fit_model_once(temperature, energy_use, iteration_bounds)
+            result = _fit_model_once(x, y, iteration_bounds)
             fit_results.append(result)
             
         except Exception:
@@ -79,80 +84,80 @@ def fit_changepoint_model(
     
     # Select best model and determine type
     optimal_model = _select_optimal_model(
-        fit_results, temperature, energy_use, min_r_squared, max_cv_rmse
+        fit_results, x, y, min_r_squared, max_cv_rmse
     )
     
     return optimal_model
 
 
-def _validate_model_inputs(temperature: np.ndarray, energy_use: np.ndarray) -> None:
+def _validate_model_inputs(x: np.ndarray, y: np.ndarray) -> None:
     """Validate inputs for change-point model fitting."""
-    if not np.any(temperature):
-        raise ValueError("Temperature must have at least one element")
-    if not np.any(energy_use):
-        raise ValueError("Energy use must have at least one element")
-    if np.size(energy_use) != np.size(temperature):
-        raise ValueError("Temperature and energy use arrays must have the same length")
-    if all(np.isnan(temperature)):
-        raise ValueError("Temperature data cannot be all NaN")
+    if not np.any(x):
+        raise ValueError("x must have at least one element")
+    if not np.any(y):
+        raise ValueError("y must have at least one element")
+    if np.size(y) != np.size(x):
+        raise ValueError("x and y arrays must have the same length")
+    if all(np.isnan(x)):
+        raise ValueError("x data cannot be all NaN")
 
 
-def _create_model_bounds(temperature: np.ndarray, energy_use: np.ndarray) -> list:
+def _create_model_bounds(x: np.ndarray, y: np.ndarray) -> list:
     """Create bounds for model coefficient optimization."""
-    hsl_bounds = [-np.inf, 0]  # heating slope (negative)
-    hcp_bounds = [np.min(temperature), np.max(temperature)]  # heating changepoint
-    base_bounds = [np.min(energy_use), np.max(energy_use)]  # baseload
-    ccp_bounds = [np.min(temperature), np.max(temperature)]  # cooling changepoint
-    csl_bounds = [0, np.inf]  # cooling slope (positive)
+    left_slope_bounds = [-np.inf, 0]  # left slope (negative for energy/temperature)
+    left_cp_bounds = [np.min(x), np.max(x)]  # left changepoint
+    baseline_bounds = [np.min(y), np.max(y)]  # baseline value
+    right_cp_bounds = [np.min(x), np.max(x)]  # right changepoint
+    right_slope_bounds = [0, np.inf]  # right slope (positive for energy/temperature)
     
     return [
-        [hsl_bounds[0], hcp_bounds[0], base_bounds[0], ccp_bounds[0], csl_bounds[0]],
-        [hsl_bounds[1], hcp_bounds[1], base_bounds[1], ccp_bounds[1], csl_bounds[1]]
+        [left_slope_bounds[0], left_cp_bounds[0], baseline_bounds[0], right_cp_bounds[0], right_slope_bounds[0]],
+        [left_slope_bounds[1], left_cp_bounds[1], baseline_bounds[1], right_cp_bounds[1], right_slope_bounds[1]]
     ]
 
 
-def _create_changepoint_search_bounds(temperature: np.ndarray, n_bins: int = 4) -> list:
-    """Create search bounds for heating and cooling changepoints."""
-    bin_width = np.ptp(temperature) / n_bins
-    marks = [np.min(temperature) + i * bin_width for i in range(n_bins + 1)]
+def _create_changepoint_search_bounds(x: np.ndarray, n_bins: int = 4) -> list:
+    """Create search bounds for left and right changepoints."""
+    bin_width = np.ptp(x) / n_bins
+    marks = [np.min(x) + i * bin_width for i in range(n_bins + 1)]
     
     bounds_list = []
     for i in range(len(marks) - 1):
         for j in range(i + 1, len(marks) - 1):
             bounds_list.append([
-                (marks[i], marks[i + 1]),  # heating changepoint bounds
-                (marks[j], marks[j + 1])   # cooling changepoint bounds
+                (marks[i], marks[i + 1]),  # left changepoint bounds
+                (marks[j], marks[j + 1])   # right changepoint bounds
             ])
     
     return bounds_list
 
 
 def _fit_model_once(
-    temperature: np.ndarray, 
-    energy_use: np.ndarray, 
+    x: np.ndarray, 
+    y: np.ndarray, 
     bounds: list
 ) -> Dict:
     """Fit the piecewise linear model once with given bounds."""
     # Perform curve fitting
     popt, pcov = optimize.curve_fit(
         f=piecewise_linear_5p,
-        xdata=temperature,
-        ydata=energy_use,
+        xdata=x,
+        ydata=y,
         bounds=bounds,
         method='dogbox'
     )
     
     # Calculate model quality metrics
-    y_predicted = piecewise_linear_5p(temperature, *popt)
-    r2 = calculate_r_squared(energy_use, y_predicted)
-    cvrmse = calculate_cvrmse(energy_use, y_predicted)
+    y_predicted = piecewise_linear_5p(x, *popt)
+    r2 = calculate_r_squared(y, y_predicted)
+    cvrmse = calculate_cvrmse(y, y_predicted)
     
     # Check slope significance
-    pval_heating, valid_heating = _check_slope_significance(
-        popt[0], temperature, energy_use, popt, is_heating=True
+    pval_left, valid_left = _check_slope_significance(
+        popt[0], x, y, popt, is_left_slope=True
     )
-    pval_cooling, valid_cooling = _check_slope_significance(
-        popt[4], temperature, energy_use, popt, is_heating=False
+    pval_right, valid_right = _check_slope_significance(
+        popt[4], x, y, popt, is_left_slope=False
     )
     
     return {
@@ -160,35 +165,35 @@ def _fit_model_once(
         "covariance": pcov,
         "r_squared": r2,
         "cvrmse": cvrmse,
-        "heating_pvalue": pval_heating,
-        "cooling_pvalue": pval_cooling,
-        "heating_significant": valid_heating,
-        "cooling_significant": valid_cooling
+        "heating_pvalue": pval_left,   # Keep legacy key names for compatibility
+        "cooling_pvalue": pval_right,
+        "heating_significant": valid_left,
+        "cooling_significant": valid_right
     }
 
 
 def _check_slope_significance(
     slope: float,
-    temperature: np.ndarray,
-    energy_use: np.ndarray, 
+    x: np.ndarray,
+    y: np.ndarray, 
     coefficients: np.ndarray,
-    is_heating: bool
+    is_left_slope: bool
 ) -> Tuple[Optional[float], bool]:
-    """Check if a heating or cooling slope is statistically significant."""
+    """Check if a left or right slope is statistically significant."""
     if isclose(slope, 0, abs_tol=1e-5):
         return None, False
     
-    if is_heating:
-        # Check heating slope significance
+    if is_left_slope:
+        # Check left slope significance
         changepoint = coefficients[1]
-        mask = temperature <= changepoint
+        mask = x <= changepoint
     else:
-        # Check cooling slope significance  
+        # Check right slope significance  
         changepoint = coefficients[3]
-        mask = temperature >= changepoint
+        mask = x >= changepoint
     
-    x_subset = temperature[mask]
-    y_subset = energy_use[mask]
+    x_subset = x[mask]
+    y_subset = y[mask]
     
     if len(x_subset) <= 2:
         return np.inf, False
@@ -224,8 +229,8 @@ def _calculate_slope_pvalue(
 
 def _select_optimal_model(
     fit_results: list,
-    temperature: np.ndarray,
-    energy_use: np.ndarray,
+    x: np.ndarray,
+    y: np.ndarray,
     min_r_squared: float,
     max_cv_rmse: float
 ) -> ChangePointModelResult:
@@ -259,7 +264,7 @@ def _select_optimal_model(
         best_model = df_significant.loc[best_idx]
         
         # Determine model type and validate
-        model_type, coefficients = _determine_model_type(best_model, temperature, energy_use, min_r_squared)
+        model_type, coefficients = _determine_model_type(best_model, x, y, min_r_squared)
         
         if model_type != "No-fit":
             return ChangePointModelResult(
@@ -276,13 +281,13 @@ def _select_optimal_model(
             )
     
     # Try 1P model as fallback
-    return _fit_1p_model(temperature, energy_use, max_cv_rmse)
+    return _fit_1p_model(x, y, max_cv_rmse)
 
 
 def _determine_model_type(
     model_row: pd.Series,
-    temperature: np.ndarray,
-    energy_use: np.ndarray,
+    x: np.ndarray,
+    y: np.ndarray,
     min_r_squared: float
 ) -> Tuple[str, Dict]:
     """Determine model type (5P, 3P, etc.) and extract coefficients."""
@@ -306,7 +311,7 @@ def _determine_model_type(
             coefficients['cooling_slope']
         ]
         
-        if _check_r2_threshold(temperature, energy_use, test_coeffs, min_r_squared):
+        if _check_r2_threshold(x, y, test_coeffs, min_r_squared):
             return "5P", coefficients
             
     elif cooling_significant and not heating_significant:
@@ -322,7 +327,7 @@ def _determine_model_type(
         test_coeffs = [None, None, coefficients['baseload'], 
                       coefficients['cooling_changepoint'], coefficients['cooling_slope']]
         
-        if _check_r2_threshold(temperature, energy_use, test_coeffs, min_r_squared):
+        if _check_r2_threshold(x, y, test_coeffs, min_r_squared):
             return "3P-C", coefficients
             
     elif heating_significant and not cooling_significant:
@@ -338,35 +343,35 @@ def _determine_model_type(
         test_coeffs = [coefficients['heating_slope'], coefficients['heating_changepoint'],
                       coefficients['baseload'], None, None]
         
-        if _check_r2_threshold(temperature, energy_use, test_coeffs, min_r_squared):
+        if _check_r2_threshold(x, y, test_coeffs, min_r_squared):
             return "3P-H", coefficients
     
     return "No-fit", {}
 
 
 def _check_r2_threshold(
-    temperature: np.ndarray,
-    energy_use: np.ndarray,
+    x: np.ndarray,
+    y: np.ndarray,
     coefficients: list,
     min_r_squared: float
 ) -> bool:
     """Check if model meets R² threshold."""
-    predicted = piecewise_linear_5p(temperature, *coefficients)
-    r2 = calculate_r_squared(energy_use, predicted)
+    predicted = piecewise_linear_5p(x, *coefficients)
+    r2 = calculate_r_squared(y, predicted)
     return r2 >= min_r_squared
 
 
 def _fit_1p_model(
-    temperature: np.ndarray,
-    energy_use: np.ndarray,
+    x: np.ndarray,
+    y: np.ndarray,
     max_cv_rmse: float
 ) -> ChangePointModelResult:
     """Fit a 1P (constant) model as fallback."""
-    baseload = np.mean(energy_use)
-    predicted = np.full_like(energy_use, baseload)
+    baseload = np.mean(y)
+    predicted = np.full_like(y, baseload)
     
-    r2 = calculate_r_squared(energy_use, predicted)
-    cvrmse = calculate_cvrmse(energy_use, predicted)
+    r2 = calculate_r_squared(y, predicted)
+    cvrmse = calculate_cvrmse(y, predicted)
     
     if cvrmse <= max_cv_rmse:
         model_type = "1P"

@@ -1,15 +1,19 @@
 {
     // Python configuration
-    "python.defaultInterpreterPath": "./.venv/Scripts/python.exe",
+    "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
     "python.terminal.activateEnvironment": true,
     
     // Testing configuration
     "python.testing.pytestEnabled": true,
     "python.testing.unittestEnabled": false,
+    // Use python -m pytest for VS Code discovery; keep uv in tasks for CLI
+    "python.testing.pytestPath": "python",
     "python.testing.pytestArgs": [
-        "tests",
-        "--no-cov",
-        "-v"
+        "-m",
+        "pytest",
+        "--import-mode=importlib",
+        "-vv",
+        "tests"
     ],
     "python.testing.cwd": "${workspaceFolder}",
     "python.testing.autoTestDiscoverOnSaveEnabled": true,
