@@ -1,6 +1,6 @@
 """Domain models and services for building energy analytics."""
 
-from better_lbnl.data.models import (
+from better_lbnl_os.data.models import (
     BuildingData,
     UtilityBillData,
     WeatherData,
@@ -9,7 +9,7 @@ from better_lbnl.data.models import (
     SavingsEstimate,
     EEMeasureRecommendation,
 )
-from better_lbnl.data.services import (
+from better_lbnl_os.data.services import (
     BuildingAnalyticsService,
     PortfolioBenchmarkService,
 )

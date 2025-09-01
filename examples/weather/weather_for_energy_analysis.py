@@ -5,16 +5,15 @@ This example demonstrates how to use weather data alongside
 utility bills for building energy analysis.
 """
 
-import asyncio
 from datetime import date
 from typing import List, Tuple
 import numpy as np
 
-from better_lbnl.core.weather import WeatherService, OpenMeteoProvider
-from better_lbnl.domain.models import LocationInfo, WeatherData
+from better_lbnl_os.core.weather import WeatherService, OpenMeteoProvider
+from better_lbnl_os.data.models import LocationInfo, WeatherData
 
 
-async def get_weather_for_billing_periods(
+def get_weather_for_billing_periods(
     location: LocationInfo,
     billing_periods: List[Tuple[date, date]]
 ) -> List[dict]:
@@ -38,7 +37,7 @@ async def get_weather_for_billing_periods(
         # Handle billing periods that span multiple months
         current_date = start_date
         while current_date <= end_date:
-            weather = await service.get_weather_data(
+            weather = service.get_weather_data(
                 location, 
                 current_date.year, 
                 current_date.month
@@ -101,7 +100,7 @@ async def get_weather_for_billing_periods(
     return results
 
 
-async def analyze_energy_weather_correlation():
+def analyze_energy_weather_correlation():
     """Analyze correlation between energy use and weather."""
     print("=" * 70)
     print("Energy-Weather Correlation Analysis")
@@ -132,7 +131,7 @@ async def analyze_energy_weather_correlation():
     
     # Get weather data for billing periods
     billing_periods = [bill['period'] for bill in utility_bills]
-    weather_summaries = await get_weather_for_billing_periods(location, billing_periods)
+    weather_summaries = get_weather_for_billing_periods(location, billing_periods)
     
     # Display results
     print("Billing Period         | Days | kWh   | Avg°F | HDD   | CDD   | kWh/DD")
@@ -180,7 +179,7 @@ async def analyze_energy_weather_correlation():
             print(f"    (stronger correlation with heating degree days)")
 
 
-async def calculate_weather_normalized_energy():
+def calculate_weather_normalized_energy():
     """Calculate weather-normalized energy consumption."""
     print("\n" + "=" * 70)
     print("Weather-Normalized Energy Consumption")
@@ -200,10 +199,10 @@ async def calculate_weather_normalized_energy():
     print("Comparing actual vs. typical weather impact on energy use\n")
     
     # Get actual weather for 2023
-    actual_weather = await service.get_weather_range(location, 2023, 1, 2023, 12)
+    actual_weather = service.get_weather_range(location, 2023, 1, 2023, 12)
     
     # For demonstration, use 2022 as "typical" year
-    typical_weather = await service.get_weather_range(location, 2022, 1, 2022, 12)
+    typical_weather = service.get_weather_range(location, 2022, 1, 2022, 12)
     
     if actual_weather and typical_weather:
         # Calculate annual degree days
@@ -241,14 +240,14 @@ async def calculate_weather_normalized_energy():
             print(f"    (normalized consumption is lower than actual)")
 
 
-async def main():
+def main():
     """Run all energy analysis examples."""
     print("\n" + "=" * 70)
     print("   BETTER-LBNL Weather for Energy Analysis Examples")
     print("=" * 70)
     
-    await analyze_energy_weather_correlation()
-    await calculate_weather_normalized_energy()
+    analyze_energy_weather_correlation()
+    calculate_weather_normalized_energy()
     
     print("\n" + "=" * 70)
     print("   Examples Complete!")
@@ -261,4 +260,4 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()

@@ -22,20 +22,20 @@ Open-source Python library for building energy analytics, extracted from BETTER 
 ### Using pip
 
 ```bash
-pip install better-lbnl
+pip install better-lbnl-os
 ```
 
 ### Using uv (recommended)
 
 ```bash
-uv add better-lbnl
+uv add better-lbnl-os
 ```
 
 ### Development Installation
 
 ```bash
-git clone https://github.com/LBNL-ETA/better-lbnl.git
-cd better-lbnl
+git clone https://github.com/LBNL-ETA/better-lbnl-os.git
+cd better-lbnl-os
 uv venv
 uv pip install -e ".[dev]"
 ```
@@ -43,7 +43,7 @@ uv pip install -e ".[dev]"
 ## Quick Start
 
 ```python
-from better_lbnl import BuildingData, fit_changepoint_model
+from better_lbnl_os import BuildingData, fit_changepoint_model
 import numpy as np
 
 # Create a building
@@ -113,7 +113,7 @@ Run the test suite:
 pytest
 
 # Run with coverage
-pytest --cov=better_lbnl --cov-report=html
+pytest --cov=better_lbnl_os --cov-report=html
 
 # Run specific test categories
 pytest -m "not slow"  # Skip slow tests

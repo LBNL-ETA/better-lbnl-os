@@ -4,14 +4,14 @@ from abc import ABC, abstractmethod
 from datetime import date
 from typing import List, Optional, Dict, Any
 
-from better_lbnl.data.models import WeatherData, WeatherStation
+from better_lbnl_os.data.models import WeatherData, WeatherStation
 
 
 class WeatherDataProvider(ABC):
     """Abstract interface for weather data providers."""
     
     @abstractmethod
-    async def get_monthly_average(
+    def get_monthly_average(
         self, 
         latitude: float, 
         longitude: float,
@@ -33,7 +33,7 @@ class WeatherDataProvider(ABC):
         pass
     
     @abstractmethod
-    async def get_daily_temperatures(
+    def get_daily_temperatures(
         self,
         latitude: float,
         longitude: float,
@@ -55,7 +55,7 @@ class WeatherDataProvider(ABC):
         pass
     
     @abstractmethod
-    async def get_weather_data(
+    def get_weather_data(
         self,
         latitude: float,
         longitude: float,

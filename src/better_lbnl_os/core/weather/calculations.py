@@ -255,3 +255,4 @@ def validate_temperature_range(
         return False
     
     return min_temp_c <= temp_c <= max_temp_c
+

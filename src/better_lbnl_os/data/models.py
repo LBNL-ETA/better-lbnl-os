@@ -2,9 +2,14 @@
 
 from datetime import date
 from typing import List, Optional
-
-import numpy as np
 from pydantic import BaseModel, Field, field_validator, model_validator
+
+# Centralized constants
+from better_lbnl_os.data.constants import (
+    CONVERSION_TO_KWH,
+    BuildingSpaceType,
+    normalize_space_type,
+)
 
 
 class LocationInfo(BaseModel):
@@ -36,7 +41,7 @@ class LocationInfo(BaseModel):
         Returns:
             Distance in kilometers
         """
-        from better_lbnl.utils.geography import haversine_distance
+        from better_lbnl_os.utils.geography import haversine_distance
         return haversine_distance(
             self.geo_lat, self.geo_lng, 
             other.geo_lat, other.geo_lng
@@ -48,61 +53,19 @@ class BuildingData(BaseModel):
 
     name: str = Field(..., description="Building name")
     floor_area: float = Field(..., gt=0, description="Floor area in square feet")
-    space_type: str = Field(..., description="Building space type category")
+    space_type: str = Field(..., description="Building space type category (display label)")
     location: str = Field(..., description="Building location")
     country_code: str = Field(default="US", description="Country code")
     climate_zone: Optional[str] = Field(None, description="ASHRAE climate zone")
 
     @field_validator("space_type")
     @classmethod
-    def validate_space_type(cls, v):
-        """Validate space type is in allowed categories."""
-        allowed_types = [
-            "Office",
-            "Retail",
-            "School",
-            "Hospital",
-            "Hotel",
-            "Warehouse",
-            "Restaurant",
-            "Laboratory",
-            "Data Center",
-            "Other",
-        ]
-        if v not in allowed_types:
-            raise ValueError(f"Space type must be one of {allowed_types}")
-        return v
+    def validate_space_type(cls, v: str) -> str:
+        """Normalize and validate the space type against known choices."""
+        return normalize_space_type(v)
 
-    def calculate_eui(self, annual_energy_kwh: float) -> float:
-        """Calculate Energy Use Intensity (kBtu/sqft/year).
-        
-        Args:
-            annual_energy_kwh: Annual energy consumption in kWh
-            
-        Returns:
-            EUI in kBtu/sqft/year
-        """
-        kbtu_per_kwh = 3.412
-        return (annual_energy_kwh * kbtu_per_kwh) / self.floor_area
-
-    def calculate_monthly_eui(self, bills: List["UtilityBillData"]) -> np.ndarray:
-        """Calculate monthly EUI from utility bills.
-        
-        Args:
-            bills: List of utility bill data
-            
-        Returns:
-            Array of monthly EUI values
-        """
-        monthly_eui = []
-        for bill in bills:
-            kwh = bill.to_kwh()
-            days = bill.get_days()
-            daily_kwh = kwh / days if days > 0 else 0
-            monthly_kwh = daily_kwh * 30  # Normalize to 30-day month
-            eui = self.calculate_eui(monthly_kwh * 12)  # Annualize for EUI
-            monthly_eui.append(eui)
-        return np.array(monthly_eui)
+    # Note: EUI calculations and calendarization belong in services/algorithms
+    # to mirror the Django project structure. Intentionally omitted here.
 
     def validate_bills(self, bills: List["UtilityBillData"]) -> List[str]:
         """Validate utility bills for this building.
@@ -142,21 +105,21 @@ class BuildingData(BaseModel):
         """Determine benchmark category based on space type.
         
         Returns:
-            Benchmark category string
+            Benchmark category code (one-to-one with BuildingSpaceType)
         """
-        category_map = {
-            "Office": "COMMERCIAL_OFFICE",
-            "Retail": "COMMERCIAL_RETAIL",
-            "School": "EDUCATION_K12",
-            "Hospital": "HEALTHCARE_HOSPITAL",
-            "Hotel": "LODGING_HOTEL",
-            "Warehouse": "WAREHOUSE_UNREFRIGERATED",
-            "Restaurant": "FOOD_SERVICE_RESTAURANT",
-            "Laboratory": "LABORATORY",
-            "Data Center": "DATA_CENTER",
-            "Other": "OTHER",
-        }
-        return category_map.get(self.space_type, "OTHER")
+        from better_lbnl_os.data.constants import space_type_to_benchmark_category
+        category = space_type_to_benchmark_category(self.space_type)
+        return category.value
+
+    def get_space_type_code(self) -> str:
+        """Return the enum code (name) for the current space type.
+
+        Example: "Office" -> "OFFICE"
+        """
+        for st in BuildingSpaceType:
+            if self.space_type == st.value:
+                return st.name
+        return "OTHER"
 
 
 class UtilityBillData(BaseModel):
@@ -182,20 +145,8 @@ class UtilityBillData(BaseModel):
         Returns:
             Consumption in kWh
         """
-        conversion_factors = {
-            ("ELECTRICITY", "kWh"): 1.0,
-            ("ELECTRICITY", "MWh"): 1000.0,
-            ("NATURAL_GAS", "therms"): 29.3,
-            ("NATURAL_GAS", "ccf"): 29.3,
-            ("NATURAL_GAS", "mcf"): 293.0,
-            ("NATURAL_GAS", "MMBtu"): 293.0,
-            ("FUEL_OIL", "gallons"): 40.6,
-            ("PROPANE", "gallons"): 27.0,
-            ("STEAM", "MLbs"): 293.0,
-            ("STEAM", "therms"): 29.3,
-        }
         key = (self.fuel_type, self.units)
-        factor = conversion_factors.get(key, 1.0)
+        factor = CONVERSION_TO_KWH.get(key, 1.0)
         return self.consumption * factor
 
     def get_days(self) -> int:
@@ -243,14 +194,14 @@ class WeatherData(BaseModel):
     @property
     def avg_temp_f(self) -> float:
         """Average temperature in Fahrenheit."""
-        from better_lbnl.core.weather.calculations import celsius_to_fahrenheit
+        from better_lbnl_os.core.weather.calculations import celsius_to_fahrenheit
         return celsius_to_fahrenheit(self.avg_temp_c)
     
     @property
     def min_temp_f(self) -> Optional[float]:
         """Minimum temperature in Fahrenheit."""
         if self.min_temp_c is not None:
-            from better_lbnl.core.weather.calculations import celsius_to_fahrenheit
+            from better_lbnl_os.core.weather.calculations import celsius_to_fahrenheit
             return celsius_to_fahrenheit(self.min_temp_c)
         return None
     
@@ -258,7 +209,7 @@ class WeatherData(BaseModel):
     def max_temp_f(self) -> Optional[float]:
         """Maximum temperature in Fahrenheit."""
         if self.max_temp_c is not None:
-            from better_lbnl.core.weather.calculations import celsius_to_fahrenheit
+            from better_lbnl_os.core.weather.calculations import celsius_to_fahrenheit
             return celsius_to_fahrenheit(self.max_temp_c)
         return None
 
@@ -272,7 +223,7 @@ class WeatherData(BaseModel):
         Returns:
             HDD value
         """
-        from better_lbnl.core.weather.calculations import (
+        from better_lbnl_os.core.weather.calculations import (
             calculate_heating_degree_days, 
             estimate_monthly_hdd,
             convert_temperature_list
@@ -298,7 +249,7 @@ class WeatherData(BaseModel):
         Returns:
             CDD value
         """
-        from better_lbnl.core.weather.calculations import (
+        from better_lbnl_os.core.weather.calculations import (
             calculate_cooling_degree_days,
             estimate_monthly_cdd,
             convert_temperature_list
@@ -316,7 +267,7 @@ class WeatherData(BaseModel):
     
     def is_valid_temperature(self) -> bool:
         """Validate temperature is within reasonable range."""
-        from better_lbnl.core.weather.calculations import validate_temperature_range
+        from better_lbnl_os.core.weather.calculations import validate_temperature_range
         return validate_temperature_range(self.avg_temp_c)
 
 
@@ -341,7 +292,7 @@ class WeatherStation(BaseModel):
         Returns:
             Distance in kilometers
         """
-        from better_lbnl.utils.geography import haversine_distance
+        from better_lbnl_os.utils.geography import haversine_distance
         return haversine_distance(self.latitude, self.longitude, lat, lng)
 
 
@@ -379,6 +330,26 @@ class ChangePointModelResult(BaseModel):
         """
         model_params = {"1P": 1, "3P-H": 3, "3P-C": 3, "5P": 5}
         return model_params.get(self.model_type, 1)
+
+    def get_model_type_label(self, style: str = "short") -> str:
+        """Return a display label for the model type.
+
+        Args:
+            style: "short" for compact labels (e.g., 3P-H),
+                   "long" for legacy labels (e.g., 3P Heating)
+
+        Returns:
+            A model type label string.
+        """
+        short_to_long = {
+            "1P": "1P",
+            "3P-H": "3P Heating",
+            "3P-C": "3P Cooling",
+            "5P": "5P",
+        }
+        if style == "long":
+            return short_to_long.get(self.model_type, self.model_type)
+        return self.model_type
 
     def estimate_annual_consumption(self, annual_hdd: float, annual_cdd: float) -> float:
         """Estimate annual energy consumption from degree days.

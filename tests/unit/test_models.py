@@ -2,7 +2,7 @@
 
 import pytest
 from datetime import date
-from better_lbnl.data.models import BuildingData, UtilityBillData
+from better_lbnl_os.data.models import BuildingData, UtilityBillData
 
 
 class TestBuildingData:
@@ -24,19 +24,7 @@ class TestBuildingData:
         assert building.space_type == "Office"
         assert building.location == "Berkeley, CA"
 
-    def test_calculate_eui(self):
-        """Test EUI calculation."""
-        building = BuildingData(
-            name="Test Building",
-            floor_area=10000,
-            space_type="Office",
-            location="Berkeley, CA"
-        )
-        
-        # 34,120 kWh * 3.412 kBtu/kWh = 116,441.44 kBtu
-        # 116,441.44 kBtu / 10,000 sqft = 11.64 kBtu/sqft/year
-        eui = building.calculate_eui(annual_energy_kwh=34120)
-        assert abs(eui - 11.641744) < 0.001
+    # EUI calculations are handled by services/algorithms in OS library
 
     def test_invalid_space_type(self):
         """Test validation of space type."""
@@ -57,7 +45,8 @@ class TestBuildingData:
             location="Berkeley, CA"
         )
         
-        assert building.get_benchmark_category() == "COMMERCIAL_OFFICE"
+        # With one-to-one mapping, Office maps to OFFICE
+        assert building.get_benchmark_category() == "OFFICE"
 
 
 class TestUtilityBillData:

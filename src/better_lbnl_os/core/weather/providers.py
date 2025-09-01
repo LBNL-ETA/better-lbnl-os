@@ -9,9 +9,9 @@ import pandas as pd
 import requests
 from requests.exceptions import RequestException
 
-from better_lbnl.core.weather.calculations import calculate_monthly_average
-from better_lbnl.data.models import WeatherData, WeatherStation
-from better_lbnl.interfaces.weather_source import WeatherDataProvider
+from better_lbnl_os.core.weather.calculations import calculate_monthly_average
+from better_lbnl_os.data.models import WeatherData, WeatherStation
+from better_lbnl_os.interfaces.weather_source import WeatherDataProvider
 
 
 logger = logging.getLogger(__name__)
@@ -33,7 +33,7 @@ class OpenMeteoProvider(WeatherDataProvider):
         else:
             self.base_url = "https://archive-api.open-meteo.com/v1/archive"
     
-    async def get_monthly_average(
+    def get_monthly_average(
         self,
         latitude: float,
         longitude: float,
@@ -43,7 +43,7 @@ class OpenMeteoProvider(WeatherDataProvider):
         """Get monthly average temperature from OpenMeteo."""
         try:
             # Get the weather data for the month
-            weather_data = await self.get_weather_data(latitude, longitude, year, month)
+            weather_data = self.get_weather_data(latitude, longitude, year, month)
             if weather_data:
                 return weather_data.avg_temp_c
             return None
@@ -51,7 +51,7 @@ class OpenMeteoProvider(WeatherDataProvider):
             logger.error(f"Error getting monthly average from OpenMeteo: {e}")
             return None
     
-    async def get_daily_temperatures(
+    def get_daily_temperatures(
         self,
         latitude: float,
         longitude: float,
@@ -85,7 +85,7 @@ class OpenMeteoProvider(WeatherDataProvider):
             logger.error(f"Error fetching daily temps from OpenMeteo: {e}")
             return []
     
-    async def get_weather_data(
+    def get_weather_data(
         self,
         latitude: float,
         longitude: float,
@@ -251,7 +251,7 @@ class NOAAProvider(WeatherDataProvider):
         self.base_url = "https://www.ncei.noaa.gov/data/"
         logger.info("NOAA provider initialized (implementation pending)")
     
-    async def get_monthly_average(
+    def get_monthly_average(
         self,
         latitude: float,
         longitude: float,
@@ -262,7 +262,7 @@ class NOAAProvider(WeatherDataProvider):
         logger.warning("NOAA provider not yet implemented")
         return None
     
-    async def get_daily_temperatures(
+    def get_daily_temperatures(
         self,
         latitude: float,
         longitude: float,
@@ -273,7 +273,7 @@ class NOAAProvider(WeatherDataProvider):
         logger.warning("NOAA provider not yet implemented")
         return []
     
-    async def get_weather_data(
+    def get_weather_data(
         self,
         latitude: float,
         longitude: float,

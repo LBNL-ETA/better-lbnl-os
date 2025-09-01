@@ -1,24 +1,34 @@
 """Unit tests for weather service."""
 
 import unittest
-from unittest.mock import Mock, AsyncMock, patch
+from unittest.mock import Mock, patch
 from datetime import date
-import asyncio
 
-from better_lbnl.core.weather.service import WeatherService
-from better_lbnl.interfaces.weather_source import WeatherDataProvider
-from better_lbnl.data.models import LocationInfo, WeatherData, WeatherStation
+from better_lbnl_os.core.weather.service import WeatherService
+from better_lbnl_os.interfaces.weather_source import WeatherDataProvider
+from better_lbnl_os.data.models import LocationInfo, WeatherData, WeatherStation
 
 
 class MockWeatherProvider(WeatherDataProvider):
     """Mock weather provider for testing."""
     
     def __init__(self):
-        self.get_monthly_average = AsyncMock()
-        self.get_daily_temperatures = AsyncMock()
-        self.get_weather_data = AsyncMock()
+        # Override methods with mocks at the instance level
+        self.get_monthly_average = Mock()
+        self.get_daily_temperatures = Mock()
+        self.get_weather_data = Mock()
         self.get_nearest_station = Mock()
         self.validate_date_range = Mock(return_value=True)
+
+    # Satisfy ABC requirements; these will be shadowed by instance mocks
+    def get_monthly_average(self, latitude, longitude, year, month):  # type: ignore[override]
+        raise NotImplementedError
+
+    def get_daily_temperatures(self, latitude, longitude, start_date, end_date):  # type: ignore[override]
+        raise NotImplementedError
+
+    def get_weather_data(self, latitude, longitude, year, month):  # type: ignore[override]
+        raise NotImplementedError
     
     def get_provider_name(self):
         return "Mock"
@@ -108,14 +118,8 @@ class TestWeatherService(unittest.TestCase):
         )
         self.mock_provider.get_weather_data.return_value = mock_weather
         
-        # Run async function
-        async def test():
-            weather = await self.service.get_weather_data(
-                self.location, 2023, 1
-            )
-            return weather
-        
-        weather = asyncio.run(test())
+        # Call sync method
+        weather = self.service.get_weather_data(self.location, 2023, 1)
         
         # Verify result
         self.assertIsNotNone(weather)
@@ -137,14 +141,7 @@ class TestWeatherService(unittest.TestCase):
             state="XX"
         )
         
-        # Run async function
-        async def test():
-            weather = await self.service.get_weather_data(
-                invalid_location, 2023, 1
-            )
-            return weather
-        
-        weather = asyncio.run(test())
+        weather = self.service.get_weather_data(invalid_location, 2023, 1)
         
         # Should return None for invalid location
         self.assertIsNone(weather)
@@ -166,14 +163,7 @@ class TestWeatherService(unittest.TestCase):
         ]
         self.mock_provider.get_weather_data.side_effect = mock_weathers
         
-        # Run async function
-        async def test():
-            weathers = await self.service.get_weather_range(
-                self.location, 2023, 1, 2023, 3
-            )
-            return weathers
-        
-        weathers = asyncio.run(test())
+        weathers = self.service.get_weather_range(self.location, 2023, 1, 2023, 3)
         
         # Verify result
         self.assertEqual(len(weathers), 3)
@@ -217,15 +207,9 @@ class TestWeatherService(unittest.TestCase):
         )
         self.mock_provider.get_weather_data.return_value = mock_weather
         
-        # Run async function
-        async def test():
-            filled = await self.service.fill_missing_weather(
-                self.location, 2023, 1, 2023, 3,
-                existing_data=existing_data
-            )
-            return filled
-        
-        filled = asyncio.run(test())
+        filled = self.service.fill_missing_weather(
+            self.location, 2023, 1, 2023, 3, existing_data=existing_data
+        )
         
         # Verify result
         self.assertEqual(len(filled), 3)
@@ -252,14 +236,7 @@ class TestWeatherService(unittest.TestCase):
         )
         self.mock_provider.get_weather_data.return_value = mock_weather
         
-        # Run async function
-        async def test():
-            dd = await self.service.calculate_degree_days(
-                self.location, 2023, 1, base_temp_f=65.0
-            )
-            return dd
-        
-        dd = asyncio.run(test())
+        dd = self.service.calculate_degree_days(self.location, 2023, 1, base_temp_f=65.0)
         
         # Verify result
         self.assertIn('hdd', dd)
@@ -286,14 +263,7 @@ class TestWeatherService(unittest.TestCase):
             )
         self.mock_provider.get_weather_data.side_effect = mock_weathers
         
-        # Run async function
-        async def test():
-            annual = await self.service.calculate_annual_degree_days(
-                self.location, 2023, base_temp_f=65.0
-            )
-            return annual
-        
-        annual = asyncio.run(test())
+        annual = self.service.calculate_annual_degree_days(self.location, 2023, base_temp_f=65.0)
         
         # Verify result
         self.assertIn('hdd', annual)

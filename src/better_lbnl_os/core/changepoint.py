@@ -12,14 +12,16 @@ import numpy as np
 import pandas as pd
 from scipy import optimize, stats
 
-from better_lbnl.data.models import ChangePointModelResult
+from better_lbnl_os.data.models import ChangePointModelResult
+from better_lbnl_os.data.constants import (
+    DEFAULT_R2_THRESHOLD,
+    DEFAULT_CVRMSE_THRESHOLD,
+    DEFAULT_SIGNIFICANT_PVAL,
+)
 
 logger = logging.getLogger(__name__)
 
-# Default model quality thresholds
-DEFAULT_R2_THRESHOLD = 0.6
-DEFAULT_CVRMSE_THRESHOLD = 0.5
-DEFAULT_SIGNIFICANT_PVAL = 0.1
+# Default thresholds now sourced from data.constants
 
 
 def fit_changepoint_model(

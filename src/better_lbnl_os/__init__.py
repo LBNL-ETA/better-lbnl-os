@@ -15,14 +15,14 @@ __author__ = "Han Li"
 __email__ = "hanli@lbl.gov"
 
 # Core algorithms - pure functions
-from better_lbnl.core.changepoint import (
+from better_lbnl_os.core.changepoint import (
     fit_changepoint_model,
     calculate_cvrmse,
     calculate_r_squared,
 )
 
 # Domain models with behavior
-from better_lbnl.data.models import (
+from better_lbnl_os.data.models import (
     BuildingData,
     UtilityBillData,
     WeatherData,
@@ -32,7 +32,7 @@ from better_lbnl.data.models import (
 )
 
 # Services for orchestration
-from better_lbnl.data.services import (
+from better_lbnl_os.data.services import (
     BuildingAnalyticsService,
     PortfolioBenchmarkService,
 )

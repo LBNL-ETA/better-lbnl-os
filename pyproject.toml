@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "better-lbnl"
+name = "better-lbnl-os"
 version = "0.1.0"
 description = "Open-source building energy analytics library extracted from BETTER (Building Efficiency Targeting Tool for Energy Retrofits)"
 readme = "README.md"
@@ -47,6 +47,7 @@ dependencies = [
     "pydantic>=2.0.0",
     "python-dateutil>=2.8.0",
     "geocoder>=1.38.1",
+    "requests>=2.28.0",
 ]
 
 [project.optional-dependencies]
@@ -79,14 +80,14 @@ all = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/LBNL-ETA/better-lbnl"
-Documentation = "https://better-lbnl.readthedocs.io"
-Repository = "https://github.com/LBNL-ETA/better-lbnl"
-Issues = "https://github.com/LBNL-ETA/better-lbnl/issues"
-Changelog = "https://github.com/LBNL-ETA/better-lbnl/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/LBNL-ETA/better-lbnl-os"
+Documentation = "https://better-lbnl-os.readthedocs.io"
+Repository = "https://github.com/LBNL-ETA/better-lbnl-os"
+Issues = "https://github.com/LBNL-ETA/better-lbnl-os/issues"
+Changelog = "https://github.com/LBNL-ETA/better-lbnl-os/blob/main/CHANGELOG.md"
 
 [tool.hatch.version]
-path = "src/better_lbnl/__init__.py"
+path = "src/better_lbnl_os/__init__.py"
 
 [tool.hatch.build.targets.sdist]
 include = [
@@ -99,7 +100,7 @@ include = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/better_lbnl"]
+packages = ["src/better_lbnl_os"]
 
 [tool.pytest.ini_options]
 minversion = "7.0"
@@ -108,7 +109,7 @@ pythonpath = ["src"]
 addopts = [
     "-ra",
     "--strict-markers",
-    "--cov=better_lbnl",
+    "--cov=better_lbnl_os",
     "--cov-report=term-missing",
     "--cov-report=html",
     "--cov-report=xml",
@@ -121,7 +122,7 @@ markers = [
 ]
 
 [tool.coverage.run]
-source = ["src/better_lbnl"]
+source = ["src/better_lbnl_os"]
 branch = true
 
 [tool.coverage.report]

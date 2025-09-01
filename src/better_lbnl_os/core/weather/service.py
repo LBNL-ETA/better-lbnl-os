@@ -4,8 +4,8 @@ import logging
 from datetime import date, datetime
 from typing import List, Optional, Dict, Any
 
-from better_lbnl.data.models import LocationInfo, WeatherData, WeatherStation
-from better_lbnl.interfaces.weather_source import WeatherDataProvider
+from better_lbnl_os.data.models import LocationInfo, WeatherData, WeatherStation
+from better_lbnl_os.interfaces.weather_source import WeatherDataProvider
 from .providers import OpenMeteoProvider
 
 
@@ -25,7 +25,7 @@ class WeatherService:
         self.provider = provider or OpenMeteoProvider()
         logger.info(f"Weather service initialized with {self.provider.get_provider_name()} provider")
     
-    async def get_weather_data(
+    def get_weather_data(
         self,
         location: LocationInfo,
         year: int,
@@ -49,7 +49,7 @@ class WeatherService:
                 return None
             
             # Get weather data from provider
-            weather = await self.provider.get_weather_data(
+            weather = self.provider.get_weather_data(
                 location.geo_lat,
                 location.geo_lng,
                 year,
@@ -71,7 +71,7 @@ class WeatherService:
             logger.error(f"Error getting weather data: {e}")
             return None
     
-    async def get_weather_range(
+    def get_weather_range(
         self,
         location: LocationInfo,
         start_year: int,
@@ -99,7 +99,7 @@ class WeatherService:
         current_month = start_month
         
         while (current_year < end_year) or (current_year == end_year and current_month <= end_month):
-            weather = await self.get_weather_data(location, current_year, current_month)
+            weather = self.get_weather_data(location, current_year, current_month)
             if weather:
                 weather_data.append(weather)
             
@@ -112,7 +112,7 @@ class WeatherService:
         logger.info(f"Retrieved {len(weather_data)} months of weather data")
         return weather_data
     
-    async def fill_missing_weather(
+    def fill_missing_weather(
         self,
         location: LocationInfo,
         start_year: int,
@@ -151,7 +151,7 @@ class WeatherService:
             # Check if we already have data for this period
             if (current_year, current_month) not in existing_periods:
                 # Fetch missing data
-                weather = await self.get_weather_data(location, current_year, current_month)
+                weather = self.get_weather_data(location, current_year, current_month)
                 if weather:
                     filled_data.append(weather)
                     logger.info(f"Filled missing weather data for {current_year}-{current_month:02d}")
@@ -227,7 +227,7 @@ class WeatherService:
             'limits': self.provider.get_api_limits()
         }
     
-    async def calculate_degree_days(
+    def calculate_degree_days(
         self,
         location: LocationInfo,
         year: int,
@@ -246,7 +246,7 @@ class WeatherService:
         Returns:
             Dictionary with 'hdd' and 'cdd' values
         """
-        weather = await self.get_weather_data(location, year, month)
+        weather = self.get_weather_data(location, year, month)
         
         if not weather:
             return {'hdd': 0.0, 'cdd': 0.0}
@@ -256,7 +256,7 @@ class WeatherService:
         
         return {'hdd': hdd, 'cdd': cdd}
     
-    async def calculate_annual_degree_days(
+    def calculate_annual_degree_days(
         self,
         location: LocationInfo,
         year: int,
@@ -277,7 +277,7 @@ class WeatherService:
         total_cdd = 0.0
         
         # Get weather for all 12 months
-        weather_data = await self.get_weather_range(
+        weather_data = self.get_weather_range(
             location, year, 1, year, 12
         )
         

@@ -3,12 +3,12 @@
 BETTER-LBNL Documentation
 =========================
 
-.. image:: https://img.shields.io/pypi/v/better-lbnl.svg
-   :target: https://pypi.org/project/better-lbnl/
+.. image:: https://img.shields.io/pypi/v/better-lbnl-os.svg
+   :target: https://pypi.org/project/better-lbnl-os/
    :alt: PyPI version
 
-.. image:: https://img.shields.io/pypi/pyversions/better-lbnl.svg
-   :target: https://pypi.org/project/better-lbnl/
+.. image:: https://img.shields.io/pypi/pyversions/better-lbnl-os.svg
+   :target: https://pypi.org/project/better-lbnl-os/
    :alt: Python versions
 
 .. image:: https://github.com/LBNL-ETA/better-lbnl/actions/workflows/ci.yml/badge.svg
@@ -32,11 +32,11 @@ Quick Start
 
 Installation::
 
-    pip install better-lbnl
+    pip install better-lbnl-os
 
 Basic usage::
 
-    from better_lbnl import BuildingData, fit_changepoint_model
+    from better_lbnl_os import BuildingData, fit_changepoint_model
     import numpy as np
 
     # Create a building

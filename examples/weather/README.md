@@ -72,7 +72,7 @@ Weather data is retrieved using geographic coordinates (latitude/longitude). The
 ### Building Energy Analysis
 ```python
 # Get weather aligned with utility bills
-weather = await service.get_weather_data(location, year, month)
+weather = service.get_weather_data(location, year, month)
 hdd = weather.calculate_hdd()  # For heating analysis
 cdd = weather.calculate_cdd()  # For cooling analysis
 ```
@@ -80,8 +80,8 @@ cdd = weather.calculate_cdd()  # For cooling analysis
 ### Climate Comparison
 ```python
 # Compare different locations or time periods
-weather_2022 = await service.get_weather_range(location, 2022, 1, 2022, 12)
-weather_2023 = await service.get_weather_range(location, 2023, 1, 2023, 12)
+weather_2022 = service.get_weather_range(location, 2022, 1, 2022, 12)
+weather_2023 = service.get_weather_range(location, 2023, 1, 2023, 12)
 ```
 
 ### Custom Analysis

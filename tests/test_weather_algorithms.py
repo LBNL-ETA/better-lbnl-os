@@ -4,7 +4,7 @@ import unittest
 import numpy as np
 import math
 
-from better_lbnl.core.weather.calculations import (
+from better_lbnl_os.core.weather.calculations import (
     celsius_to_fahrenheit,
     fahrenheit_to_celsius,
     convert_temperature,

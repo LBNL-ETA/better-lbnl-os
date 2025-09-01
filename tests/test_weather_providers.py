@@ -3,10 +3,9 @@
 import unittest
 from unittest.mock import Mock, patch, MagicMock
 from datetime import date, datetime
-import asyncio
 
-from better_lbnl.core.weather.providers import OpenMeteoProvider, NOAAProvider
-from better_lbnl.data.models import WeatherData, WeatherStation
+from better_lbnl_os.core.weather.providers import OpenMeteoProvider, NOAAProvider
+from better_lbnl_os.data.models import WeatherData, WeatherStation
 
 
 class TestOpenMeteoProvider(unittest.TestCase):
@@ -111,14 +110,7 @@ class TestOpenMeteoProvider(unittest.TestCase):
         mock_response.raise_for_status = Mock()
         mock_get.return_value = mock_response
         
-        # Run async function
-        async def test():
-            weather = await self.provider.get_weather_data(
-                37.8716, -122.2727, 2023, 1
-            )
-            return weather
-        
-        weather = asyncio.run(test())
+        weather = self.provider.get_weather_data(37.8716, -122.2727, 2023, 1)
         
         # Verify result
         self.assertIsNotNone(weather)
@@ -143,14 +135,7 @@ class TestOpenMeteoProvider(unittest.TestCase):
         # Mock API error
         mock_get.side_effect = Exception("API Error")
         
-        # Run async function
-        async def test():
-            weather = await self.provider.get_weather_data(
-                37.8716, -122.2727, 2023, 1
-            )
-            return weather
-        
-        weather = asyncio.run(test())
+        weather = self.provider.get_weather_data(37.8716, -122.2727, 2023, 1)
         
         # Should return None on error
         self.assertIsNone(weather)
@@ -168,16 +153,9 @@ class TestOpenMeteoProvider(unittest.TestCase):
         mock_response.raise_for_status = Mock()
         mock_get.return_value = mock_response
         
-        # Run async function
-        async def test():
-            temps = await self.provider.get_daily_temperatures(
-                37.8716, -122.2727,
-                date(2023, 1, 1),
-                date(2023, 1, 5)
-            )
-            return temps
-        
-        temps = asyncio.run(test())
+        temps = self.provider.get_daily_temperatures(
+            37.8716, -122.2727, date(2023, 1, 1), date(2023, 1, 5)
+        )
         
         # Verify result
         self.assertEqual(len(temps), 5)
@@ -199,14 +177,7 @@ class TestOpenMeteoProvider(unittest.TestCase):
         mock_response.raise_for_status = Mock()
         mock_get.return_value = mock_response
         
-        # Run async function
-        async def test():
-            avg_temp = await self.provider.get_monthly_average(
-                37.8716, -122.2727, 2023, 1
-            )
-            return avg_temp
-        
-        avg_temp = asyncio.run(test())
+        avg_temp = self.provider.get_monthly_average(37.8716, -122.2727, 2023, 1)
         
         # Verify result
         self.assertIsNotNone(avg_temp)
@@ -258,15 +229,11 @@ class TestNOAAProvider(unittest.TestCase):
         """Test that NOAA methods are not yet implemented."""
         # All methods should return None or empty
         
-        async def test():
-            avg = await self.provider.get_monthly_average(0, 0, 2023, 1)
-            temps = await self.provider.get_daily_temperatures(
-                0, 0, date(2023, 1, 1), date(2023, 1, 31)
-            )
-            weather = await self.provider.get_weather_data(0, 0, 2023, 1)
-            return avg, temps, weather
-        
-        avg, temps, weather = asyncio.run(test())
+        avg = self.provider.get_monthly_average(0, 0, 2023, 1)
+        temps = self.provider.get_daily_temperatures(
+            0, 0, date(2023, 1, 1), date(2023, 1, 31)
+        )
+        weather = self.provider.get_weather_data(0, 0, 2023, 1)
         
         self.assertIsNone(avg)
         self.assertEqual(temps, [])

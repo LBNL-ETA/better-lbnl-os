@@ -1,4 +1,4 @@
-"""Utility functions for better-lbnl package."""
+"""Utility functions for better-lbnl-os package."""
 
 from .geography import (
     haversine_distance, 

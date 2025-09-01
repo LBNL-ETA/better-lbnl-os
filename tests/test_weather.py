@@ -1,17 +1,16 @@
 """Test script for weather functionality."""
 
-import asyncio
 from datetime import date
 
-from better_lbnl.core.weather.calculations import (
+from better_lbnl_os.core.weather.calculations import (
     celsius_to_fahrenheit,
     fahrenheit_to_celsius,
     calculate_heating_degree_days,
     calculate_cooling_degree_days,
     validate_temperature_range
 )
-from better_lbnl.core.weather import WeatherService, OpenMeteoProvider
-from better_lbnl.data.models import LocationInfo, WeatherData
+from better_lbnl_os.core.weather import WeatherService, OpenMeteoProvider
+from better_lbnl_os.data.models import LocationInfo, WeatherData
 
 
 def test_temperature_conversions():
@@ -104,7 +103,7 @@ def test_weather_domain_model():
     print("✓ Weather data validation passed")
 
 
-async def test_weather_service():
+def demo_weather_service():
     """Test weather service with real API call."""
     print("\n=== Testing Weather Service ===")
     
@@ -122,7 +121,7 @@ async def test_weather_service():
     
     # Test getting weather for a past month
     print("\nFetching weather data for Berkeley, CA (Jan 2023)...")
-    weather = await service.get_weather_data(location, 2023, 1)
+    weather = service.get_weather_data(location, 2023, 1)
     
     if weather:
         print(f"✓ Retrieved weather data:")
@@ -139,7 +138,7 @@ async def test_weather_service():
     
     # Test degree day calculation
     print("\nCalculating degree days...")
-    dd = await service.calculate_degree_days(location, 2023, 7)  # July for cooling
+    dd = service.calculate_degree_days(location, 2023, 7)  # July for cooling
     print(f"✓ July 2023 degree days: HDD={dd['hdd']:.1f}, CDD={dd['cdd']:.1f}")
     
     # Test provider info
@@ -160,8 +159,8 @@ def main():
     test_temperature_validation()
     test_weather_domain_model()
     
-    # Run async tests
-    asyncio.run(test_weather_service())
+    # Run service demo (not executed by pytest)
+    demo_weather_service()
     
     print("\n" + "="*50)
     print("All tests completed successfully!")

@@ -2,7 +2,7 @@
 
 from typing import List, Optional
 
-from better_lbnl.data.models import (
+from better_lbnl_os.data.models import (
     BenchmarkResult,
     BuildingData,
     ChangePointModelResult,

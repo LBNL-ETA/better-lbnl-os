@@ -15,7 +15,7 @@ from typing import Tuple, Optional
 
 import geocoder
 import numpy as np
-from better_lbnl.data.models import LocationInfo
+from better_lbnl_os.data.models import LocationInfo
 
 logger = logging.getLogger(__name__)
 

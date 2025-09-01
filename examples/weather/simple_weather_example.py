@@ -5,12 +5,11 @@ This is a minimal example showing how to get weather data
 and calculate degree days for a location.
 """
 
-import asyncio
-from better_lbnl.core.weather import WeatherService, OpenMeteoProvider
-from better_lbnl.data.models import LocationInfo
+from better_lbnl_os.core.weather import WeatherService, OpenMeteoProvider
+from better_lbnl_os.data.models import LocationInfo
 
 
-async def main():
+def main():
     # 1. Define your location
     location = LocationInfo(
         geo_lat=37.8716,    # Berkeley, CA
@@ -23,7 +22,7 @@ async def main():
     service = WeatherService(provider=OpenMeteoProvider())
     
     # 3. Get weather data for January 2023
-    weather = await service.get_weather_data(location, 2023, 1)
+    weather = service.get_weather_data(location, 2023, 1)
     
     # 4. Display results
     if weather:
@@ -35,4 +34,4 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()

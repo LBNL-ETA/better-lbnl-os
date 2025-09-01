@@ -5,13 +5,12 @@ This example demonstrates how to retrieve weather data for a location
 using the BETTER-LBNL weather module.
 """
 
-import asyncio
 from datetime import date
-from better_lbnl.core.weather import WeatherService, OpenMeteoProvider
-from better_lbnl.domain.models import LocationInfo
+from better_lbnl_os.core.weather import WeatherService, OpenMeteoProvider
+from better_lbnl_os.data.models import LocationInfo
 
 
-async def get_monthly_weather():
+def get_monthly_weather():
     """Get weather data for a single month."""
     print("=" * 60)
     print("EXAMPLE 1: Get Weather for a Single Month")
@@ -31,7 +30,7 @@ async def get_monthly_weather():
     service = WeatherService(provider=OpenMeteoProvider())
     
     # Get weather for January 2023
-    weather = await service.get_weather_data(location, 2023, 1)
+    weather = service.get_weather_data(location, 2023, 1)
     
     if weather:
         print(f"\nLocation: Berkeley, CA ({location.geo_lat}, {location.geo_lng})")
@@ -50,7 +49,7 @@ async def get_monthly_weather():
         print("Failed to retrieve weather data")
 
 
-async def get_annual_weather():
+def get_annual_weather():
     """Get weather data for an entire year."""
     print("\n" + "=" * 60)
     print("EXAMPLE 2: Get Weather for an Entire Year")
@@ -73,7 +72,7 @@ async def get_annual_weather():
     print(f"\nLocation: Phoenix, AZ ({location.geo_lat}, {location.geo_lng})")
     print("Fetching weather data for 2023...")
     
-    weather_data = await service.get_weather_range(
+    weather_data = WeatherService(provider=OpenMeteoProvider()).get_weather_range(
         location, 2023, 1, 2023, 12
     )
     
@@ -109,7 +108,7 @@ async def get_annual_weather():
         print("Failed to retrieve weather data")
 
 
-async def compare_locations():
+def compare_locations():
     """Compare weather between multiple locations."""
     print("\n" + "=" * 60)
     print("EXAMPLE 3: Compare Weather Across Locations")
@@ -144,9 +143,7 @@ async def compare_locations():
     print("-" * 65)
     
     for loc_info in locations:
-        weather = await service.get_weather_data(
-            loc_info["location"], 2023, 7
-        )
+        weather = service.get_weather_data(loc_info["location"], 2023, 7)
         
         if weather:
             hdd = weather.calculate_hdd(base_temp_f=65.0)
@@ -166,7 +163,7 @@ async def compare_locations():
                   f"{hdd:4.0f} | {cdd:4.0f} | {climate}")
 
 
-async def find_weather_station():
+def find_weather_station():
     """Find the nearest weather station for a location."""
     print("\n" + "=" * 60)
     print("EXAMPLE 4: Find Weather Station")
@@ -193,7 +190,7 @@ async def find_weather_station():
         print("so it provides data for any location globally.")
 
 
-async def calculate_degree_days_with_custom_base():
+def calculate_degree_days_with_custom_base():
     """Calculate degree days with custom base temperatures."""
     print("\n" + "=" * 60)
     print("EXAMPLE 5: Custom Base Temperature Degree Days")
@@ -211,7 +208,7 @@ async def calculate_degree_days_with_custom_base():
     service = WeatherService(provider=OpenMeteoProvider())
     
     # Get weather for June 2023
-    weather = await service.get_weather_data(location, 2023, 6)
+    weather = service.get_weather_data(location, 2023, 6)
     
     if weather:
         print(f"\nLocation: Los Angeles, CA")
@@ -233,7 +230,7 @@ async def calculate_degree_days_with_custom_base():
         print("  - 70°F: May be used for cooling-dominated climates")
 
 
-async def main():
+def main():
     """Run all examples."""
     print("\n" + "=" * 60)
     print("   BETTER-LBNL Weather Data Examples")
@@ -248,11 +245,11 @@ async def main():
     print(f"Historical data available from: {info['limits'].get('data_from_year', 'Unknown')}")
     
     # Run examples
-    await get_monthly_weather()
-    await get_annual_weather()
-    await compare_locations()
-    await find_weather_station()
-    await calculate_degree_days_with_custom_base()
+    get_monthly_weather()
+    get_annual_weather()
+    compare_locations()
+    find_weather_station()
+    calculate_degree_days_with_custom_base()
     
     print("\n" + "=" * 60)
     print("   Examples Complete!")
@@ -260,5 +257,4 @@ async def main():
 
 
 if __name__ == "__main__":
-    # Run the async main function
-    asyncio.run(main())
+    main()

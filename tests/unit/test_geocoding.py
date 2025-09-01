@@ -4,20 +4,20 @@ Tests for geocoding algorithms.
 from unittest.mock import Mock, patch
 import pytest
 
-from better_lbnl.utils.geography import (
+from better_lbnl_os.utils.geography import (
     geocode,
     find_closest_weather_station,
     find_egrid_subregion,
     create_dummy_location_info,
     _check_special_regions
 )
-from better_lbnl.data.models import LocationInfo
+from better_lbnl_os.data.models import LocationInfo
 
 
 class TestGeocoding:
     """Test suite for geocoding functionality."""
 
-    @patch('better_lbnl.utils.geography.geocoder')
+    @patch('better_lbnl_os.utils.geography.geocoder')
     def test_geocode_success(self, mock_geocoder):
         """Test successful address geocoding."""
         # Mock the geocoder response
@@ -44,7 +44,7 @@ class TestGeocoding:
         # Verify geocoder was called correctly
         mock_geocoder.google.assert_called_with(address, key=api_key)
 
-    @patch('better_lbnl.utils.geography.geocoder')
+    @patch('better_lbnl_os.utils.geography.geocoder')
     def test_geocode_api_denied(self, mock_geocoder):
         """Test geocoding when API request is denied."""
         # Mock the geocoder response with API denial
@@ -58,7 +58,7 @@ class TestGeocoding:
         with pytest.raises(Exception, match="Google Maps API denied"):
             geocode(address, api_key)
 
-    @patch('better_lbnl.utils.geography.geocoder')  
+    @patch('better_lbnl_os.utils.geography.geocoder')  
     def test_geocode_international(self, mock_geocoder):
         """Test geocoding for international address."""
         # Mock the geocoder response for non-US location
