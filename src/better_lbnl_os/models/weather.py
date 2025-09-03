@@ -40,6 +40,13 @@ class WeatherData(BaseModel):
         return None
 
 
+class WeatherSeries(BaseModel):
+    """Monthly weather time series aligned to calendar months."""
+
+    months: list[__import__('datetime').date] = Field(default_factory=list, description="List of YYYY-MM-01 dates")
+    degC: list[float] = Field(default_factory=list, description="Monthly average temperature in °C")
+    degF: list[float] = Field(default_factory=list, description="Monthly average temperature in °F")
+
 
 class WeatherStation(BaseModel):
     """Domain model for weather station information."""
@@ -58,4 +65,4 @@ class WeatherStation(BaseModel):
         return haversine_distance(self.latitude, self.longitude, lat, lng)
 
 
-__all__ = ["WeatherData", "WeatherStation"]
+__all__ = ["WeatherData", "WeatherSeries", "WeatherStation"]

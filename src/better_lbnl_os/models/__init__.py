@@ -5,9 +5,9 @@ for building energy analysis workflows.
 """
 
 from .building import BuildingData
-from .utility import UtilityBillData
+from .utility_bills import UtilityBillData, CalendarizedData, EnergyAggregation, FuelAggregation
 from .location import LocationInfo
-from .weather import WeatherData, WeatherStation
+from .weather import WeatherData, WeatherSeries, WeatherStation
 from .results import (
     ChangePointModelResult,
     BenchmarkResult,
@@ -18,6 +18,10 @@ from .results import (
 __all__ = [
     "BuildingData",
     "UtilityBillData",
+    "CalendarizedData",
+    "WeatherSeries",
+    "EnergyAggregation",
+    "FuelAggregation",
     "LocationInfo",
     "WeatherData",
     "WeatherStation",
@@ -26,4 +30,3 @@ __all__ = [
     "SavingsEstimate",
     "EEMeasureRecommendation",
 ]
-

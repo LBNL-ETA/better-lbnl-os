@@ -14,7 +14,7 @@ from better_lbnl_os.core.preprocessing import (
     get_consecutive_months,
     trim_series,
 )
-from better_lbnl_os.models import ChangePointModelResult, UtilityBillData, WeatherData
+from better_lbnl_os.models import ChangePointModelResult, UtilityBillData, WeatherData, CalendarizedData
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +28,7 @@ class ModelData(TypedDict):
 
 
 def prepare_model_data(
-    calendarized: dict,
+    calendarized: dict | CalendarizedData,
     energy_types: tuple[str, ...] = ("ELECTRICITY", "FOSSIL_FUEL"),
     window: int = 12,
 ) -> dict[str, ModelData]:
@@ -37,6 +37,10 @@ def prepare_model_data(
     Returns a dict keyed by energy type with keys: temperature, eui, months, days.
     Only includes energy types with sufficient consecutive data after trimming.
     """
+    # Accept typed or legacy dict
+    if hasattr(calendarized, "to_legacy_dict"):
+        calendarized = calendarized.to_legacy_dict()  # type: ignore[assignment]
+
     out: dict[str, ModelData] = {}
     for et in energy_types:
         block = get_consecutive_months(calendarized, energy_type=et, window=window)
@@ -68,7 +72,7 @@ def prepare_model_data(
 
 
 def fit_calendarized_models(
-    calendarized: dict,
+    calendarized: dict | CalendarizedData,
     min_r_squared: float = DEFAULT_R2_THRESHOLD,
     max_cv_rmse: float = DEFAULT_CVRMSE_THRESHOLD,
     energy_types: tuple[str, ...] = ("ELECTRICITY", "FOSSIL_FUEL"),
@@ -115,4 +119,3 @@ def fit_models_from_inputs(
 
     calendarized = calendarize_utility_bills(bills=bills, floor_area=floor_area, weather=weather)
     return fit_calendarized_models(calendarized, min_r_squared=min_r_squared, max_cv_rmse=max_cv_rmse)
-

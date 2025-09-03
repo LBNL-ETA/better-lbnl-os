@@ -1,0 +1,157 @@
+"""Utility bill and calendarized data domain models."""
+
+from datetime import date, datetime
+from typing import Dict, List, Optional
+from pydantic import BaseModel, Field, model_validator
+
+from better_lbnl_os.constants import CONVERSION_TO_KWH
+
+
+class UtilityBillData(BaseModel):
+    """Domain model for utility bills with conversion methods."""
+
+    fuel_type: str = Field(..., description="Type of fuel (ELECTRICITY, NATURAL_GAS, etc.)")
+    start_date: date = Field(..., description="Billing period start date")
+    end_date: date = Field(..., description="Billing period end date")
+    consumption: float = Field(..., ge=0, description="Energy consumption")
+    units: str = Field(..., description="Units of consumption")
+    cost: Optional[float] = Field(None, ge=0, description="Cost in dollars")
+
+    @model_validator(mode="after")
+    def validate_dates(self):
+        if self.end_date <= self.start_date:
+            raise ValueError("End date must be after start date")
+        return self
+
+    def to_kwh(self) -> float:
+        key = (self.fuel_type, self.units)
+        factor = CONVERSION_TO_KWH.get(key, 1.0)
+        return self.consumption * factor
+
+    def get_days(self) -> int:
+        return (self.end_date - self.start_date).days
+
+    def calculate_daily_average(self) -> float:
+        days = self.get_days()
+        return self.consumption / days if days > 0 else 0.0
+
+    def calculate_cost_per_unit(self) -> Optional[float]:
+        if self.cost is not None and self.consumption > 0:
+            return self.cost / self.consumption
+        return None
+
+
+from .weather import WeatherSeries
+
+
+class TimeSeriesAggregation(BaseModel):
+    months: List[date] = Field(default_factory=list)
+    days_in_period: List[int] = Field(default_factory=list)
+    energy_kwh: Dict[str, List[float]] = Field(default_factory=dict)
+    cost: Dict[str, List[float]] = Field(default_factory=dict)
+    ghg_kg: Dict[str, List[float]] = Field(default_factory=dict)
+    daily_eui_kwh_per_m2: Dict[str, List[float]] = Field(default_factory=dict)
+    unit_price_per_kwh: Dict[str, List[float]] = Field(default_factory=dict)
+    unit_emission_kg_per_kwh: Dict[str, List[float]] = Field(default_factory=dict)
+
+
+class EnergyAggregation(TimeSeriesAggregation):
+    pass
+
+
+class FuelAggregation(TimeSeriesAggregation):
+    pass
+
+
+class CalendarizedData(BaseModel):
+    weather: WeatherSeries = Field(default_factory=WeatherSeries)
+    aggregated: EnergyAggregation = Field(default_factory=EnergyAggregation)
+    detailed: FuelAggregation = Field(default_factory=FuelAggregation)
+
+    def to_legacy_dict(self) -> Dict:
+        def fmt_months(ms: List[date]) -> List[str]:
+            return [m.strftime("%Y-%m-01") for m in ms]
+
+        return {
+            "weather": {
+                "degC": list(self.weather.degC),
+                "degF": list(self.weather.degF),
+            },
+            "detailed": {
+                "v_x": fmt_months(self.detailed.months),
+                "dict_v_energy": self.detailed.energy_kwh,
+                "dict_v_costs": self.detailed.cost,
+                "dict_v_ghg": self.detailed.ghg_kg,
+                "dict_v_eui": self.detailed.daily_eui_kwh_per_m2,
+                "dict_v_unit_prices": self.detailed.unit_price_per_kwh,
+                "dict_v_ghg_factors": self.detailed.unit_emission_kg_per_kwh,
+            },
+            "aggregated": {
+                "v_x": fmt_months(self.aggregated.months),
+                "ls_n_days": list(self.aggregated.days_in_period),
+                "dict_v_energy": self.aggregated.energy_kwh,
+                "dict_v_costs": self.aggregated.cost,
+                "dict_v_ghg": self.aggregated.ghg_kg,
+                "dict_v_eui": self.aggregated.daily_eui_kwh_per_m2,
+                "dict_v_unit_prices": self.aggregated.unit_price_per_kwh,
+                "dict_v_ghg_factors": self.aggregated.unit_emission_kg_per_kwh,
+            },
+        }
+
+    @classmethod
+    def from_legacy_dict(cls, data: Dict) -> "CalendarizedData":
+        def parse_months(vx: Optional[List[str]]) -> List[date]:
+            out: List[date] = []
+            for s in vx or []:
+                try:
+                    # Accept YYYY-MM or YYYY-MM-01
+                    if len(s) == 7:
+                        dt = datetime.strptime(s + "-01", "%Y-%m-%d")
+                    else:
+                        dt = datetime.strptime(s, "%Y-%m-%d")
+                    out.append(dt.date())
+                except Exception:
+                    continue
+            return out
+
+        weather_d = data.get("weather", {})
+        detailed_d = data.get("detailed", {})
+        aggregated_d = data.get("aggregated", {})
+
+        weather = WeatherSeries(
+            months=parse_months(detailed_d.get("v_x") or aggregated_d.get("v_x")),
+            degC=list(weather_d.get("degC", [])),
+            degF=list(weather_d.get("degF", [])),
+        )
+
+        detailed = FuelAggregation(
+            months=parse_months(detailed_d.get("v_x")),
+            days_in_period=list(aggregated_d.get("ls_n_days", [])),  # No separate days at fuel-level
+            energy_kwh=dict(detailed_d.get("dict_v_energy", {})),
+            cost=dict(detailed_d.get("dict_v_costs", {})),
+            ghg_kg=dict(detailed_d.get("dict_v_ghg", {})),
+            daily_eui_kwh_per_m2=dict(detailed_d.get("dict_v_eui", {})),
+            unit_price_per_kwh=dict(detailed_d.get("dict_v_unit_prices", {})),
+            unit_emission_kg_per_kwh=dict(detailed_d.get("dict_v_ghg_factors", {})),
+        )
+
+        aggregated = EnergyAggregation(
+            months=parse_months(aggregated_d.get("v_x")),
+            days_in_period=list(aggregated_d.get("ls_n_days", [])),
+            energy_kwh=dict(aggregated_d.get("dict_v_energy", {})),
+            cost=dict(aggregated_d.get("dict_v_costs", {})),
+            ghg_kg=dict(aggregated_d.get("dict_v_ghg", {})),
+            daily_eui_kwh_per_m2=dict(aggregated_d.get("dict_v_eui", {})),
+            unit_price_per_kwh=dict(aggregated_d.get("dict_v_unit_prices", {})),
+            unit_emission_kg_per_kwh=dict(aggregated_d.get("dict_v_ghg_factors", {})),
+        )
+
+        return cls(weather=weather, detailed=detailed, aggregated=aggregated)
+
+
+__all__ = [
+    "UtilityBillData",
+    "CalendarizedData",
+    "EnergyAggregation",
+    "FuelAggregation",
+]

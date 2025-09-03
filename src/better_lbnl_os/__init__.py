@@ -41,6 +41,12 @@ from better_lbnl_os.core.pipeline import (
     fit_calendarized_models,
     fit_models_from_inputs,
 )
+from better_lbnl_os.models import (
+    CalendarizedData,
+    WeatherSeries,
+    EnergyAggregation,
+    FuelAggregation,
+)
 
 __all__ = [
     # Version info
@@ -65,4 +71,9 @@ __all__ = [
     "prepare_model_data",
     "fit_calendarized_models",
     "fit_models_from_inputs",
+    # Calendarized models
+    "CalendarizedData",
+    "WeatherSeries",
+    "EnergyAggregation",
+    "FuelAggregation",
 ]

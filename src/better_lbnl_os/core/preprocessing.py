@@ -12,7 +12,7 @@ from typing import Dict, List, Optional
 import calendar as _calendar
 import pandas as pd
 
-from better_lbnl_os.models import UtilityBillData, WeatherData
+from better_lbnl_os.models import UtilityBillData, WeatherData, CalendarizedData
 from better_lbnl_os.constants import CONVERSION_TO_KWH
 
 
@@ -296,6 +296,17 @@ def calendarize_utility_bills(
     return {"weather": out_weather, "detailed": detailed, "aggregated": aggregated}
 
 
+def calendarize_utility_bills_typed(
+    bills: List[UtilityBillData],
+    floor_area: float,
+    weather: Optional[List[WeatherData]] = None,
+    options: Optional[CalendarizationOptions] = None,
+) -> CalendarizedData:
+    """Typed variant returning CalendarizedData; preserves legacy shapes via to_legacy_dict()."""
+    legacy = calendarize_utility_bills(bills=bills, floor_area=floor_area, weather=weather, options=options)
+    return CalendarizedData.from_legacy_dict(legacy)
+
+
 # ------------------ Additional helpers for model preparation ------------------
 def get_consecutive_months(
     calendarized: Dict,
@@ -313,6 +324,9 @@ def get_consecutive_months(
     - days: list[int]
     - period: "YYYY-MM to YYYY-MM"
     """
+    # Accept typed or legacy dict
+    if hasattr(calendarized, "to_legacy_dict"):
+        calendarized = calendarized.to_legacy_dict()  # type: ignore[assignment]
     try:
         periods = calendarized["aggregated"].get("v_x") or calendarized["aggregated"].get("periods")
         ls_n_days = calendarized["aggregated"]["ls_n_days"]
