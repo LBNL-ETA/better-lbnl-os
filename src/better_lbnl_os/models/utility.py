@@ -4,7 +4,7 @@ from datetime import date
 from typing import Optional
 from pydantic import BaseModel, Field, model_validator
 
-from better_lbnl_os.models.constants import CONVERSION_TO_KWH
+from better_lbnl_os.constants import CONVERSION_TO_KWH
 
 
 class UtilityBillData(BaseModel):

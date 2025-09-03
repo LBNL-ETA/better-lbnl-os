@@ -3,10 +3,7 @@
 from typing import List
 from pydantic import BaseModel, Field, field_validator
 
-from better_lbnl_os.models.constants import (
-    BuildingSpaceType,
-    normalize_space_type,
-)
+from better_lbnl_os.constants import BuildingSpaceType, normalize_space_type
 
 
 class BuildingData(BaseModel):
@@ -57,7 +54,7 @@ class BuildingData(BaseModel):
 
     def get_benchmark_category(self) -> str:
         """Determine benchmark category based on space type."""
-        from better_lbnl_os.models.constants import space_type_to_benchmark_category
+        from better_lbnl_os.constants import space_type_to_benchmark_category
 
         category = space_type_to_benchmark_category(self.space_type)
         return category.value

@@ -13,7 +13,7 @@ import pandas as pd
 from scipy import optimize, stats
 
 from better_lbnl_os.models import ChangePointModelResult
-from better_lbnl_os.models.constants import (
+from better_lbnl_os.constants import (
     DEFAULT_R2_THRESHOLD,
     DEFAULT_CVRMSE_THRESHOLD,
     DEFAULT_SIGNIFICANT_PVAL,
