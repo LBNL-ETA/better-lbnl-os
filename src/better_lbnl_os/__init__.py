@@ -40,6 +40,8 @@ from better_lbnl_os.core.pipeline import (
     prepare_model_data,
     fit_calendarized_models,
     fit_models_from_inputs,
+    get_weather_for_bills,
+    fit_models_with_auto_weather,
 )
 from better_lbnl_os.models import (
     CalendarizedData,
@@ -71,6 +73,8 @@ __all__ = [
     "prepare_model_data",
     "fit_calendarized_models",
     "fit_models_from_inputs",
+    "get_weather_for_bills",
+    "fit_models_with_auto_weather",
     # Calendarized models
     "CalendarizedData",
     "WeatherSeries",

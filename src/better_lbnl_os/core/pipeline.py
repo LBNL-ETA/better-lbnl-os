@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TypedDict
+from typing import TypedDict, Optional
 
 import numpy as np
 
@@ -15,7 +15,10 @@ from better_lbnl_os.core.preprocessing import (
     get_consecutive_months,
     trim_series,
 )
-from better_lbnl_os.models import ChangePointModelResult, UtilityBillData, WeatherData, CalendarizedData
+from better_lbnl_os.models import ChangePointModelResult, UtilityBillData, WeatherData, CalendarizedData, LocationInfo
+from better_lbnl_os.core.weather.service import WeatherService
+from better_lbnl_os.core.weather.providers import OpenMeteoProvider
+from better_lbnl_os.core.geocoding.providers import GoogleMapsGeocodingProvider, NominatimGeocodingProvider
 
 logger = logging.getLogger(__name__)
 
@@ -141,3 +144,111 @@ def fit_models_from_inputs(
         calendarized = calendarize_utility_bills(bills=bills, floor_area=floor_area, weather=weather)
 
     return fit_calendarized_models(calendarized, min_r_squared=min_r_squared, max_cv_rmse=max_cv_rmse)
+
+
+def get_weather_for_bills(
+    bills: list[UtilityBillData],
+    address: Optional[str] = None,
+    latitude: Optional[float] = None,
+    longitude: Optional[float] = None,
+    google_maps_api_key: Optional[str] = None,
+    nominatim_user_agent: Optional[str] = None,
+    openmeteo_api_key: Optional[str] = None,
+) -> list[WeatherData]:
+    """Fetch monthly weather for the full bill date range using OpenMeteo.
+
+    Args:
+        bills: Utility bills to derive the date range
+        address: Address string to geocode (if lat/lon not supplied)
+        latitude, longitude: Direct coordinates (skip geocoding)
+        google_maps_api_key: Optional Google Maps API key for geocoding
+        nominatim_user_agent: Optional user agent for Nominatim geocoding fallback
+        openmeteo_api_key: Optional OpenMeteo API key (paid archive)
+
+    Returns:
+        List of WeatherData, one per month.
+    
+    Raises:
+        ValueError: If neither coordinates nor address provided, or if geocoding API key missing
+    """
+    if not bills:
+        return []
+
+    # Determine coordinates via geocoding if needed
+    if latitude is not None and longitude is not None:
+        loc = LocationInfo(geo_lat=float(latitude), geo_lng=float(longitude), zipcode=None, state=None, country_code="INT")
+    else:
+        if not address:
+            raise ValueError("Either (latitude, longitude) or address must be provided")
+        if google_maps_api_key:
+            geocoder = GoogleMapsGeocodingProvider(api_key=google_maps_api_key)
+            loc = geocoder.geocode(address)
+        else:
+            # Fallback to Nominatim (courteous user agent)
+            geocoder = NominatimGeocodingProvider(user_agent=nominatim_user_agent or "better-lbnl-os/0.1")
+            loc = geocoder.geocode(address)
+
+    # Month range from bills
+    min_start = min(b.start_date for b in bills)
+    max_end = max(b.end_date for b in bills)
+    start_year, start_month = min_start.year, min_start.month
+    end_year, end_month = max_end.year, max_end.month
+
+    service = WeatherService(provider=OpenMeteoProvider(api_key=openmeteo_api_key))
+    return service.get_weather_range(
+        location=loc,
+        start_year=start_year,
+        start_month=start_month,
+        end_year=end_year,
+        end_month=end_month,
+    )
+
+
+def fit_models_with_auto_weather(
+    bills: list[UtilityBillData],
+    floor_area: float,
+    address: Optional[str] = None,
+    latitude: Optional[float] = None,
+    longitude: Optional[float] = None,
+    google_maps_api_key: Optional[str] = None,
+    nominatim_user_agent: Optional[str] = None,
+    openmeteo_api_key: Optional[str] = None,
+    min_r_squared: float = DEFAULT_R2_THRESHOLD,
+    max_cv_rmse: float = DEFAULT_CVRMSE_THRESHOLD,
+    use_typed: bool = True,
+) -> dict[str, ChangePointModelResult]:
+    """Convenience function that fetches weather and fits models in one call.
+    
+    Args:
+        bills: List of utility bills
+        floor_area: Building floor area in square meters (must be positive)
+        address: Address string to geocode (if lat/lon not supplied)
+        latitude, longitude: Direct coordinates (skip geocoding)
+        google_maps_api_key: Optional Google Maps API key for geocoding
+        nominatim_user_agent: Optional user agent for Nominatim geocoding fallback
+        openmeteo_api_key: Optional OpenMeteo API key (paid archive)
+        min_r_squared: Minimum R² threshold for model acceptance
+        max_cv_rmse: Maximum CV-RMSE threshold for model acceptance
+        use_typed: If True, use typed CalendarizedData (recommended)
+    
+    Returns:
+        Dictionary mapping energy type to fitted model results
+    """
+    weather = get_weather_for_bills(
+        bills=bills,
+        address=address,
+        latitude=latitude,
+        longitude=longitude,
+        google_maps_api_key=google_maps_api_key,
+        nominatim_user_agent=nominatim_user_agent,
+        openmeteo_api_key=openmeteo_api_key,
+    )
+    
+    return fit_models_from_inputs(
+        bills=bills,
+        floor_area=floor_area,
+        weather=weather,
+        min_r_squared=min_r_squared,
+        max_cv_rmse=max_cv_rmse,
+        use_typed=use_typed,
+    )
