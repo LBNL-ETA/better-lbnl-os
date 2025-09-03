@@ -1,6 +1,6 @@
 """Weather domain models."""
 
-from typing import List, Optional
+from typing import Optional
 from pydantic import BaseModel, Field
 
 
@@ -16,7 +16,6 @@ class WeatherData(BaseModel):
     min_temp_c: Optional[float] = Field(None, description="Minimum temperature in Celsius")
     max_temp_c: Optional[float] = Field(None, description="Maximum temperature in Celsius")
     data_source: str = Field(default="OpenMeteo", description="Data source (NOAA, OpenMeteo, etc.)")
-    daily_temps_c: Optional[List[float]] = Field(None, description="Daily temperatures for the month")
 
     @property
     def avg_temp_f(self) -> float:
@@ -40,38 +39,6 @@ class WeatherData(BaseModel):
             return celsius_to_fahrenheit(self.max_temp_c)
         return None
 
-    def calculate_hdd(self, base_temp_f: float = 65.0, use_daily: bool = True) -> float:
-        from better_lbnl_os.utils.calculations import (
-            calculate_heating_degree_days,
-            estimate_monthly_hdd,
-            convert_temperature_list,
-        )
-        import calendar
-
-        if use_daily and self.daily_temps_c:
-            daily_temps_f = convert_temperature_list(self.daily_temps_c, "C", "F")
-            return calculate_heating_degree_days(daily_temps_f, base_temp_f, "F")
-        days_in_month = calendar.monthrange(self.year, self.month)[1]
-        return estimate_monthly_hdd(self.avg_temp_f, days_in_month, base_temp_f)
-
-    def calculate_cdd(self, base_temp_f: float = 65.0, use_daily: bool = True) -> float:
-        from better_lbnl_os.utils.calculations import (
-            calculate_cooling_degree_days,
-            estimate_monthly_cdd,
-            convert_temperature_list,
-        )
-        import calendar
-
-        if use_daily and self.daily_temps_c:
-            daily_temps_f = convert_temperature_list(self.daily_temps_c, "C", "F")
-            return calculate_cooling_degree_days(daily_temps_f, base_temp_f, "F")
-        days_in_month = calendar.monthrange(self.year, self.month)[1]
-        return estimate_monthly_cdd(self.avg_temp_f, days_in_month, base_temp_f)
-
-    def is_valid_temperature(self) -> bool:
-        from better_lbnl_os.utils.calculations import validate_temperature_range
-
-        return validate_temperature_range(self.avg_temp_c)
 
 
 class WeatherStation(BaseModel):

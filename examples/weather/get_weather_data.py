@@ -40,11 +40,6 @@ def get_monthly_weather():
         if weather.min_temp_c and weather.max_temp_c:
             print(f"Temperature Range: {weather.min_temp_c:.1f}°C to {weather.max_temp_c:.1f}°C")
         
-        # Calculate degree days
-        hdd = weather.calculate_hdd(base_temp_f=65.0)
-        cdd = weather.calculate_cdd(base_temp_f=65.0)
-        print(f"Heating Degree Days (HDD): {hdd:.1f}")
-        print(f"Cooling Degree Days (CDD): {cdd:.1f}")
     else:
         print("Failed to retrieve weather data")
 
@@ -80,30 +75,12 @@ def get_annual_weather():
         print(f"Retrieved {len(weather_data)} months of data\n")
         
         # Display monthly summary
-        print("Month  | Avg Temp (°C) | Avg Temp (°F) | HDD    | CDD")
-        print("-" * 56)
-        
-        total_hdd = 0
-        total_cdd = 0
+        print("Month  | Avg Temp (°C) | Avg Temp (°F)")
+        print("-" * 36)
         
         for weather in weather_data:
-            hdd = weather.calculate_hdd(base_temp_f=65.0)
-            cdd = weather.calculate_cdd(base_temp_f=65.0)
-            total_hdd += hdd
-            total_cdd += cdd
-            
             month_name = date(weather.year, weather.month, 1).strftime('%b')
-            print(f"{month_name:6} | {weather.avg_temp_c:13.1f} | {weather.avg_temp_f:13.1f} | "
-                  f"{hdd:6.1f} | {cdd:6.1f}")
-        
-        print("-" * 56)
-        print(f"TOTAL  | {' ' * 13} | {' ' * 13} | {total_hdd:6.1f} | {total_cdd:6.1f}")
-        
-        # Annual summary
-        print(f"\n2023 Annual Summary:")
-        print(f"  Total Heating Degree Days: {total_hdd:.0f}")
-        print(f"  Total Cooling Degree Days: {total_cdd:.0f}")
-        print(f"  Climate: {'Cooling-dominated' if total_cdd > total_hdd else 'Heating-dominated'}")
+            print(f"{month_name:6} | {weather.avg_temp_c:13.1f} | {weather.avg_temp_f:13.1f}")
     else:
         print("Failed to retrieve weather data")
 
@@ -139,28 +116,14 @@ def compare_locations():
     
     # Compare July 2023 weather
     print("\nComparing July 2023 Weather:\n")
-    print("Location         | Avg Temp (°F) | HDD  | CDD  | Climate Type")
-    print("-" * 65)
+    print("Location         | Avg Temp (°F)")
+    print("-" * 36)
     
     for loc_info in locations:
         weather = service.get_weather_data(loc_info["location"], 2023, 7)
         
         if weather:
-            hdd = weather.calculate_hdd(base_temp_f=65.0)
-            cdd = weather.calculate_cdd(base_temp_f=65.0)
-            
-            # Determine climate type based on degree days
-            if cdd > 200:
-                climate = "Hot Summer"
-            elif cdd > 100:
-                climate = "Warm Summer"
-            elif hdd > 50:
-                climate = "Cool Summer"
-            else:
-                climate = "Mild Summer"
-            
-            print(f"{loc_info['name']:16} | {weather.avg_temp_f:13.1f} | "
-                  f"{hdd:4.0f} | {cdd:4.0f} | {climate}")
+            print(f"{loc_info['name']:16} | {weather.avg_temp_f:13.1f}")
 
 
 def find_weather_station():
@@ -191,43 +154,7 @@ def find_weather_station():
 
 
 def calculate_degree_days_with_custom_base():
-    """Calculate degree days with custom base temperatures."""
-    print("\n" + "=" * 60)
-    print("EXAMPLE 5: Custom Base Temperature Degree Days")
-    print("=" * 60)
-    
-    # Location
-    location = LocationInfo(
-        geo_lat=34.0522,
-        geo_lng=-118.2437,
-        state="CA",
-        noaa_station_name="Los Angeles, CA"
-    )
-    
-    # Create weather service
-    service = WeatherService(provider=OpenMeteoProvider())
-    
-    # Get weather for June 2023
-    weather = service.get_weather_data(location, 2023, 6)
-    
-    if weather:
-        print(f"\nLocation: Los Angeles, CA")
-        print(f"Period: June 2023")
-        print(f"Average Temperature: {weather.avg_temp_f:.1f}°F\n")
-        
-        # Calculate degree days with different base temperatures
-        print("Base Temp | HDD    | CDD")
-        print("-" * 25)
-        
-        for base_temp in [60, 65, 70, 75]:
-            hdd = weather.calculate_hdd(base_temp_f=base_temp)
-            cdd = weather.calculate_cdd(base_temp_f=base_temp)
-            print(f"{base_temp:>9}°F | {hdd:6.1f} | {cdd:6.1f}")
-        
-        print("\nNote: Different base temperatures are used for different applications:")
-        print("  - 65°F: Common residential standard")
-        print("  - 60°F: Often used for commercial buildings")
-        print("  - 70°F: May be used for cooling-dominated climates")
+    pass
 
 
 def main():
@@ -249,7 +176,7 @@ def main():
     get_annual_weather()
     compare_locations()
     find_weather_station()
-    calculate_degree_days_with_custom_base()
+    # Degree-day example intentionally removed to mirror Django model capability
     
     print("\n" + "=" * 60)
     print("   Examples Complete!")

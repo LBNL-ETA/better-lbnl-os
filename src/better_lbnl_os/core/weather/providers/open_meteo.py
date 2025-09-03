@@ -123,7 +123,6 @@ class OpenMeteoProvider(WeatherDataProvider):
                 min_temp_c=min_temp,
                 max_temp_c=max_temp,
                 data_source="OpenMeteo",
-                daily_temps_c=daily_temps,
             )
             logger.debug(
                 f"Retrieved weather data from OpenMeteo: {year}-{month}, avg: {avg_temp_c:.1f}°C"
@@ -177,4 +176,3 @@ class OpenMeteoProvider(WeatherDataProvider):
                 "historical_data_available": True,
                 "data_from_year": 1940,
             }
-

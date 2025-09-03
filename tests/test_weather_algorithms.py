@@ -9,12 +9,8 @@ from better_lbnl_os.core.weather.calculations import (
     fahrenheit_to_celsius,
     convert_temperature,
     convert_temperature_list,
-    calculate_heating_degree_days,
-    calculate_cooling_degree_days,
     calculate_monthly_average,
-    estimate_monthly_hdd,
-    estimate_monthly_cdd,
-    validate_temperature_range
+    validate_temperature_range,
 )
 
 
@@ -70,66 +66,12 @@ class TestTemperatureConversions(unittest.TestCase):
 
 
 class TestDegreeDayCalculations(unittest.TestCase):
-    """Test degree day calculation functions."""
-    
-    def test_heating_degree_days(self):
-        """Test HDD calculation."""
-        # All temps below base
-        daily_temps = [30, 40, 50, 55, 60]
-        hdd = calculate_heating_degree_days(daily_temps, base_temp=65.0)
-        expected = (65-30) + (65-40) + (65-50) + (65-55) + (65-60)
-        self.assertAlmostEqual(hdd, expected, places=2)
-        
-        # All temps above base
-        daily_temps = [70, 75, 80]
-        hdd = calculate_heating_degree_days(daily_temps, base_temp=65.0)
-        self.assertEqual(hdd, 0)
-        
-        # Mixed temps
-        daily_temps = [60, 65, 70]
-        hdd = calculate_heating_degree_days(daily_temps, base_temp=65.0)
-        self.assertAlmostEqual(hdd, 5.0, places=2)
-    
-    def test_cooling_degree_days(self):
-        """Test CDD calculation."""
-        # All temps above base
-        daily_temps = [70, 75, 80, 85, 90]
-        cdd = calculate_cooling_degree_days(daily_temps, base_temp=65.0)
-        expected = (70-65) + (75-65) + (80-65) + (85-65) + (90-65)
-        self.assertAlmostEqual(cdd, expected, places=2)
-        
-        # All temps below base
-        daily_temps = [50, 55, 60]
-        cdd = calculate_cooling_degree_days(daily_temps, base_temp=65.0)
-        self.assertEqual(cdd, 0)
-        
-        # Mixed temps
-        daily_temps = [60, 65, 70]
-        cdd = calculate_cooling_degree_days(daily_temps, base_temp=65.0)
-        self.assertAlmostEqual(cdd, 5.0, places=2)
-    
-    def test_degree_days_with_celsius(self):
-        """Test degree days with Celsius inputs."""
-        # Using Celsius base temperature (18.3°C ≈ 65°F)
-        daily_temps_c = [10, 15, 20, 25]
-        
-        hdd = calculate_heating_degree_days(daily_temps_c, base_temp=18.3, temp_unit='C')
-        expected_hdd = (18.3-10) + (18.3-15) + 0 + 0
-        self.assertAlmostEqual(hdd, expected_hdd, places=1)
-        
-        cdd = calculate_cooling_degree_days(daily_temps_c, base_temp=18.3, temp_unit='C')
-        expected_cdd = 0 + 0 + (20-18.3) + (25-18.3)
-        self.assertAlmostEqual(cdd, expected_cdd, places=1)
-    
-    def test_degree_days_with_numpy_array(self):
-        """Test degree days with numpy array input."""
-        daily_temps = np.array([60, 65, 70, 75, 80])
-        
-        hdd = calculate_heating_degree_days(daily_temps, base_temp=65.0)
-        self.assertAlmostEqual(hdd, 5.0, places=2)
-        
-        cdd = calculate_cooling_degree_days(daily_temps, base_temp=65.0)
-        self.assertAlmostEqual(cdd, 20.0, places=2)
+    """Placeholder to confirm HDD/CDD functions are intentionally absent."""
+    def test_no_degree_day_functions(self):
+        """Ensure degree day functions are not exposed in core calculations."""
+        from better_lbnl_os.core.weather import calculations as calc
+        self.assertFalse(hasattr(calc, 'calculate_heating_degree_days'))
+        self.assertFalse(hasattr(calc, 'calculate_cooling_degree_days'))
 
 
 class TestMonthlyCalculations(unittest.TestCase):
@@ -159,41 +101,6 @@ class TestMonthlyCalculations(unittest.TestCase):
         hourly_temps = [float('nan')] * 10
         self.assertTrue(math.isnan(calculate_monthly_average(hourly_temps)))
     
-    def test_estimate_monthly_hdd(self):
-        """Test monthly HDD estimation."""
-        # Below base temp
-        hdd = estimate_monthly_hdd(avg_temp=50, days_in_month=30, base_temp=65)
-        self.assertAlmostEqual(hdd, (65-50)*30, places=2)
-        
-        # Above base temp
-        hdd = estimate_monthly_hdd(avg_temp=70, days_in_month=30, base_temp=65)
-        self.assertEqual(hdd, 0)
-        
-        # At base temp
-        hdd = estimate_monthly_hdd(avg_temp=65, days_in_month=30, base_temp=65)
-        self.assertEqual(hdd, 0)
-        
-        # With NaN
-        hdd = estimate_monthly_hdd(avg_temp=float('nan'), days_in_month=30)
-        self.assertEqual(hdd, 0)
-    
-    def test_estimate_monthly_cdd(self):
-        """Test monthly CDD estimation."""
-        # Above base temp
-        cdd = estimate_monthly_cdd(avg_temp=75, days_in_month=30, base_temp=65)
-        self.assertAlmostEqual(cdd, (75-65)*30, places=2)
-        
-        # Below base temp
-        cdd = estimate_monthly_cdd(avg_temp=60, days_in_month=30, base_temp=65)
-        self.assertEqual(cdd, 0)
-        
-        # At base temp
-        cdd = estimate_monthly_cdd(avg_temp=65, days_in_month=30, base_temp=65)
-        self.assertEqual(cdd, 0)
-        
-        # With NaN
-        cdd = estimate_monthly_cdd(avg_temp=float('nan'), days_in_month=30)
-        self.assertEqual(cdd, 0)
 
 
 class TestTemperatureValidation(unittest.TestCase):

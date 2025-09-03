@@ -55,8 +55,7 @@ def get_weather_for_billing_periods(
         if weather_data:
             total_days = (end_date - start_date).days + 1
             weighted_temp = 0
-            total_hdd = 0
-            total_cdd = 0
+            # Degree-day calculations intentionally omitted
             
             for weather in weather_data:
                 # Calculate days in this month that fall within billing period
@@ -76,17 +75,13 @@ def get_weather_for_billing_periods(
                 weighted_temp += weather.avg_temp_f * weight
                 
                 # Degree days are additive
-                hdd = weather.calculate_hdd()
-                cdd = weather.calculate_cdd()
-                total_hdd += hdd * (overlap_days / 30)  # Adjust for actual days
-                total_cdd += cdd * (overlap_days / 30)
             
             results.append({
                 'period': f"{start_date} to {end_date}",
                 'days': total_days,
                 'avg_temp_f': weighted_temp,
-                'total_hdd': total_hdd,
-                'total_cdd': total_cdd
+                'total_hdd': None,
+                'total_cdd': None
             })
         else:
             results.append({
@@ -138,45 +133,20 @@ def analyze_energy_weather_correlation():
     print("-" * 70)
     
     energy_data = []
-    hdd_data = []
-    cdd_data = []
+    # Degree-day data intentionally omitted
     
     for bill, weather in zip(utility_bills, weather_summaries):
         if weather['avg_temp_f'] is not None:
-            # Calculate energy intensity per degree day
-            total_dd = weather['total_hdd'] + weather['total_cdd']
-            kwh_per_dd = bill['kwh'] / total_dd if total_dd > 0 else 0
-            
             energy_data.append(bill['kwh'])
-            hdd_data.append(weather['total_hdd'])
-            cdd_data.append(weather['total_cdd'])
             
             start, end = bill['period']
             print(f"{start} - {end} | {weather['days']:4} | {bill['kwh']:5} | "
-                  f"{weather['avg_temp_f']:5.1f} | {weather['total_hdd']:5.1f} | "
-                  f"{weather['total_cdd']:5.1f} | {kwh_per_dd:6.2f}")
+                  f"{weather['avg_temp_f']:5.1f}")
     
     # Calculate correlations
     if len(energy_data) > 2:
         energy_array = np.array(energy_data)
-        hdd_array = np.array(hdd_data)
-        cdd_array = np.array(cdd_data)
-        
-        # Simple correlation coefficients
-        hdd_corr = np.corrcoef(energy_array, hdd_array)[0, 1]
-        cdd_corr = np.corrcoef(energy_array, cdd_array)[0, 1]
-        
-        print("\n" + "-" * 70)
-        print("\nCorrelation Analysis:")
-        print(f"  Energy vs HDD correlation: {hdd_corr:.3f}")
-        print(f"  Energy vs CDD correlation: {cdd_corr:.3f}")
-        
-        if abs(cdd_corr) > abs(hdd_corr):
-            print(f"\n  → Building appears to be COOLING-dominated")
-            print(f"    (stronger correlation with cooling degree days)")
-        else:
-            print(f"\n  → Building appears to be HEATING-dominated")
-            print(f"    (stronger correlation with heating degree days)")
+        print("\nNote: Degree-day correlation removed to mirror Django capability.")
 
 
 def calculate_weather_normalized_energy():
@@ -205,39 +175,7 @@ def calculate_weather_normalized_energy():
     typical_weather = service.get_weather_range(location, 2022, 1, 2022, 12)
     
     if actual_weather and typical_weather:
-        # Calculate annual degree days
-        actual_hdd = sum(w.calculate_hdd() for w in actual_weather)
-        actual_cdd = sum(w.calculate_cdd() for w in actual_weather)
-        typical_hdd = sum(w.calculate_hdd() for w in typical_weather)
-        typical_cdd = sum(w.calculate_cdd() for w in typical_weather)
-        
-        print("Year | Total HDD | Total CDD | Total DD")
-        print("-" * 40)
-        print(f"2022 | {typical_hdd:9.0f} | {typical_cdd:9.0f} | {typical_hdd + typical_cdd:8.0f} (Typical)")
-        print(f"2023 | {actual_hdd:9.0f} | {actual_cdd:9.0f} | {actual_hdd + actual_cdd:8.0f} (Actual)")
-        
-        # Calculate normalization factor
-        actual_total_dd = actual_hdd + actual_cdd
-        typical_total_dd = typical_hdd + typical_cdd
-        normalization_factor = typical_total_dd / actual_total_dd if actual_total_dd > 0 else 1
-        
-        print(f"\nWeather Normalization Factor: {normalization_factor:.3f}")
-        
-        # Example: normalize actual consumption
-        actual_consumption_kwh = 12500  # Example annual consumption
-        normalized_consumption = actual_consumption_kwh * normalization_factor
-        
-        print(f"\nExample Energy Normalization:")
-        print(f"  Actual 2023 Consumption:            {actual_consumption_kwh:,.0f} kWh")
-        print(f"  Weather-Normalized Consumption:     {normalized_consumption:,.0f} kWh")
-        print(f"  Difference:                         {normalized_consumption - actual_consumption_kwh:+,.0f} kWh")
-        
-        if normalization_factor > 1:
-            print(f"\n  → 2023 had milder weather than typical")
-            print(f"    (normalized consumption is higher than actual)")
-        else:
-            print(f"\n  → 2023 had more extreme weather than typical")
-            print(f"    (normalized consumption is lower than actual)")
+        print("Note: Weather normalization based on degree-days is omitted in OS lib.")
 
 
 def main():

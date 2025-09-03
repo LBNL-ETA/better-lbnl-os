@@ -223,60 +223,6 @@ class TestWeatherService(unittest.TestCase):
             37.8716, -122.2727, 2023, 2
         )
     
-    def test_calculate_degree_days(self):
-        """Test degree day calculation."""
-        # Mock weather data
-        mock_weather = WeatherData(
-            latitude=37.8716,
-            longitude=-122.2727,
-            year=2023,
-            month=1,
-            avg_temp_c=10.0,  # 50°F
-            data_source="Mock"
-        )
-        self.mock_provider.get_weather_data.return_value = mock_weather
-        
-        dd = self.service.calculate_degree_days(self.location, 2023, 1, base_temp_f=65.0)
-        
-        # Verify result
-        self.assertIn('hdd', dd)
-        self.assertIn('cdd', dd)
-        self.assertGreater(dd['hdd'], 0)  # Should have heating degree days
-        self.assertEqual(dd['cdd'], 0)  # Should have no cooling degree days
-    
-    def test_calculate_annual_degree_days(self):
-        """Test annual degree day calculation."""
-        # Mock weather data for 12 months
-        mock_weathers = []
-        for month in range(1, 13):
-            # Temperature increases through the year
-            temp_c = 5 + (month - 1) * 2  # 5°C in Jan to 27°C in Dec
-            mock_weathers.append(
-                WeatherData(
-                    latitude=37.8716,
-                    longitude=-122.2727,
-                    year=2023,
-                    month=month,
-                    avg_temp_c=temp_c,
-                    data_source="Mock"
-                )
-            )
-        self.mock_provider.get_weather_data.side_effect = mock_weathers
-        
-        annual = self.service.calculate_annual_degree_days(self.location, 2023, base_temp_f=65.0)
-        
-        # Verify result
-        self.assertIn('hdd', annual)
-        self.assertIn('cdd', annual)
-        self.assertIn('months_available', annual)
-        self.assertEqual(annual['months_available'], 12)
-        
-        # Winter months should contribute to HDD, summer to CDD
-        self.assertGreater(annual['hdd'], 0)
-        self.assertGreater(annual['cdd'], 0)
-        
-        # Verify all 12 months were fetched
-        self.assertEqual(self.mock_provider.get_weather_data.call_count, 12)
 
 
 if __name__ == '__main__':

@@ -2,7 +2,7 @@
 Simple Weather Data Example
 
 This is a minimal example showing how to get weather data
-and calculate degree days for a location.
+for a location.
 """
 
 from better_lbnl_os.core.weather import WeatherService, OpenMeteoProvider
@@ -27,8 +27,6 @@ def main():
     # 4. Display results
     if weather:
         print(f"Average Temperature: {weather.avg_temp_c:.1f}°C / {weather.avg_temp_f:.1f}°F")
-        print(f"Heating Degree Days: {weather.calculate_hdd():.1f}")
-        print(f"Cooling Degree Days: {weather.calculate_cdd():.1f}")
     else:
         print("Failed to retrieve weather data")
 

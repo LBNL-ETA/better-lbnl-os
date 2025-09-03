@@ -5,12 +5,14 @@ from datetime import date
 from better_lbnl_os.core.weather.calculations import (
     celsius_to_fahrenheit,
     fahrenheit_to_celsius,
-    calculate_heating_degree_days,
-    calculate_cooling_degree_days,
-    validate_temperature_range
+    convert_temperature,
+    convert_temperature_list,
+    calculate_monthly_average,
+    validate_temperature_range,
 )
 from better_lbnl_os.core.weather import WeatherService, OpenMeteoProvider
 from better_lbnl_os.models import LocationInfo, WeatherData
+import calendar
 
 
 def test_temperature_conversions():
@@ -30,31 +32,13 @@ def test_temperature_conversions():
     print("✓ Fahrenheit to Celsius conversions correct")
 
 
-def test_degree_days():
-    """Test degree day calculations."""
-    print("\n=== Testing Degree Day Calculations ===")
-    
-    # Test HDD
-    daily_temps = [60, 55, 50, 45, 40]  # All below 65°F base
-    hdd = calculate_heating_degree_days(daily_temps, base_temp=65.0)
-    expected_hdd = (65-60) + (65-55) + (65-50) + (65-45) + (65-40)
-    assert abs(hdd - expected_hdd) < 0.01
-    print(f"✓ HDD calculation: {hdd:.1f} (expected {expected_hdd})")
-    
-    # Test CDD
-    daily_temps = [70, 75, 80, 85, 90]  # All above 65°F base
-    cdd = calculate_cooling_degree_days(daily_temps, base_temp=65.0)
-    expected_cdd = (70-65) + (75-65) + (80-65) + (85-65) + (90-65)
-    assert abs(cdd - expected_cdd) < 0.01
-    print(f"✓ CDD calculation: {cdd:.1f} (expected {expected_cdd})")
-    
-    # Test mixed temperatures
-    daily_temps = [60, 65, 70]  # Below, at, and above base
-    hdd = calculate_heating_degree_days(daily_temps, base_temp=65.0)
-    cdd = calculate_cooling_degree_days(daily_temps, base_temp=65.0)
-    assert abs(hdd - 5.0) < 0.01  # Only 60°F contributes
-    assert abs(cdd - 5.0) < 0.01  # Only 70°F contributes
-    print("✓ Mixed temperature degree days correct")
+def test_temperature_lists_and_average():
+    """Test list conversions and monthly average."""
+    temps_c = [0, 10, 20, 30]
+    temps_f = convert_temperature_list(temps_c, 'C', 'F')
+    assert temps_f == [32.0, 50.0, 68.0, 86.0]
+    avg = calculate_monthly_average(temps_c)
+    assert abs(avg - 15.0) < 0.01
 
 
 def test_temperature_validation():
@@ -84,7 +68,6 @@ def test_weather_domain_model():
         min_temp_c=5.0,
         max_temp_c=15.0,
         data_source="Test",
-        daily_temps_c=[8, 9, 10, 11, 12, 13, 14] * 4  # Simplified daily temps
     )
     
     # Test temperature properties
@@ -93,13 +76,8 @@ def test_weather_domain_model():
     assert abs(weather.max_temp_f - 59.0) < 0.1
     print("✓ Temperature property conversions correct")
     
-    # Test HDD/CDD calculations
-    hdd = weather.calculate_hdd(base_temp_f=65.0)
-    cdd = weather.calculate_cdd(base_temp_f=65.0)
-    print(f"✓ HDD: {hdd:.1f}, CDD: {cdd:.1f}")
-    
     # Test validation
-    assert weather.is_valid_temperature() == True
+    assert validate_temperature_range(weather.avg_temp_c) == True
     print("✓ Weather data validation passed")
 
 
@@ -135,11 +113,6 @@ def demo_weather_service():
         print(f"  - Cooling degree days: {cdd:.1f}")
     else:
         print("✗ Failed to retrieve weather data")
-    
-    # Test degree day calculation
-    print("\nCalculating degree days...")
-    dd = service.calculate_degree_days(location, 2023, 7)  # July for cooling
-    print(f"✓ July 2023 degree days: HDD={dd['hdd']:.1f}, CDD={dd['cdd']:.1f}")
     
     # Test provider info
     info = service.get_provider_info()
