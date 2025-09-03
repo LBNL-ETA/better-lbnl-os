@@ -36,6 +36,11 @@ from better_lbnl_os.core.services import (
     BuildingAnalyticsService,
     PortfolioBenchmarkService,
 )
+from better_lbnl_os.core.pipeline import (
+    prepare_model_data,
+    fit_calendarized_models,
+    fit_models_from_inputs,
+)
 
 __all__ = [
     # Version info
@@ -56,4 +61,8 @@ __all__ = [
     # Services
     "BuildingAnalyticsService",
     "PortfolioBenchmarkService",
+    # Pipeline helpers
+    "prepare_model_data",
+    "fit_calendarized_models",
+    "fit_models_from_inputs",
 ]

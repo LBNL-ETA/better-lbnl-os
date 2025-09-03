@@ -5,7 +5,7 @@ Calendarizes utility bills to monthly aggregates aligned with weather data.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date, timedelta
 from typing import Dict, List, Optional
 
@@ -19,7 +19,7 @@ from better_lbnl_os.constants import CONVERSION_TO_KWH
 @dataclass
 class CalendarizationOptions:
     energy_type_map: Optional[Dict[str, str]] = None
-    conversion_to_kwh: Dict[tuple[str, str], float] = CONVERSION_TO_KWH
+    conversion_to_kwh: Dict[tuple[str, str], float] = field(default_factory=lambda: CONVERSION_TO_KWH)
     emission_factor_by_fuel: Optional[Dict[str, float]] = None  # kg CO2 per kWh
     fill_strategy: str = "mean"  # for unit_price/unit_emission; currently only 'mean' supported
 
@@ -28,6 +28,8 @@ def _infer_energy_type(fuel_type: str) -> str:
     f = (fuel_type or "").upper()
     if "ELECTRIC" in f:
         return "ELECTRICITY"
+    if any(gas in f for gas in ["NATURAL", "GAS", "PROPANE", "FUEL", "OIL", "STEAM"]):
+        return "FOSSIL_FUEL"
     # default to FOSSIL_FUEL for other fuels; callers can override via map
     return "FOSSIL_FUEL"
 
@@ -157,8 +159,19 @@ def calendarize_utility_bills(
             return pd.DataFrame(index=pd.Index([], name="Year-Month"))
 
         df_monthly = pd.concat(blocks)
-        df_monthly = df_monthly.pivot_table(index="Year-Month", columns=var,
-                                            values=["daily_standard_eui", "unit_emission", "unit_price"])
+        # Only pivot columns that actually exist
+        pivot_values = []
+        if "daily_standard_eui" in df_monthly.columns:
+            pivot_values.append("daily_standard_eui")
+        if "unit_emission" in df_monthly.columns:
+            pivot_values.append("unit_emission")
+        if "unit_price" in df_monthly.columns:
+            pivot_values.append("unit_price")
+        
+        if not pivot_values:
+            return pd.DataFrame(index=pd.Index([], name="Year-Month"))
+            
+        df_monthly = df_monthly.pivot_table(index="Year-Month", columns=var, values=pivot_values)
         df_monthly.columns = [f"{var} - {' - '.join(col[::-1]).strip()}" for col in df_monthly.columns.values]
         return df_monthly
 
@@ -281,3 +294,89 @@ def calendarize_utility_bills(
     }
 
     return {"weather": out_weather, "detailed": detailed, "aggregated": aggregated}
+
+
+# ------------------ Additional helpers for model preparation ------------------
+def get_consecutive_months(
+    calendarized: Dict,
+    energy_type: str = "ELECTRICITY",
+    window: int = 12,
+) -> Dict[str, List]:
+    """Select the last block of consecutive months with positive EUI.
+
+    Returns empty dict if no block of length >= window exists.
+
+    Output keys:
+    - months: list[str] YYYY-MM-01
+    - degC: list[float]
+    - eui: list[float]
+    - days: list[int]
+    - period: "YYYY-MM to YYYY-MM"
+    """
+    try:
+        periods = calendarized["aggregated"].get("v_x") or calendarized["aggregated"].get("periods")
+        ls_n_days = calendarized["aggregated"]["ls_n_days"]
+        eui_map = calendarized["aggregated"]["dict_v_eui"]
+        degC = calendarized["weather"]["degC"]
+    except Exception:
+        return {}
+
+    if not periods or energy_type not in eui_map:
+        return {}
+
+    df = pd.DataFrame({
+        "month": pd.to_datetime(pd.Series(periods)),
+        "eui": pd.Series(eui_map[energy_type]).astype(float),
+        "degC": pd.Series(degC).astype(float),
+        "days": pd.Series(ls_n_days).astype(int),
+    })
+
+    # Keep positive EUI months and sort
+    df = df[df["eui"] > 0].sort_values("month").reset_index(drop=True)
+    if df.empty:
+        return {}
+
+    # Determine consecutive month blocks using Period arithmetic
+    p = df["month"].dt.to_period("M")
+    is_consec = p.diff().fillna(1) == 1
+    block = (~is_consec).cumsum()
+    df["block"] = block
+
+    # Filter valid blocks >= window
+    sizes = df.groupby("block").size()
+    valid_blocks = sizes[sizes >= window].index.tolist()
+    if not valid_blocks:
+        return {}
+
+    # Take the last valid block chronologically, then last `window` rows
+    last_block = valid_blocks[-1]
+    sub = df[df["block"] == last_block].tail(window)
+    start = sub["month"].iloc[0].strftime("%Y-%m")
+    end = sub["month"].iloc[-1].strftime("%Y-%m")
+
+    return {
+        "months": sub["month"].dt.strftime("%Y-%m-01").tolist(),
+        "degC": sub["degC"].tolist(),
+        "eui": sub["eui"].tolist(),
+        "days": sub["days"].tolist(),
+        "period": f"{start} to {end}",
+    }
+
+
+def trim_series(eui: List[float], degc: List[float]) -> tuple[List[float], List[float]]:
+    """Trim leading and trailing zeros from EUI while keeping arrays aligned.
+
+    If arrays are empty or lengths mismatch, returns inputs unchanged.
+    """
+    try:
+        if len(eui) != len(degc) or len(eui) == 0:
+            return eui, degc
+        i0 = 0
+        i1 = len(eui)
+        while i0 < i1 and float(eui[i0]) == 0:
+            i0 += 1
+        while i1 > i0 and float(eui[i1 - 1]) == 0:
+            i1 -= 1
+        return eui[i0:i1], degc[i0:i1]
+    except Exception:
+        return eui, degc
