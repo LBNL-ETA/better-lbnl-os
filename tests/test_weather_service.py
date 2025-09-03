@@ -5,8 +5,8 @@ from unittest.mock import Mock, patch
 from datetime import date
 
 from better_lbnl_os.core.weather.service import WeatherService
-from better_lbnl_os.interfaces.weather_source import WeatherDataProvider
-from better_lbnl_os.data.models import LocationInfo, WeatherData, WeatherStation
+from better_lbnl_os.core.weather.interfaces import WeatherDataProvider
+from better_lbnl_os.models import LocationInfo, WeatherData, WeatherStation
 
 
 class MockWeatherProvider(WeatherDataProvider):

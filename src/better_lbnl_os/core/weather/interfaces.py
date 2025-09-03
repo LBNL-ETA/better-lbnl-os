@@ -1,0 +1,74 @@
+"""Weather provider interfaces (ABCs).
+
+Defines contracts for pluggable weather data providers.
+"""
+
+from abc import ABC, abstractmethod
+from datetime import date
+from typing import List, Optional, Dict, Any
+
+from better_lbnl_os.models.weather import WeatherData, WeatherStation
+
+
+class WeatherDataProvider(ABC):
+    """Abstract interface for weather data providers."""
+
+    @abstractmethod
+    def get_monthly_average(
+        self,
+        latitude: float,
+        longitude: float,
+        year: int,
+        month: int,
+    ) -> Optional[float]:
+        """Monthly average temperature in Celsius, or None if unavailable."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_daily_temperatures(
+        self,
+        latitude: float,
+        longitude: float,
+        start_date: date,
+        end_date: date,
+    ) -> List[float]:
+        """List of daily average temperatures in Celsius."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_weather_data(
+        self,
+        latitude: float,
+        longitude: float,
+        year: int,
+        month: int,
+    ) -> Optional[WeatherData]:
+        """Complete weather data for a month, or None if unavailable."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_nearest_station(
+        self,
+        latitude: float,
+        longitude: float,
+        max_distance_km: float = 100.0,
+    ) -> Optional[WeatherStation]:
+        """Nearest station to a location, or None if none within range."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def validate_date_range(self, start_date: date, end_date: date) -> bool:
+        """Return True if date range is valid for this provider."""
+        raise NotImplementedError
+
+    def get_provider_name(self) -> str:
+        return self.__class__.__name__.replace("Provider", "")
+
+    def get_api_limits(self) -> Dict[str, Any]:
+        return {
+            "requests_per_hour": None,
+            "requests_per_day": None,
+            "max_date_range_days": None,
+            "historical_data_available": True,
+        }
+

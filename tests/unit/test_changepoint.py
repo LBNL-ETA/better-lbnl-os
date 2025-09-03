@@ -11,7 +11,7 @@ from better_lbnl_os.core.changepoint import (
     calculate_cvrmse,
     _validate_model_inputs
 )
-from better_lbnl_os.data.models import ChangePointModelResult
+from better_lbnl_os.models import ChangePointModelResult
 
 
 class TestChangePointModeling:

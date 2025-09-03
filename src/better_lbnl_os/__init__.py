@@ -21,8 +21,8 @@ from better_lbnl_os.core.changepoint import (
     calculate_r_squared,
 )
 
-# Domain models with behavior
-from better_lbnl_os.data.models import (
+# Domain models with behavior (new stable path)
+from better_lbnl_os.models import (
     BuildingData,
     UtilityBillData,
     WeatherData,
@@ -32,7 +32,7 @@ from better_lbnl_os.data.models import (
 )
 
 # Services for orchestration
-from better_lbnl_os.data.services import (
+from better_lbnl_os.core.services import (
     BuildingAnalyticsService,
     PortfolioBenchmarkService,
 )

@@ -10,7 +10,7 @@ from better_lbnl_os.core.weather.calculations import (
     validate_temperature_range
 )
 from better_lbnl_os.core.weather import WeatherService, OpenMeteoProvider
-from better_lbnl_os.data.models import LocationInfo, WeatherData
+from better_lbnl_os.models import LocationInfo, WeatherData
 
 
 def test_temperature_conversions():

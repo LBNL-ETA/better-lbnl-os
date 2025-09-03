@@ -2,7 +2,7 @@
 
 import pytest
 from datetime import date
-from better_lbnl_os.data.models import BuildingData, UtilityBillData
+from better_lbnl_os.models import BuildingData, UtilityBillData
 
 
 class TestBuildingData:

@@ -11,7 +11,7 @@ from better_lbnl_os.utils.geography import (
     create_dummy_location_info,
     _check_special_regions
 )
-from better_lbnl_os.data.models import LocationInfo
+from better_lbnl_os.models import LocationInfo
 
 
 class TestGeocoding:

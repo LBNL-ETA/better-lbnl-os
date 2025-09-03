@@ -10,7 +10,7 @@ from typing import List, Tuple
 import numpy as np
 
 from better_lbnl_os.core.weather import WeatherService, OpenMeteoProvider
-from better_lbnl_os.data.models import LocationInfo, WeatherData
+from better_lbnl_os.models import LocationInfo, WeatherData
 
 
 def get_weather_for_billing_periods(

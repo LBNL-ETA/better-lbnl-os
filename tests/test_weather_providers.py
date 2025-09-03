@@ -5,7 +5,7 @@ from unittest.mock import Mock, patch, MagicMock
 from datetime import date, datetime
 
 from better_lbnl_os.core.weather.providers import OpenMeteoProvider, NOAAProvider
-from better_lbnl_os.data.models import WeatherData, WeatherStation
+from better_lbnl_os.models import WeatherData, WeatherStation
 
 
 class TestOpenMeteoProvider(unittest.TestCase):

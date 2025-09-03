@@ -6,7 +6,7 @@ and calculate degree days for a location.
 """
 
 from better_lbnl_os.core.weather import WeatherService, OpenMeteoProvider
-from better_lbnl_os.data.models import LocationInfo
+from better_lbnl_os.models import LocationInfo
 
 
 def main():

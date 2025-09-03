@@ -7,7 +7,7 @@ using the BETTER-LBNL weather module.
 
 from datetime import date
 from better_lbnl_os.core.weather import WeatherService, OpenMeteoProvider
-from better_lbnl_os.data.models import LocationInfo
+from better_lbnl_os.models import LocationInfo
 
 
 def get_monthly_weather():
