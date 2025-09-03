@@ -8,7 +8,7 @@ from typing import Dict, List, Optional
 import pandas as pd
 
 from better_lbnl_os.constants import normalize_space_type
-from better_lbnl_os.constants.template_parsing import (
+from .mappings import (
     BETTER_META_HEADERS,
     BETTER_BILLS_HEADERS,
     FUEL_NAME_MAP,
@@ -26,28 +26,47 @@ class _SheetNames:
 
 def _find_column(df: pd.DataFrame, candidates: List[str]) -> Optional[str]:
     cols = list(df.columns)
+    # Clean column names - strip whitespace and handle unnamed columns
+    cleaned_cols = {}
+    for col in cols:
+        if isinstance(col, str):
+            cleaned = col.strip()
+            cleaned_cols[cleaned] = col
+        else:
+            cleaned_cols[str(col)] = col
+    
     for cand in candidates:
-        if cand in cols:
-            return cand
+        # Direct match
+        if cand in cleaned_cols:
+            return cleaned_cols[cand]
+            
     # try case-insensitive match
-    lower = {c.lower(): c for c in cols}
+    lower = {c.lower(): c for c in cleaned_cols.keys()}
     for cand in candidates:
         if cand.lower() in lower:
-            return lower[cand.lower()]
+            orig_col = cleaned_cols[lower[cand.lower()]]
+            return orig_col
     return None
 
 
-def _map_columns(df: pd.DataFrame, spec: Dict[str, List[str]], sheet: str, errors: List[ParseMessage]) -> Dict[str, str]:
+def _map_columns(
+    df: pd.DataFrame,
+    spec: Dict[str, List[str]],
+    sheet: str,
+    errors: List[ParseMessage],
+    optional_keys: Optional[List[str]] = None,
+) -> Dict[str, str]:
     mapping: Dict[str, str] = {}
+    optional = set(optional_keys or [])
     for key, candidates in spec.items():
         col = _find_column(df, candidates)
-        if col is None:
+        if col is None and key not in optional:
             errors.append(ParseMessage(
                 severity="error",
                 sheet=sheet,
                 message=f"Missing required column for {key}: one of {candidates}",
             ))
-        else:
+        elif col is not None:
             mapping[key] = col
     return mapping
 
@@ -74,11 +93,54 @@ def read_better_excel(file_like, lang: str | None = None) -> ParsedPortfolio:
     except Exception as e:
         result.errors.append(ParseMessage(severity="error", sheet=sn.bills, message=f"Failed to read sheet: {e}"))
         return result
+    
+    # Check if meta sheet might need skiprows (common for templates with instructions)
+    # If first attempt fails to find columns, try with skiprows
+    meta_map_test = _map_columns(df_meta, BETTER_META_HEADERS, sn.meta, [], optional_keys=[])
+    if len(meta_map_test) < len(BETTER_META_HEADERS):
+        for skip in [1, 2, 3]:
+            try:
+                df_meta_skip = pd.read_excel(file_like, sheet_name=sn.meta, skiprows=skip)
+                meta_map_skip = _map_columns(df_meta_skip, BETTER_META_HEADERS, sn.meta, [], optional_keys=[])
+                if len(meta_map_skip) > len(meta_map_test):
+                    df_meta = df_meta_skip
+                    break
+            except Exception:
+                continue
 
     # Map columns
+    # Debug: Check actual columns in the dataframes
+    # print(f"Meta columns: {list(df_meta.columns)[:5]}...")  # Debug
+    # print(f"Bills columns: {list(df_bills.columns)[:5]}...")  # Debug
+    
     meta_map = _map_columns(df_meta, BETTER_META_HEADERS, sn.meta, result.errors)
-    bills_map = _map_columns(df_bills, BETTER_BILLS_HEADERS, sn.bills, result.errors)
-    if any(m not in meta_map for m in BETTER_META_HEADERS) or any(m not in bills_map for m in BETTER_BILLS_HEADERS):
+    bills_map = _map_columns(df_bills, BETTER_BILLS_HEADERS, sn.bills, result.errors, optional_keys=["COST"])
+    # If bill mapping failed (e.g., headers on lower row), retry with skiprows
+    # Many templates have title/instruction rows before the actual headers
+    if any(k not in bills_map and k not in ["COST"] for k in BETTER_BILLS_HEADERS.keys()):
+        # Try skipping first row (common for templates with title row)
+        try:
+            df_bills_skip1 = pd.read_excel(file_like, sheet_name=sn.bills, skiprows=1)
+            bills_map_skip1 = _map_columns(df_bills_skip1, BETTER_BILLS_HEADERS, sn.bills, [], optional_keys=["COST"])
+            if len(bills_map_skip1) > len(bills_map):
+                df_bills = df_bills_skip1
+                bills_map = bills_map_skip1
+        except Exception:
+            pass
+        
+        # Also try skipping first two rows (for templates with title and subtitle)
+        if any(k not in bills_map and k not in ["COST"] for k in BETTER_BILLS_HEADERS.keys()):
+            try:
+                df_bills_skip2 = pd.read_excel(file_like, sheet_name=sn.bills, skiprows=2) 
+                bills_map_skip2 = _map_columns(df_bills_skip2, BETTER_BILLS_HEADERS, sn.bills, [], optional_keys=["COST"])
+                if len(bills_map_skip2) > len(bills_map):
+                    df_bills = df_bills_skip2
+                    bills_map = bills_map_skip2
+            except Exception:
+                pass
+    if any(m not in meta_map for m in BETTER_META_HEADERS) or any(
+        m not in bills_map and m not in ["COST"] for m in BETTER_BILLS_HEADERS
+    ):
         return result
 
     # Drop meta rows missing building ID
@@ -129,7 +191,7 @@ def read_better_excel(file_like, lang: str | None = None) -> ParsedPortfolio:
             unit = UNIT_NAME_MAP.get(unit, unit)
             cons = float(row[bills_map["CONSUMPTION"]])
             cost = None
-            if bills_map.get("COST") in row and pd.notna(row[bills_map["COST"]]):
+            if bills_map.get("COST") and bills_map["COST"] in row and pd.notna(row[bills_map["COST"]]):
                 try:
                     cost = float(row[bills_map["COST"]])
                 except Exception:
@@ -154,4 +216,3 @@ def read_better_excel(file_like, lang: str | None = None) -> ParsedPortfolio:
     result.buildings = list(buildings.values())
     result.bills_by_building = bills_by_building
     return result
-
