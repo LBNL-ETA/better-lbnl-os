@@ -15,6 +15,7 @@ from .mappings import (
     space_type_to_benchmark_category,
     SPACE_TYPE_SYNONYMS,
 )
+from .template_parsing import SQFT_TO_SQM
 
 __all__ = [
     # Enums
@@ -30,5 +31,7 @@ __all__ = [
     "normalize_space_type",
     "space_type_to_benchmark_category",
     "SPACE_TYPE_SYNONYMS",
+    # Templates
+    "SQFT_TO_SQM",
 ]
 
