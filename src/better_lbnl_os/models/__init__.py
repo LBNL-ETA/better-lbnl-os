@@ -1,7 +1,7 @@
-"""Domain models package (transitional).
+"""Domain models for building energy analytics.
 
-This package re-exports domain models from the previous data.models module
-to provide a stable import path during reorganization.
+This package contains all domain models with business logic methods
+for building energy analysis workflows.
 """
 
 from .building import BuildingData

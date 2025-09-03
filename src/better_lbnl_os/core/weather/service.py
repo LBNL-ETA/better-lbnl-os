@@ -226,5 +226,3 @@ class WeatherService:
             'name': self.provider.get_provider_name(),
             'limits': self.provider.get_api_limits()
         }
-    
-    # Degree day calculations are intentionally excluded to mirror the Django app.

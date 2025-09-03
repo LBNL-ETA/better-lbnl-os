@@ -1,13 +1,11 @@
 """
-Unified geography and geocoding utilities for the BETTER LBNL application.
+Unified geography and geocoding utilities for building energy analysis.
 
 This module provides comprehensive geographic functionality including:
 - Basic geographic calculations (haversine distance, coordinate validation)
 - Geocoding services using Google Maps API
 - Location data enrichment (weather stations, eGrid regions)
 - Geographic utility functions
-
-Extracted from the original BETTER Django application for use as a standalone library.
 """
 import logging
 import math

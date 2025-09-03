@@ -1,10 +1,9 @@
 """Weather-related basic calculations.
 
 Pure functions for weather data processing and temperature conversions.
-Degree-day calculations are intentionally excluded to mirror the Django app.
 """
 
-from typing import List
+from typing import List, Union
 import numpy as np
 import math
 

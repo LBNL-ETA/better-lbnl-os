@@ -1,4 +1,4 @@
-"""Enum definitions used across the OS library."""
+"""Enum definitions used across the library."""
 
 from enum import Enum
 

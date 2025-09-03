@@ -1,4 +1,4 @@
-"""Slim constants package for the OS library.
+"""Constants package for building energy analytics.
 
 Public, stable re-exports for enums, thresholds, energy factors, and mappings.
 """
