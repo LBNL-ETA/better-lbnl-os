@@ -24,42 +24,6 @@ class _SheetNames:
     meta: str = "Property Information"
     bills: str = "Utility Data"
 
-def _clean_str(v) -> str:
-    if isinstance(v, str):
-        return v.strip()
-    if pd.isna(v):
-        return ""
-    return str(v).strip()
-
-def _flatten_candidates(spec: dict[str, list[str]]) -> set[str]:
-    out: set[str] = set()
-    for vals in spec.values():
-        out.update(vals)
-    return {s.strip().lower() for s in out}
-
-def _count_header_hits(cols: list[str], candidates_lower: set[str]) -> int:
-    hits = 0
-    for c in cols:
-        if not isinstance(c, str):
-            continue
-        if c.strip().lower() in candidates_lower:
-            hits += 1
-    return hits
-
-def _detect_header_row(xl: pd.ExcelFile, sheet_name: str, usecols: str | None, candidates_lower: set[str], max_rows: int = 30, min_hits: int = 3) -> int | None:
-    """Scan the first rows to find the header row by matching known labels."""
-    try:
-        preview = xl.parse(sheet_name=sheet_name, header=None, nrows=max_rows, usecols=usecols)
-    except Exception:
-        return None
-    # Iterate over rows to find one with enough header label hits
-    for r_idx in range(len(preview)):
-        row_vals = [_clean_str(v) for v in preview.iloc[r_idx].tolist()]
-        hits = _count_header_hits(row_vals, candidates_lower)
-        if hits >= min_hits:
-            return r_idx
-    return None
-
 
 def _find_column(df: pd.DataFrame, candidates: list[str]) -> str | None:
     cols = list(df.columns)
@@ -119,45 +83,29 @@ def read_better_excel(file_like, lang: str | None = None) -> ParsedPortfolio:
     result = ParsedPortfolio(metadata={"template_type": "better_excel", "lang": lang})
     config = BETTERTemplateConfig()
 
-    # Use a single ExcelFile handle to allow multiple parses on file-like objects
+    # Read sheets with deterministic skiprows for BETTER template format
+    # BETTER templates have instructions in first rows that must be skipped
     try:
-        xl = pd.ExcelFile(file_like)
-    except Exception as e:
-        result.errors.append(ParseMessage(severity="error", sheet="(workbook)", message=f"Failed to open workbook: {e}"))
-        return result
-
-    # Read Property Information with default skip, then fallback to detected header row if needed
-    try:
-        df_meta = xl.parse(sheet_name=sn.meta, skiprows=config.META_SKIP_ROWS, usecols=config.META_USE_COLS)
+        df_meta = pd.read_excel(
+            file_like,
+            sheet_name=sn.meta,
+            skiprows=config.META_SKIP_ROWS,
+            usecols=config.META_USE_COLS,
+        )
     except Exception as e:
         result.errors.append(ParseMessage(severity="error", sheet=sn.meta, message=f"Failed to read sheet: {e}"))
         return result
 
-    meta_candidates_lower = _flatten_candidates(BETTER_META_HEADERS)
-    if _count_header_hits(list(map(_clean_str, df_meta.columns.tolist())), meta_candidates_lower) < 3:
-        # Try to detect header row dynamically
-        hdr = _detect_header_row(xl, sn.meta, config.META_USE_COLS, meta_candidates_lower, max_rows=30, min_hits=3)
-        if hdr is not None:
-            try:
-                df_meta = xl.parse(sheet_name=sn.meta, header=hdr, usecols=config.META_USE_COLS)
-            except Exception:
-                pass
-
-    # Read Utility Data with default skip, then fallback to detected header row if needed
     try:
-        df_bills = xl.parse(sheet_name=sn.bills, skiprows=config.BILLS_SKIP_ROWS, usecols=config.BILLS_USE_COLS)
+        df_bills = pd.read_excel(
+            file_like,
+            sheet_name=sn.bills,
+            skiprows=config.BILLS_SKIP_ROWS,
+            usecols=config.BILLS_USE_COLS,
+        )
     except Exception as e:
         result.errors.append(ParseMessage(severity="error", sheet=sn.bills, message=f"Failed to read sheet: {e}"))
         return result
-
-    bills_candidates_lower = _flatten_candidates(BETTER_BILLS_HEADERS)
-    if _count_header_hits(list(map(_clean_str, df_bills.columns.tolist())), bills_candidates_lower) < 4:
-        hdr = _detect_header_row(xl, sn.bills, config.BILLS_USE_COLS, bills_candidates_lower, max_rows=40, min_hits=4)
-        if hdr is not None:
-            try:
-                df_bills = xl.parse(sheet_name=sn.bills, header=hdr, usecols=config.BILLS_USE_COLS)
-            except Exception:
-                pass
 
     # Map columns (no need for retry logic with deterministic skiprows)
     meta_map = _map_columns(df_meta, BETTER_META_HEADERS, sn.meta, result.errors)
