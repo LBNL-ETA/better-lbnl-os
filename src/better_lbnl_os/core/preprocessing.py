@@ -352,7 +352,12 @@ def get_consecutive_months(
 
     # Determine consecutive month blocks using Period arithmetic
     p = df["month"].dt.to_period("M")
-    is_consec = p.diff().fillna(1) == 1
+    # For periods, diff() returns number of periods as difference
+    # Convert to integer representation to check consecutiveness
+    period_ints = p.astype('int64')
+    int_diff = period_ints.diff()
+    # Consecutive months have a difference of 1
+    is_consec = (int_diff == 1) | int_diff.isna()
     block = (~is_consec).cumsum()
     df["block"] = block
 
