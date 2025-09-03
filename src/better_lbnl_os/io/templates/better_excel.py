@@ -3,19 +3,20 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Dict, List, Optional
 
 import pandas as pd
 
 from better_lbnl_os.constants import normalize_space_type
-from .mappings import (
-    BETTER_META_HEADERS,
+from better_lbnl_os.constants.template_parsing import (
     BETTER_BILLS_HEADERS,
+    BETTER_META_HEADERS,
+    BETTERTemplateConfig,
     FUEL_NAME_MAP,
     UNIT_NAME_MAP,
 )
 from better_lbnl_os.models import BuildingData, UtilityBillData
-from .types import ParsedPortfolio, ParseMessage
+
+from .types import ParseMessage, ParsedPortfolio
 
 
 @dataclass
@@ -23,8 +24,44 @@ class _SheetNames:
     meta: str = "Property Information"
     bills: str = "Utility Data"
 
+def _clean_str(v) -> str:
+    if isinstance(v, str):
+        return v.strip()
+    if pd.isna(v):
+        return ""
+    return str(v).strip()
 
-def _find_column(df: pd.DataFrame, candidates: List[str]) -> Optional[str]:
+def _flatten_candidates(spec: dict[str, list[str]]) -> set[str]:
+    out: set[str] = set()
+    for vals in spec.values():
+        out.update(vals)
+    return {s.strip().lower() for s in out}
+
+def _count_header_hits(cols: list[str], candidates_lower: set[str]) -> int:
+    hits = 0
+    for c in cols:
+        if not isinstance(c, str):
+            continue
+        if c.strip().lower() in candidates_lower:
+            hits += 1
+    return hits
+
+def _detect_header_row(xl: pd.ExcelFile, sheet_name: str, usecols: str | None, candidates_lower: set[str], max_rows: int = 30, min_hits: int = 3) -> int | None:
+    """Scan the first rows to find the header row by matching known labels."""
+    try:
+        preview = xl.parse(sheet_name=sheet_name, header=None, nrows=max_rows, usecols=usecols)
+    except Exception:
+        return None
+    # Iterate over rows to find one with enough header label hits
+    for r_idx in range(len(preview)):
+        row_vals = [_clean_str(v) for v in preview.iloc[r_idx].tolist()]
+        hits = _count_header_hits(row_vals, candidates_lower)
+        if hits >= min_hits:
+            return r_idx
+    return None
+
+
+def _find_column(df: pd.DataFrame, candidates: list[str]) -> str | None:
     cols = list(df.columns)
     # Clean column names - strip whitespace and handle unnamed columns
     cleaned_cols = {}
@@ -34,12 +71,12 @@ def _find_column(df: pd.DataFrame, candidates: List[str]) -> Optional[str]:
             cleaned_cols[cleaned] = col
         else:
             cleaned_cols[str(col)] = col
-    
+
     for cand in candidates:
         # Direct match
         if cand in cleaned_cols:
             return cleaned_cols[cand]
-            
+
     # try case-insensitive match
     lower = {c.lower(): c for c in cleaned_cols.keys()}
     for cand in candidates:
@@ -51,12 +88,12 @@ def _find_column(df: pd.DataFrame, candidates: List[str]) -> Optional[str]:
 
 def _map_columns(
     df: pd.DataFrame,
-    spec: Dict[str, List[str]],
+    spec: dict[str, list[str]],
     sheet: str,
-    errors: List[ParseMessage],
-    optional_keys: Optional[List[str]] = None,
-) -> Dict[str, str]:
-    mapping: Dict[str, str] = {}
+    errors: list[ParseMessage],
+    optional_keys: list[str] | None = None,
+) -> dict[str, str]:
+    mapping: dict[str, str] = {}
     optional = set(optional_keys or [])
     for key, candidates in spec.items():
         col = _find_column(df, candidates)
@@ -80,74 +117,61 @@ def read_better_excel(file_like, lang: str | None = None) -> ParsedPortfolio:
     """
     sn = _SheetNames()
     result = ParsedPortfolio(metadata={"template_type": "better_excel", "lang": lang})
+    config = BETTERTemplateConfig()
 
-    # Read sheets
+    # Use a single ExcelFile handle to allow multiple parses on file-like objects
     try:
-        df_meta = pd.read_excel(file_like, sheet_name=sn.meta)
+        xl = pd.ExcelFile(file_like)
+    except Exception as e:
+        result.errors.append(ParseMessage(severity="error", sheet="(workbook)", message=f"Failed to open workbook: {e}"))
+        return result
+
+    # Read Property Information with default skip, then fallback to detected header row if needed
+    try:
+        df_meta = xl.parse(sheet_name=sn.meta, skiprows=config.META_SKIP_ROWS, usecols=config.META_USE_COLS)
     except Exception as e:
         result.errors.append(ParseMessage(severity="error", sheet=sn.meta, message=f"Failed to read sheet: {e}"))
         return result
 
+    meta_candidates_lower = _flatten_candidates(BETTER_META_HEADERS)
+    if _count_header_hits(list(map(_clean_str, df_meta.columns.tolist())), meta_candidates_lower) < 3:
+        # Try to detect header row dynamically
+        hdr = _detect_header_row(xl, sn.meta, config.META_USE_COLS, meta_candidates_lower, max_rows=30, min_hits=3)
+        if hdr is not None:
+            try:
+                df_meta = xl.parse(sheet_name=sn.meta, header=hdr, usecols=config.META_USE_COLS)
+            except Exception:
+                pass
+
+    # Read Utility Data with default skip, then fallback to detected header row if needed
     try:
-        df_bills = pd.read_excel(file_like, sheet_name=sn.bills)
+        df_bills = xl.parse(sheet_name=sn.bills, skiprows=config.BILLS_SKIP_ROWS, usecols=config.BILLS_USE_COLS)
     except Exception as e:
         result.errors.append(ParseMessage(severity="error", sheet=sn.bills, message=f"Failed to read sheet: {e}"))
         return result
-    
-    # Check if meta sheet might need skiprows (common for templates with instructions)
-    # If first attempt fails to find columns, try with skiprows
-    meta_map_test = _map_columns(df_meta, BETTER_META_HEADERS, sn.meta, [], optional_keys=[])
-    if len(meta_map_test) < len(BETTER_META_HEADERS):
-        for skip in [1, 2, 3]:
-            try:
-                df_meta_skip = pd.read_excel(file_like, sheet_name=sn.meta, skiprows=skip)
-                meta_map_skip = _map_columns(df_meta_skip, BETTER_META_HEADERS, sn.meta, [], optional_keys=[])
-                if len(meta_map_skip) > len(meta_map_test):
-                    df_meta = df_meta_skip
-                    break
-            except Exception:
-                continue
 
-    # Map columns
-    # Debug: Check actual columns in the dataframes
-    # print(f"Meta columns: {list(df_meta.columns)[:5]}...")  # Debug
-    # print(f"Bills columns: {list(df_bills.columns)[:5]}...")  # Debug
-    
-    meta_map = _map_columns(df_meta, BETTER_META_HEADERS, sn.meta, result.errors)
-    bills_map = _map_columns(df_bills, BETTER_BILLS_HEADERS, sn.bills, result.errors, optional_keys=["COST"])
-    # If bill mapping failed (e.g., headers on lower row), retry with skiprows
-    # Many templates have title/instruction rows before the actual headers
-    if any(k not in bills_map and k not in ["COST"] for k in BETTER_BILLS_HEADERS.keys()):
-        # Try skipping first row (common for templates with title row)
-        try:
-            df_bills_skip1 = pd.read_excel(file_like, sheet_name=sn.bills, skiprows=1)
-            bills_map_skip1 = _map_columns(df_bills_skip1, BETTER_BILLS_HEADERS, sn.bills, [], optional_keys=["COST"])
-            if len(bills_map_skip1) > len(bills_map):
-                df_bills = df_bills_skip1
-                bills_map = bills_map_skip1
-        except Exception:
-            pass
-        
-        # Also try skipping first two rows (for templates with title and subtitle)
-        if any(k not in bills_map and k not in ["COST"] for k in BETTER_BILLS_HEADERS.keys()):
+    bills_candidates_lower = _flatten_candidates(BETTER_BILLS_HEADERS)
+    if _count_header_hits(list(map(_clean_str, df_bills.columns.tolist())), bills_candidates_lower) < 4:
+        hdr = _detect_header_row(xl, sn.bills, config.BILLS_USE_COLS, bills_candidates_lower, max_rows=40, min_hits=4)
+        if hdr is not None:
             try:
-                df_bills_skip2 = pd.read_excel(file_like, sheet_name=sn.bills, skiprows=2) 
-                bills_map_skip2 = _map_columns(df_bills_skip2, BETTER_BILLS_HEADERS, sn.bills, [], optional_keys=["COST"])
-                if len(bills_map_skip2) > len(bills_map):
-                    df_bills = df_bills_skip2
-                    bills_map = bills_map_skip2
+                df_bills = xl.parse(sheet_name=sn.bills, header=hdr, usecols=config.BILLS_USE_COLS)
             except Exception:
                 pass
-    if any(m not in meta_map for m in BETTER_META_HEADERS) or any(
-        m not in bills_map and m not in ["COST"] for m in BETTER_BILLS_HEADERS
-    ):
+
+    # Map columns (no need for retry logic with deterministic skiprows)
+    meta_map = _map_columns(df_meta, BETTER_META_HEADERS, sn.meta, result.errors)
+    bills_map = _map_columns(df_bills, BETTER_BILLS_HEADERS, sn.bills, result.errors, optional_keys=["COST"])
+
+    # Check if required columns were found
+    if not meta_map or not bills_map:
         return result
 
     # Drop meta rows missing building ID
     df_meta = df_meta[df_meta[meta_map["BLDG_ID"]].notna()].copy()
 
     # Build BuildingData list
-    buildings: Dict[str, BuildingData] = {}
+    buildings: dict[str, BuildingData] = {}
     for _, row in df_meta.iterrows():
         try:
             bldg_id = str(row[meta_map["BLDG_ID"]]).strip()
@@ -156,7 +180,13 @@ def read_better_excel(file_like, lang: str | None = None) -> ParsedPortfolio:
             floor_area = float(row[meta_map["FLOOR_AREA"]])
             space_type_raw = str(row[meta_map["SPACE_TYPE"]]).strip()
             space_type = normalize_space_type(space_type_raw)
-            b = BuildingData(name=name, floor_area=floor_area, space_type=space_type, location=location)
+            b = BuildingData(
+                name=name,
+                floor_area=floor_area,
+                space_type=space_type,
+                location=location,
+                climate_zone=None,
+            )
             buildings[bldg_id] = b
         except Exception as e:
             result.errors.append(ParseMessage(
@@ -167,7 +197,7 @@ def read_better_excel(file_like, lang: str | None = None) -> ParsedPortfolio:
     df_bills = df_bills.copy()
     # Keep only bills for known buildings if any
     if buildings:
-        df_bills = df_bills[df_bills[bills_map["BLDG_ID"]].astype(str).isin(buildings.keys())]
+        df_bills = df_bills[df_bills[bills_map["BLDG_ID"]].astype(str).isin(list(buildings.keys()))]
 
     # Only positive consumption
     try:
@@ -176,12 +206,14 @@ def read_better_excel(file_like, lang: str | None = None) -> ParsedPortfolio:
         pass
 
     # Parse bills
-    bills_by_building: Dict[str, List[UtilityBillData]] = {}
+    bills_by_building: dict[str, list[UtilityBillData]] = {}
     for idx, row in df_bills.iterrows():
         try:
             bid = str(row[bills_map["BLDG_ID"]]).strip()
-            start = pd.to_datetime(row[bills_map["START"]]).date()
-            end = pd.to_datetime(row[bills_map["END"]]).date()
+            start_dt = pd.to_datetime(row[bills_map["START"]])
+            end_dt = pd.to_datetime(row[bills_map["END"]])
+            start = start_dt.date() if hasattr(start_dt, 'date') else pd.Timestamp(start_dt).date()
+            end = end_dt.date() if hasattr(end_dt, 'date') else pd.Timestamp(end_dt).date()
             if end <= start:
                 raise ValueError("End date must be after start date")
             fuel = str(row[bills_map["FUEL"]]).strip()
@@ -191,7 +223,7 @@ def read_better_excel(file_like, lang: str | None = None) -> ParsedPortfolio:
             unit = UNIT_NAME_MAP.get(unit, unit)
             cons = float(row[bills_map["CONSUMPTION"]])
             cost = None
-            if bills_map.get("COST") and bills_map["COST"] in row and pd.notna(row[bills_map["COST"]]):
+            if bills_map.get("COST") and bills_map["COST"] in df_bills.columns and pd.notna(row[bills_map["COST"]]):
                 try:
                     cost = float(row[bills_map["COST"]])
                 except Exception:
