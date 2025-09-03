@@ -1,7 +1,6 @@
-"""Unit tests for weather algorithms."""
+"""Unit tests for weather algorithms (conversions and basic calculations)."""
 
 import unittest
-import numpy as np
 import math
 
 from better_lbnl_os.core.weather.calculations import (
@@ -63,15 +62,6 @@ class TestTemperatureConversions(unittest.TestCase):
         
         # Empty list
         self.assertEqual(convert_temperature_list([], 'C', 'F'), [])
-
-
-class TestDegreeDayCalculations(unittest.TestCase):
-    """Placeholder to confirm HDD/CDD functions are intentionally absent."""
-    def test_no_degree_day_functions(self):
-        """Ensure degree day functions are not exposed in core calculations."""
-        from better_lbnl_os.core.weather import calculations as calc
-        self.assertFalse(hasattr(calc, 'calculate_heating_degree_days'))
-        self.assertFalse(hasattr(calc, 'calculate_cooling_degree_days'))
 
 
 class TestMonthlyCalculations(unittest.TestCase):
