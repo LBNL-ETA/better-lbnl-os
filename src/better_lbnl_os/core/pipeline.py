@@ -11,7 +11,6 @@ from better_lbnl_os.constants import DEFAULT_CVRMSE_THRESHOLD, DEFAULT_R2_THRESH
 from better_lbnl_os.core.changepoint import fit_changepoint_model
 from better_lbnl_os.core.preprocessing import (
     calendarize_utility_bills,
-    calendarize_utility_bills_typed,
     get_consecutive_months,
     trim_series,
 )
@@ -117,7 +116,6 @@ def fit_models_from_inputs(
     weather: list[WeatherData] | None,
     min_r_squared: float = DEFAULT_R2_THRESHOLD,
     max_cv_rmse: float = DEFAULT_CVRMSE_THRESHOLD,
-    use_typed: bool = True,
 ) -> dict[str, ChangePointModelResult]:
     """Fit change-point models directly from raw utility bills and weather data.
 
@@ -138,11 +136,7 @@ def fit_models_from_inputs(
     if floor_area <= 0:
         raise ValueError(f"floor_area must be positive, got {floor_area}")
 
-    if use_typed:
-        calendarized = calendarize_utility_bills_typed(bills=bills, floor_area=floor_area, weather=weather)
-    else:
-        calendarized = calendarize_utility_bills(bills=bills, floor_area=floor_area, weather=weather)
-
+    calendarized = calendarize_utility_bills(bills=bills, floor_area=floor_area, weather=weather)
     return fit_calendarized_models(calendarized, min_r_squared=min_r_squared, max_cv_rmse=max_cv_rmse)
 
 

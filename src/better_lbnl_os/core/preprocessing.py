@@ -39,8 +39,8 @@ def calendarize_utility_bills(
     floor_area: float,
     weather: Optional[List[WeatherData]] = None,
     options: Optional[CalendarizationOptions] = None,
-) -> Dict:
-    """Convert utility bills into calendar-month aggregates.
+) -> CalendarizedData:
+    """Convert utility bills into calendar-month aggregates (typed output).
 
     Args:
         bills: List of UtilityBillData entries.
@@ -49,16 +49,17 @@ def calendarize_utility_bills(
         options: Optional CalendarizationOptions for mappings and factors.
 
     Returns:
-        Dict with 'weather', 'detailed' (by Fuel_Type), and 'aggregated' (by Energy_Type).
+        CalendarizedData with weather, detailed (by Fuel_Type), and aggregated (by Energy_Type).
     """
     opts = options or CalendarizationOptions()
 
     if not bills:
-        return {
+        legacy = {
             "weather": {"degC": [], "degF": []},
             "detailed": {"v_x": []},
             "aggregated": {"v_x": [], "ls_n_days": []},
         }
+        return CalendarizedData.from_legacy_dict(legacy)
 
     # ------------------ Prepare daily utility bill data ------------------
     rows = []
@@ -126,11 +127,12 @@ def calendarize_utility_bills(
 
     if not daily_chunks:
         # No valid days
-        return {
+        legacy = {
             "weather": {"degC": [], "degF": []},
             "detailed": {"v_x": []},
             "aggregated": {"v_x": [], "ls_n_days": []},
         }
+        return CalendarizedData.from_legacy_dict(legacy)
 
     df_daily = pd.concat(daily_chunks, ignore_index=True)
     df_daily["Year-Month"] = df_daily["date"].dt.strftime("%Y-%m")
@@ -293,18 +295,11 @@ def calendarize_utility_bills(
         "dict_v_ghg_factors": _subset("Energy_Type", "unit_emission"),
     }
 
-    return {"weather": out_weather, "detailed": detailed, "aggregated": aggregated}
-
-
-def calendarize_utility_bills_typed(
-    bills: List[UtilityBillData],
-    floor_area: float,
-    weather: Optional[List[WeatherData]] = None,
-    options: Optional[CalendarizationOptions] = None,
-) -> CalendarizedData:
-    """Typed variant returning CalendarizedData; preserves legacy shapes via to_legacy_dict()."""
-    legacy = calendarize_utility_bills(bills=bills, floor_area=floor_area, weather=weather, options=options)
+    legacy = {"weather": out_weather, "detailed": detailed, "aggregated": aggregated}
     return CalendarizedData.from_legacy_dict(legacy)
+
+
+# Note: Single canonical API above returns CalendarizedData
 
 
 # ------------------ Additional helpers for model preparation ------------------
