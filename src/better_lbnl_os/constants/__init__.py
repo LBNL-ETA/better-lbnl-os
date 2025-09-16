@@ -17,6 +17,7 @@ from .mappings import (
 )
 from .template_parsing import SQFT_TO_SQM
 from .measures import TOP_LEVEL_EE_MEASURES
+from .recommendations import SYMPTOM_COEFFICIENTS, SYMPTOM_DESCRIPTIONS
 
 __all__ = [
     # Enums
@@ -35,5 +36,8 @@ __all__ = [
     "SQFT_TO_SQM",
     # Measures
     "TOP_LEVEL_EE_MEASURES",
+    # Recommendation metadata
+    "SYMPTOM_COEFFICIENTS",
+    "SYMPTOM_DESCRIPTIONS",
 ]
 
