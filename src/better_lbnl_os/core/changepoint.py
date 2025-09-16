@@ -10,6 +10,8 @@ from typing import Dict, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
 from scipy import optimize, stats
 
 from better_lbnl_os.models import ChangePointModelResult
@@ -507,5 +509,210 @@ def calculate_cvrmse(y_actual: np.ndarray, y_predicted: np.ndarray) -> float:
     mean_actual = np.mean(y_actual)
     
     return rmse / mean_actual if mean_actual != 0 else np.inf
+
+
+def plot_changepoint_model(
+    x: np.ndarray,
+    y: np.ndarray,
+    model_result: ChangePointModelResult,
+    x_label: str = "X",
+    y_label: str = "Y",
+    title: Optional[str] = None,
+    figsize: Tuple[int, int] = (12, 6),
+    save_path: Optional[str] = None
+) -> Tuple[plt.Figure, plt.Axes]:
+    """
+    Plot change-point model results with data points and fitted line.
+
+    Args:
+        x: Independent variable data (e.g., temperature)
+        y: Dependent variable data (e.g., energy use)
+        model_result: Fitted change-point model result
+        x_label: Label for x-axis
+        y_label: Label for y-axis
+        title: Plot title (auto-generated if None)
+        figsize: Figure size tuple
+        save_path: Path to save figure (optional)
+
+    Returns:
+        Figure and axes objects
+    """
+    fig, ax = plt.subplots(1, 1, figsize=figsize)
+    fig.subplots_adjust(right=0.75)
+
+    # Always work with numpy arrays to avoid pandas indexing surprises
+    x = np.asarray(x, dtype=float)
+    y = np.asarray(y, dtype=float)
+
+    # Plot data points
+    scatter = ax.scatter(x, y, alpha=0.6, s=30, c='k', label='Data')
+
+    if model_result.model_type == "No-fit":
+        ax.set_title(f"No valid model fit ({len(x)} data points)")
+        ax.set_xlabel(x_label)
+        ax.set_ylabel(y_label)
+        return fig, ax
+
+    # Create a smooth x-range for plotting the model curve
+    x_min, x_max = np.min(x), np.max(x)
+    # Guard against a single-point input which would collapse np.ptp
+    span = np.ptp(x) or max(abs(x_min), 1.0)
+    x_range = np.linspace(x_min - 0.05 * span, x_max + 0.05 * span, 300)
+    y_range = piecewise_linear_5p(
+        x_range,
+        model_result.heating_slope,
+        model_result.heating_change_point,
+        model_result.baseload,
+        model_result.cooling_change_point,
+        model_result.cooling_slope,
+    )
+
+    # Adjust scale so plotted curve matches the units of provided y-values when they differ
+    # (e.g., model fit on kWh/sqft/day but caller plots monthly EUI).
+    pred_at_x = piecewise_linear_5p(
+        x,
+        model_result.heating_slope,
+        model_result.heating_change_point,
+        model_result.baseload,
+        model_result.cooling_change_point,
+        model_result.cooling_slope,
+    )
+    valid_mask = np.isfinite(pred_at_x) & np.isfinite(y)
+    with np.errstate(invalid='ignore', divide='ignore'):
+        denom = float(np.dot(pred_at_x[valid_mask], pred_at_x[valid_mask])) if pred_at_x.size else 0.0
+    if denom > 0:
+        scale = float(np.dot(y[valid_mask], pred_at_x[valid_mask]) / denom)
+        if not np.isnan(scale) and not isclose(scale, 1.0, rel_tol=0.05, abs_tol=1e-3):
+            y_range = y_range * scale
+
+    # Plot individual segments so the baseline and active slopes are easier to read
+    baseline_color = '#6b6b6b'
+    heating_color = '#d62728'
+    cooling_color = '#1f77b4'
+
+    def _is_zero(value: Optional[float]) -> bool:
+        return value is None or isclose(value, 0.0, abs_tol=1e-6)
+
+    def _plot_segment(
+        x_vals: np.ndarray,
+        y_vals: np.ndarray,
+        *,
+        color: str,
+        label: Optional[str],
+    ) -> Optional[Line2D]:
+        if x_vals.size == 0:
+            return None
+        (line,) = ax.plot(x_vals, y_vals, color=color, linewidth=2, label=label)
+        return line
+
+    # Heating segment (left of heating change point)
+    heating_cp = model_result.heating_change_point
+    heating_line: Optional[Line2D] = None
+    if heating_cp is not None and not _is_zero(model_result.heating_slope):
+        mask = x_range <= heating_cp
+        heating_line = _plot_segment(
+            x_range[mask],
+            y_range[mask],
+            color=heating_color,
+            label='Heating Slope',
+        )
+    else:
+        heating_cp = None
+
+    # Baseline / neutral segment
+    neutral_start = heating_cp if heating_cp is not None else x_range[0]
+    cooling_cp = model_result.cooling_change_point
+    neutral_end = cooling_cp if cooling_cp is not None else x_range[-1]
+    baseline_mask = (x_range >= neutral_start) & (x_range <= neutral_end)
+    baseline_line = _plot_segment(
+        x_range[baseline_mask],
+        y_range[baseline_mask],
+        color=baseline_color,
+        label='Baseload',
+    )
+
+    # Cooling segment (right of cooling change point)
+    cooling_line: Optional[Line2D] = None
+    if cooling_cp is not None and not _is_zero(model_result.cooling_slope):
+        mask = x_range >= cooling_cp
+        cooling_line = _plot_segment(
+            x_range[mask],
+            y_range[mask],
+            color=cooling_color,
+            label='Cooling Slope',
+        )
+
+    # Add changepoint markers
+    # No explicit changepoint markers; values remain in annotation box
+
+    # Create info text
+    model_type_map = {
+        "1P": "1-Parameter",
+        "3P-H": "3-Parameter Heating",
+        "3P-C": "3-Parameter Cooling",
+        "5P": "5-Parameter",
+    }
+    model_label_long = model_type_map.get(model_result.model_type, model_result.model_type)
+
+    info_text = f"Model: {model_label_long}\n"
+    info_text += f"R² = {model_result.r_squared:.3f}\n"
+    info_text += f"CV-RMSE = {model_result.cvrmse:.3f}\n"
+    info_text += f"Baseload = {model_result.baseload:.2f}"
+
+    if model_result.heating_slope is not None:
+        info_text += f"\nHeating Slope = {model_result.heating_slope:.3f}"
+        if model_result.heating_change_point is not None:
+            info_text += f"\nHeating Change-point = {model_result.heating_change_point:.1f}"
+
+    if model_result.cooling_slope is not None:
+        info_text += f"\nCooling Slope = {model_result.cooling_slope:.3f}"
+        if model_result.cooling_change_point is not None:
+            info_text += f"\nCooling Change-point = {model_result.cooling_change_point:.1f}"
+
+    # Add info box outside the plotting area, top-right
+    ax.text(
+        1.02,
+        0.98,
+        info_text,
+        transform=ax.transAxes,
+        fontsize=10,
+        verticalalignment='top',
+        horizontalalignment='left',
+        bbox=dict(boxstyle='round', facecolor='white', alpha=0.8),
+    )
+
+    # Set labels and title
+    ax.set_xlabel(x_label)
+    ax.set_ylabel(y_label)
+    if title is None:
+        title = f"Change-Point Model ({len(x)} data points)"
+    ax.set_title(title)
+    legend_handles = [scatter]
+    legend_labels = ['Data']
+    for line, label in (
+        (heating_line, 'Heating Slope'),
+        (cooling_line, 'Cooling Slope'),
+        (baseline_line, 'Baseload'),
+    ):
+        if line is not None and label not in legend_labels:
+            legend_handles.append(line)
+            legend_labels.append(label)
+
+    ax.legend(
+        legend_handles,
+        legend_labels,
+        loc='upper left',
+        bbox_to_anchor=(1.02, 0.7),
+        borderaxespad=0.0,
+        frameon=True,
+    )
+    ax.grid(True, alpha=0.3)
+
+    plt.tight_layout()
+
+    if save_path:
+        fig.savefig(save_path, dpi=300, bbox_inches='tight')
+
+    return fig, ax
 
 
