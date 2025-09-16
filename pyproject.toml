@@ -77,7 +77,7 @@ examples = [
     "ipywidgets>=8.0.0",
 ]
 all = [
-    "better-lbnl[dev,viz,examples]",
+    "better-lbnl-os[dev,viz,examples]",
 ]
 
 [project.urls]
