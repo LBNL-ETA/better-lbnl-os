@@ -102,6 +102,10 @@ include = [
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/better_lbnl_os"]
+include = [
+    "src/better_lbnl_os/data/defaults/**/*.json",
+    "src/better_lbnl_os/data/schemas/*.json"
+]
 
 [tool.pytest.ini_options]
 minversion = "7.0"

@@ -20,15 +20,30 @@ from better_lbnl_os.core.changepoint import (
     calculate_cvrmse,
     calculate_r_squared,
 )
+from better_lbnl_os.core.benchmarking import (
+    benchmark_building,
+    create_statistics_from_models,
+    calculate_portfolio_statistics,
+    get_reference_statistics,
+    benchmark_with_reference,
+    list_available_reference_statistics,
+)
 
 # Domain models with behavior (new stable path)
 from better_lbnl_os.models import (
     BuildingData,
     UtilityBillData,
     WeatherData,
-    ChangePointModelResult,
+)
+# Result models from their domain-specific modules
+from better_lbnl_os.core.changepoint import ChangePointModelResult
+from better_lbnl_os.core.savings import SavingsEstimate
+from better_lbnl_os.core.recommendations import EEMeasureRecommendation
+from better_lbnl_os.models.benchmarking import (
     BenchmarkResult,
-    SavingsEstimate,
+    BenchmarkStatistics,
+    CoefficientBenchmarkResult,
+    EnergyTypeBenchmarkResult,
 )
 
 # Services for orchestration
@@ -59,13 +74,26 @@ __all__ = [
     "fit_changepoint_model",
     "calculate_cvrmse",
     "calculate_r_squared",
+    # Benchmarking algorithms
+    "benchmark_building",
+    "create_statistics_from_models",
+    "calculate_portfolio_statistics",
+    "get_reference_statistics",
+    "benchmark_with_reference",
+    "list_available_reference_statistics",
     # Domain models
     "BuildingData",
     "UtilityBillData",
     "WeatherData",
+    # Result models
     "ChangePointModelResult",
-    "BenchmarkResult",
     "SavingsEstimate",
+    "EEMeasureRecommendation",
+    # Benchmarking models
+    "BenchmarkResult",
+    "BenchmarkStatistics",
+    "CoefficientBenchmarkResult",
+    "EnergyTypeBenchmarkResult",
     # Services
     "BuildingAnalyticsService",
     "PortfolioBenchmarkService",

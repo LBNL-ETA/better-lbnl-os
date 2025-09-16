@@ -13,8 +13,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 from scipy import optimize, stats
+from pydantic import BaseModel, Field
 
-from better_lbnl_os.models import ChangePointModelResult
+# ChangePointModelResult defined at end of file to avoid circular imports
 from better_lbnl_os.constants import (
     DEFAULT_R2_THRESHOLD,
     DEFAULT_CVRMSE_THRESHOLD,
@@ -31,7 +32,7 @@ def fit_changepoint_model(
     y: np.ndarray,
     min_r_squared: float = DEFAULT_R2_THRESHOLD,
     max_cv_rmse: float = DEFAULT_CVRMSE_THRESHOLD
-) -> ChangePointModelResult:
+) -> "ChangePointModelResult":
     """
     Fit a change-point model to any x,y data relationship.
     
@@ -237,7 +238,7 @@ def _select_optimal_model(
     y: np.ndarray,
     min_r_squared: float,
     max_cv_rmse: float
-) -> ChangePointModelResult:
+) -> "ChangePointModelResult":
     """Select the optimal model from fit results and determine model type."""
     # Convert results to DataFrame for easier analysis
     rows = []
@@ -369,7 +370,7 @@ def _fit_1p_model(
     x: np.ndarray,
     y: np.ndarray,
     max_cv_rmse: float
-) -> ChangePointModelResult:
+) -> "ChangePointModelResult":
     """Fit a 1P (constant) model as fallback."""
     baseload = np.mean(y)
     predicted = np.full_like(y, baseload)
@@ -514,7 +515,7 @@ def calculate_cvrmse(y_actual: np.ndarray, y_predicted: np.ndarray) -> float:
 def plot_changepoint_model(
     x: np.ndarray,
     y: np.ndarray,
-    model_result: ChangePointModelResult,
+    model_result: "ChangePointModelResult",
     x_label: str = "X",
     y_label: str = "Y",
     title: Optional[str] = None,
@@ -714,5 +715,53 @@ def plot_changepoint_model(
         fig.savefig(save_path, dpi=300, bbox_inches='tight')
 
     return fig, ax
+
+
+class ChangePointModelResult(BaseModel):
+    """Result of change-point model fitting.
+
+    Contains all coefficients, goodness-of-fit metrics, and metadata
+    from fitting a change-point model to energy usage data.
+    """
+    heating_slope: float | None = Field(None, description="Heating slope coefficient")
+    heating_change_point: float | None = Field(None, description="Heating change point temperature")
+    baseload: float = Field(..., description="Baseload consumption")
+    cooling_change_point: float | None = Field(None, description="Cooling change point temperature")
+    cooling_slope: float | None = Field(None, description="Cooling slope coefficient")
+    r_squared: float = Field(..., ge=0, le=1, description="R-squared value")
+    cvrmse: float = Field(..., ge=0, description="CV(RMSE) value")
+    model_type: str = Field(..., description="Model type (1P, 3P-H, 3P-C, 5P)")
+    heating_pvalue: float | None = Field(None, description="P-value for heating slope significance")
+    cooling_pvalue: float | None = Field(None, description="P-value for cooling slope significance")
+
+    def is_valid(self, min_r_squared: float = 0.6, max_cvrmse: float = 0.5) -> bool:
+        """Check if model meets quality thresholds."""
+        return self.r_squared >= min_r_squared and self.cvrmse <= max_cvrmse
+
+    def get_model_complexity(self) -> int:
+        """Get number of parameters in the model."""
+        model_params = {"1P": 1, "3P-H": 3, "3P-C": 3, "5P": 5}
+        return model_params.get(self.model_type, 1)
+
+    def get_model_type_label(self, style: str = "short") -> str:
+        """Get human-readable model type label."""
+        short_to_long = {
+            "1P": "1P",
+            "3P-H": "3P Heating",
+            "3P-C": "3P Cooling",
+            "5P": "5P",
+        }
+        if style == "long":
+            return short_to_long.get(self.model_type, self.model_type)
+        return self.model_type
+
+    def estimate_annual_consumption(self, annual_hdd: float, annual_cdd: float) -> float:
+        """Estimate annual energy consumption using heating/cooling degree days."""
+        annual = self.baseload * 365
+        if self.heating_slope:
+            annual += self.heating_slope * annual_hdd
+        if self.cooling_slope:
+            annual += self.cooling_slope * annual_cdd
+        return annual
 
 

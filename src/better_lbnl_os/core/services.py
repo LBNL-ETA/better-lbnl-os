@@ -3,14 +3,14 @@
 from typing import List
 
 from better_lbnl_os.models import (
-    BenchmarkResult,
     BuildingData,
-    ChangePointModelResult,
-    EEMeasureRecommendation,
-    SavingsEstimate,
     UtilityBillData,
     WeatherData,
 )
+from better_lbnl_os.core.changepoint import ChangePointModelResult
+from better_lbnl_os.core.savings import SavingsEstimate
+from better_lbnl_os.core.recommendations import EEMeasureRecommendation
+from better_lbnl_os.models.benchmarking import BenchmarkResult
 
 
 class BuildingAnalyticsService:

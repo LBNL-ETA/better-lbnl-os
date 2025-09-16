@@ -3,7 +3,7 @@
 Public, stable re-exports for enums, thresholds, energy factors, and mappings.
 """
 
-from .enums import BuildingSpaceType, BenchmarkCategory
+from .enums import BuildingSpaceType
 from .thresholds import (
     DEFAULT_R2_THRESHOLD,
     DEFAULT_CVRMSE_THRESHOLD,
@@ -12,7 +12,7 @@ from .thresholds import (
 from .energy import CONVERSION_TO_KWH
 from .mappings import (
     normalize_space_type,
-    space_type_to_benchmark_category,
+    space_type_to_building_space_type,
     SPACE_TYPE_SYNONYMS,
 )
 from .template_parsing import SQFT_TO_SQM
@@ -20,7 +20,6 @@ from .template_parsing import SQFT_TO_SQM
 __all__ = [
     # Enums
     "BuildingSpaceType",
-    "BenchmarkCategory",
     # Thresholds
     "DEFAULT_R2_THRESHOLD",
     "DEFAULT_CVRMSE_THRESHOLD",
@@ -29,7 +28,7 @@ __all__ = [
     "CONVERSION_TO_KWH",
     # Mappings
     "normalize_space_type",
-    "space_type_to_benchmark_category",
+    "space_type_to_building_space_type",
     "SPACE_TYPE_SYNONYMS",
     # Templates
     "SQFT_TO_SQM",

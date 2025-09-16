@@ -1,0 +1,391 @@
+{
+  "version": "1.0.0",
+  "created": "2025-01-21",
+  "description": "Default benchmark statistics from BETTER database",
+  "entries": [
+    {
+      "country_code": "US",
+      "building_type": "OFFICE",
+      "statistics": {
+        "ELECTRICITY": {
+          "baseload": {
+            "median": 0.28156754909570103,
+            "stdev": 0.14050116513088157
+          },
+          "cooling_slope": {
+            "median": 0.0109836109554517,
+            "stdev": 0.006617734045244821
+          },
+          "heating_slope": {
+            "median": -0.0100280050386323,
+            "stdev": 0.008229999861314218
+          },
+          "cooling_change_point": {
+            "median": 12.579000486773218,
+            "stdev": 4.560476878310026
+          },
+          "heating_change_point": {
+            "median": 11.97812131407578,
+            "stdev": 6.314209577441668
+          }
+        },
+        "FOSSIL_FUEL": {
+          "baseload": {
+            "median": 0.02158777551631205,
+            "stdev": 0.023867758495918833
+          },
+          "cooling_slope": {
+            "median": 0.03026637161415835,
+            "stdev": 0.038419340044632586
+          },
+          "heating_slope": {
+            "median": -0.01919420948090465,
+            "stdev": 0.01437774002771117
+          },
+          "cooling_change_point": {
+            "median": 16.439551843759958,
+            "stdev": 2.6758407430811864
+          },
+          "heating_change_point": {
+            "median": 17.081000000000003,
+            "stdev": 3.814282001999105
+          }
+        }
+      },
+      "metadata": {
+        "source": "BETTER Database",
+        "sample_size": 3837,
+        "date_collected": "2022-03-01",
+        "description": "US Office building energy benchmarks"
+      }
+    },
+    {
+      "country_code": "US",
+      "building_type": "K12",
+      "statistics": {
+        "ELECTRICITY": {
+          "baseload": {
+            "median": 0.1903064627427416,
+            "stdev": 0.07638868521730321
+          },
+          "cooling_slope": {
+            "median": 0.0078753214115055,
+            "stdev": 0.0035666546541027566
+          },
+          "heating_slope": {
+            "median": -0.0071369012952051,
+            "stdev": 0.005863609625167276
+          },
+          "cooling_change_point": {
+            "median": 13.92475,
+            "stdev": 5.830509824999999
+          },
+          "heating_change_point": {
+            "median": 18.145625,
+            "stdev": 3.653940688995417
+          }
+        },
+        "FOSSIL_FUEL": {
+          "baseload": {
+            "median": 0.0304468618620992,
+            "stdev": 0.02683795045036986
+          },
+          "cooling_slope": {
+            "median": 0.00744123650735595,
+            "stdev": 0.005940825943764977
+          },
+          "heating_slope": {
+            "median": -0.0225081826497245,
+            "stdev": 0.016506217676897212
+          },
+          "cooling_change_point": {
+            "median": 20.947636352471584,
+            "stdev": 5.33219972429596
+          },
+          "heating_change_point": {
+            "median": 17.172811606396376,
+            "stdev": 3.689380765355458
+          }
+        }
+      },
+      "metadata": {
+        "source": "BETTER Database",
+        "sample_size": 1964,
+        "description": "US K-12 school energy benchmarks"
+      }
+    },
+    {
+      "country_code": "US",
+      "building_type": "MULTIFAMILY_HOUSING",
+      "statistics": {
+        "ELECTRICITY": {
+          "baseload": {
+            "median": 0.1113108012199988,
+            "stdev": 0.11421801884464462
+          },
+          "cooling_slope": {
+            "median": 0.00450620112783485,
+            "stdev": 0.006588860840397889
+          },
+          "heating_slope": {
+            "median": -0.0078108492597801,
+            "stdev": 0.006444158029485538
+          },
+          "cooling_change_point": {
+            "median": 15.788924120053437,
+            "stdev": 2.2396227438080887
+          },
+          "heating_change_point": {
+            "median": 13.376327233967707,
+            "stdev": 4.24948933717351
+          }
+        },
+        "FOSSIL_FUEL": {
+          "baseload": {
+            "median": 0.11833733778714081,
+            "stdev": 0.08709567832875703
+          },
+          "cooling_slope": {
+            "median": 0.001,
+            "stdev": 0.0005
+          },
+          "heating_slope": {
+            "median": -0.0258475263022858,
+            "stdev": 0.022735286555517317
+          },
+          "cooling_change_point": {
+            "median": 50,
+            "stdev": 0.5
+          },
+          "heating_change_point": {
+            "median": 19.39235607078853,
+            "stdev": 1.9780944519489305
+          }
+        }
+      },
+      "metadata": {
+        "source": "BETTER Database",
+        "sample_size": 1407,
+        "description": "US Multifamily housing energy benchmarks"
+      }
+    },
+    {
+      "country_code": "US",
+      "building_type": "HOTEL",
+      "statistics": {
+        "ELECTRICITY": {
+          "baseload": {
+            "median": 0.198,
+            "stdev": 0.141
+          },
+          "cooling_slope": {
+            "median": 0.024,
+            "stdev": 0.008
+          },
+          "heating_slope": {
+            "median": null,
+            "stdev": null
+          },
+          "cooling_change_point": {
+            "median": 23.573,
+            "stdev": 0.614
+          },
+          "heating_change_point": {
+            "median": null,
+            "stdev": null
+          }
+        },
+        "FOSSIL_FUEL": {
+          "baseload": {
+            "median": null,
+            "stdev": null
+          },
+          "cooling_slope": {
+            "median": null,
+            "stdev": null
+          },
+          "heating_slope": {
+            "median": null,
+            "stdev": null
+          },
+          "cooling_change_point": {
+            "median": null,
+            "stdev": null
+          },
+          "heating_change_point": {
+            "median": null,
+            "stdev": null
+          }
+        }
+      },
+      "metadata": {
+        "source": "BETTER Database",
+        "description": "US Hotel energy benchmarks"
+      }
+    },
+    {
+      "country_code": "US",
+      "building_type": "PUBLIC_LIBRARY",
+      "statistics": {
+        "ELECTRICITY": {
+          "baseload": {
+            "median": 0.25619110599017303,
+            "stdev": 0.30055067050920714
+          },
+          "cooling_slope": {
+            "median": 0.0168005165220174,
+            "stdev": 0.020117039952941836
+          },
+          "heating_slope": {
+            "median": -0.013390787657888249,
+            "stdev": 0.017640683445746264
+          },
+          "cooling_change_point": {
+            "median": 15.517842439010547,
+            "stdev": 5.171672585593372
+          },
+          "heating_change_point": {
+            "median": 14.031616603934992,
+            "stdev": 6.443349441668954
+          }
+        },
+        "FOSSIL_FUEL": {
+          "baseload": {
+            "median": 0.0168630220676387,
+            "stdev": 0.024111243682990616
+          },
+          "cooling_slope": {
+            "median": null,
+            "stdev": null
+          },
+          "heating_slope": {
+            "median": -0.03753148936404155,
+            "stdev": 0.05054782327571808
+          },
+          "cooling_change_point": {
+            "median": null,
+            "stdev": null
+          },
+          "heating_change_point": {
+            "median": 17.40261011984221,
+            "stdev": 4.024525889517285
+          }
+        }
+      },
+      "metadata": {
+        "source": "BETTER Database",
+        "sample_size": 721,
+        "description": "US Public library energy benchmarks"
+      }
+    },
+    {
+      "country_code": "US",
+      "building_type": "HOSPITAL",
+      "statistics": {
+        "ELECTRICITY": {
+          "baseload": {
+            "median": 0.7153708682804159,
+            "stdev": 0.24220632435432812
+          },
+          "cooling_slope": {
+            "median": 0.02388597193173015,
+            "stdev": 0.010463174597075539
+          },
+          "heating_slope": {
+            "median": -0.013257345594964895,
+            "stdev": 0.01441559909544716
+          },
+          "cooling_change_point": {
+            "median": 9.779999997270023,
+            "stdev": 5.067145429905848
+          },
+          "heating_change_point": {
+            "median": 10.509084727987126,
+            "stdev": 8.240148273011616
+          }
+        },
+        "FOSSIL_FUEL": {
+          "baseload": {
+            "median": 0.8000685768560991,
+            "stdev": 0.3728959640641559
+          },
+          "cooling_slope": {
+            "median": 0.09628890748166055,
+            "stdev": 0.05884387223500378
+          },
+          "heating_slope": {
+            "median": -0.04471450337047009,
+            "stdev": 0.02241334295911602
+          },
+          "cooling_change_point": {
+            "median": 16.42899932087452,
+            "stdev": 5.404148662131493
+          },
+          "heating_change_point": {
+            "median": 18.61863748646519,
+            "stdev": 3.235623990651368
+          }
+        }
+      },
+      "metadata": {
+        "source": "BETTER Database",
+        "sample_size": 1815,
+        "description": "US Hospital energy benchmarks"
+      }
+    },
+    {
+      "country_code": "US",
+      "building_type": "WORSHIP_FACILITY",
+      "statistics": {
+        "ELECTRICITY": {
+          "baseload": {
+            "median": 0.0621499081864695,
+            "stdev": 0.047311137622740265
+          },
+          "cooling_slope": {
+            "median": 0.0091949638222286,
+            "stdev": 0.005344728293529264
+          },
+          "heating_slope": {
+            "median": -0.0026118468988079,
+            "stdev": 0.00226787702795101
+          },
+          "cooling_change_point": {
+            "median": 14.80090180264241,
+            "stdev": 4.142900637402361
+          },
+          "heating_change_point": {
+            "median": 11.085625,
+            "stdev": 6.304636012361527
+          }
+        },
+        "FOSSIL_FUEL": {
+          "baseload": {
+            "median": 0.0413158052696237,
+            "stdev": 0.045868967507255894
+          },
+          "cooling_slope": {
+            "median": null,
+            "stdev": null
+          },
+          "heating_slope": {
+            "median": -0.0386265955960033,
+            "stdev": 0.0200299754423543
+          },
+          "cooling_change_point": {
+            "median": null,
+            "stdev": null
+          },
+          "heating_change_point": {
+            "median": 16.009603643052166,
+            "stdev": 4.737211261241612
+          }
+        }
+      },
+      "metadata": {
+        "source": "BETTER Database",
+        "description": "US Worship facility energy benchmarks"
+      }
+    }
+  ]
+}

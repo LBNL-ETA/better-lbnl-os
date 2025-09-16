@@ -8,11 +8,14 @@ from .building import BuildingData
 from .utility_bills import UtilityBillData, CalendarizedData, EnergyAggregation, FuelAggregation
 from .location import LocationInfo
 from .weather import WeatherData, WeatherSeries, WeatherStation
-from .results import (
-    ChangePointModelResult,
-    BenchmarkResult,
-    SavingsEstimate,
-    EEMeasureRecommendation,
+# Import result models from their new domain-specific modules
+from better_lbnl_os.core.changepoint import ChangePointModelResult
+from better_lbnl_os.core.savings import SavingsEstimate
+from better_lbnl_os.core.recommendations import EEMeasureRecommendation
+from .benchmarking import (
+    BenchmarkStatistics,
+    CoefficientBenchmarkResult,
+    EnergyTypeBenchmarkResult,
 )
 
 __all__ = [
@@ -26,7 +29,9 @@ __all__ = [
     "WeatherData",
     "WeatherStation",
     "ChangePointModelResult",
-    "BenchmarkResult",
     "SavingsEstimate",
     "EEMeasureRecommendation",
+    "BenchmarkStatistics",
+    "CoefficientBenchmarkResult",
+    "EnergyTypeBenchmarkResult",
 ]

@@ -1,0 +1,110 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Reference Statistics Manifest Schema",
+  "type": "object",
+  "required": ["version", "entries"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "Version of the reference data format"
+    },
+    "created": {
+      "type": "string",
+      "format": "date",
+      "description": "Creation date of the manifest"
+    },
+    "description": {
+      "type": "string",
+      "description": "Description of the data source"
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/ReferenceDataEntry"
+      }
+    }
+  },
+  "definitions": {
+    "ReferenceDataEntry": {
+      "type": "object",
+      "required": ["country_code", "building_type", "statistics"],
+      "properties": {
+        "country_code": {
+          "type": "string",
+          "pattern": "^[A-Z]{2}$",
+          "description": "ISO 3166-1 alpha-2 country code"
+        },
+        "building_type": {
+          "type": "string",
+          "enum": [
+            "OFFICE", "HOTEL", "K12", "MULTIFAMILY_HOUSING", "WORSHIP_FACILITY",
+            "HOSPITAL", "MUSEUM", "BANK_BRANCH", "COURTHOUSE", "DATA_CENTER",
+            "DISTRIBUTION_CENTER", "FASTFOOD_RESTAURANT", "FINANCIAL_OFFICE",
+            "FIRE_STATION", "NON_REFRIGERATED_WAREHOUSE", "POLICE_STATION",
+            "REFRIGERATED_WAREHOUSE", "RETAIL_STORE", "SELF_STORAGE_FACILITY",
+            "SENIOR_CARE_COMMUNITY", "SUPERMARKET_GROCERY", "RESTAURANT",
+            "PUBLIC_LIBRARY", "OTHER"
+          ]
+        },
+        "statistics": {
+          "$ref": "#/definitions/BenchmarkStatistics"
+        },
+        "metadata": {
+          "type": "object",
+          "description": "Additional metadata about the statistics"
+        }
+      }
+    },
+    "BenchmarkStatistics": {
+      "type": "object",
+      "properties": {
+        "ELECTRICITY": {
+          "$ref": "#/definitions/EnergyTypeStatistics"
+        },
+        "FOSSIL_FUEL": {
+          "$ref": "#/definitions/EnergyTypeStatistics"
+        }
+      }
+    },
+    "EnergyTypeStatistics": {
+      "type": "object",
+      "properties": {
+        "baseload": {
+          "$ref": "#/definitions/CoefficientStatistics"
+        },
+        "heating_slope": {
+          "$ref": "#/definitions/CoefficientStatistics"
+        },
+        "heating_change_point": {
+          "$ref": "#/definitions/CoefficientStatistics"
+        },
+        "cooling_slope": {
+          "$ref": "#/definitions/CoefficientStatistics"
+        },
+        "cooling_change_point": {
+          "$ref": "#/definitions/CoefficientStatistics"
+        }
+      }
+    },
+    "CoefficientStatistics": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "required": ["median", "stdev"],
+          "properties": {
+            "median": {
+              "type": "number"
+            },
+            "stdev": {
+              "type": "number",
+              "minimum": 0
+            }
+          }
+        }
+      ]
+    }
+  }
+}

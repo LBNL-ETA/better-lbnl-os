@@ -1,6 +1,6 @@
 """Mappings and normalization helpers."""
 
-from .enums import BuildingSpaceType, BenchmarkCategory
+from .enums import BuildingSpaceType
 
 SPACE_TYPE_SYNONYMS: dict[str, str] = {
     "Retail": BuildingSpaceType.RETAIL_STORE.value,
@@ -31,12 +31,11 @@ def normalize_space_type(value: str) -> str:
     )
 
 
-def space_type_to_benchmark_category(space_type_value: str) -> BenchmarkCategory:
+def space_type_to_building_space_type(space_type_value: str) -> BuildingSpaceType:
+    """Convert a space type value to BuildingSpaceType enum."""
     normalized = normalize_space_type(space_type_value)
     for st in BuildingSpaceType:
         if st.value == normalized:
-            if st.name in BenchmarkCategory.__members__:
-                return BenchmarkCategory[st.name]
-            return BenchmarkCategory.OTHER
-    return BenchmarkCategory.OTHER
+            return st
+    return BuildingSpaceType.OTHER
 
