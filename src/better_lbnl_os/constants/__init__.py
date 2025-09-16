@@ -16,6 +16,7 @@ from .mappings import (
     SPACE_TYPE_SYNONYMS,
 )
 from .template_parsing import SQFT_TO_SQM
+from .measures import TOP_LEVEL_EE_MEASURES
 
 __all__ = [
     # Enums
@@ -32,5 +33,7 @@ __all__ = [
     "SPACE_TYPE_SYNONYMS",
     # Templates
     "SQFT_TO_SQM",
+    # Measures
+    "TOP_LEVEL_EE_MEASURES",
 ]
 

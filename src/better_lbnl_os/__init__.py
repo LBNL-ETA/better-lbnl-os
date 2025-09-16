@@ -28,6 +28,12 @@ from better_lbnl_os.core.benchmarking import (
     benchmark_with_reference,
     list_available_reference_statistics,
 )
+from better_lbnl_os.core.recommendations import (
+    detect_symptoms,
+    map_symptoms_to_measures,
+    recommend_ee_measures,
+    BETTER_MEASURES,
+)
 
 # Domain models with behavior (new stable path)
 from better_lbnl_os.models import (
@@ -38,12 +44,16 @@ from better_lbnl_os.models import (
 # Result models from their domain-specific modules
 from better_lbnl_os.core.changepoint import ChangePointModelResult
 from better_lbnl_os.core.savings import SavingsEstimate
-from better_lbnl_os.core.recommendations import EEMeasureRecommendation
 from better_lbnl_os.models.benchmarking import (
     BenchmarkResult,
     BenchmarkStatistics,
     CoefficientBenchmarkResult,
     EnergyTypeBenchmarkResult,
+)
+from better_lbnl_os.models.recommendations import (
+    InefficiencySymptom,
+    EEMeasureRecommendation,
+    EERecommendationResult,
 )
 
 # Services for orchestration
@@ -81,6 +91,11 @@ __all__ = [
     "get_reference_statistics",
     "benchmark_with_reference",
     "list_available_reference_statistics",
+    # Recommendation algorithms
+    "detect_symptoms",
+    "map_symptoms_to_measures",
+    "recommend_ee_measures",
+    "BETTER_MEASURES",
     # Domain models
     "BuildingData",
     "UtilityBillData",
@@ -88,12 +103,15 @@ __all__ = [
     # Result models
     "ChangePointModelResult",
     "SavingsEstimate",
-    "EEMeasureRecommendation",
     # Benchmarking models
     "BenchmarkResult",
     "BenchmarkStatistics",
     "CoefficientBenchmarkResult",
     "EnergyTypeBenchmarkResult",
+    # Recommendation models
+    "InefficiencySymptom",
+    "EEMeasureRecommendation",
+    "EERecommendationResult",
     # Services
     "BuildingAnalyticsService",
     "PortfolioBenchmarkService",
