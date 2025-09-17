@@ -216,21 +216,17 @@ def _compute_usage_arrays(
     heating_energy = heating_eui * arr_days * floor_area
     cooling_energy = cooling_eui * arr_days * floor_area
 
-    valid_price_mask = arr_unit_prices > 0
-    total_energy = np.where(valid_price_mask, total_energy, 0)
-    baseload_energy = np.where(valid_price_mask, baseload_energy, 0)
-    heating_energy = np.where(valid_price_mask, heating_energy, 0)
-    cooling_energy = np.where(valid_price_mask, cooling_energy, 0)
+    price_mask = arr_unit_prices > 0
+    total_cost = np.where(price_mask, total_energy * arr_unit_prices, 0.0)
+    baseload_cost = np.where(price_mask, baseload_energy * arr_unit_prices, 0.0)
+    heating_cost = np.where(price_mask, heating_energy * arr_unit_prices, 0.0)
+    cooling_cost = np.where(price_mask, cooling_energy * arr_unit_prices, 0.0)
 
-    total_cost = total_energy * arr_unit_prices
-    baseload_cost = baseload_energy * arr_unit_prices
-    heating_cost = heating_energy * arr_unit_prices
-    cooling_cost = cooling_energy * arr_unit_prices
-
-    total_ghg = total_energy * arr_ghg
-    baseload_ghg = baseload_energy * arr_ghg
-    heating_ghg = heating_energy * arr_ghg
-    cooling_ghg = cooling_energy * arr_ghg
+    ghg_mask = arr_ghg > 0
+    total_ghg = np.where(ghg_mask, total_energy * arr_ghg, 0.0)
+    baseload_ghg = np.where(ghg_mask, baseload_energy * arr_ghg, 0.0)
+    heating_ghg = np.where(ghg_mask, heating_energy * arr_ghg, 0.0)
+    cooling_ghg = np.where(ghg_mask, cooling_energy * arr_ghg, 0.0)
 
     return _UsageArrays(
         months=[],
