@@ -17,7 +17,11 @@ from better_lbnl_os.core.preprocessing import (
 from better_lbnl_os.models import ChangePointModelResult, UtilityBillData, WeatherData, CalendarizedData, LocationInfo
 from better_lbnl_os.core.weather.service import WeatherService
 from better_lbnl_os.core.weather.providers import OpenMeteoProvider
-from better_lbnl_os.core.geocoding.providers import GoogleMapsGeocodingProvider, NominatimGeocodingProvider
+from better_lbnl_os.core.geocoding.providers import (
+    GoogleMapsGeocodingProvider,
+    NominatimGeocodingProvider,
+)
+from better_lbnl_os.core.geocoding.interfaces import GeocodingProvider
 
 logger = logging.getLogger(__name__)
 
@@ -72,6 +76,36 @@ def prepare_model_data(
             "days": days,
         }
     return out
+
+
+def resolve_location(
+    *,
+    address: Optional[str] = None,
+    latitude: Optional[float] = None,
+    longitude: Optional[float] = None,
+    google_maps_api_key: Optional[str] = None,
+    nominatim_user_agent: Optional[str] = None,
+) -> LocationInfo:
+    """Resolve a LocationInfo from coordinates or an address."""
+
+    if latitude is not None and longitude is not None:
+        return LocationInfo(
+            geo_lat=float(latitude),
+            geo_lng=float(longitude),
+            zipcode=None,
+            state=None,
+            country_code="INT",
+        )
+
+    if not address:
+        raise ValueError("Either coordinates or address must be provided for geocoding")
+
+    if google_maps_api_key:
+        provider: GeocodingProvider = GoogleMapsGeocodingProvider(api_key=google_maps_api_key)
+    else:
+        provider = NominatimGeocodingProvider(user_agent=nominatim_user_agent or "better-lbnl-os/0.1")
+
+    return provider.geocode(address)
 
 
 def fit_calendarized_models(
@@ -169,18 +203,13 @@ def get_weather_for_bills(
         return []
 
     # Determine coordinates via geocoding if needed
-    if latitude is not None and longitude is not None:
-        loc = LocationInfo(geo_lat=float(latitude), geo_lng=float(longitude), zipcode=None, state=None, country_code="INT")
-    else:
-        if not address:
-            raise ValueError("Either (latitude, longitude) or address must be provided")
-        if google_maps_api_key:
-            geocoder = GoogleMapsGeocodingProvider(api_key=google_maps_api_key)
-            loc = geocoder.geocode(address)
-        else:
-            # Fallback to Nominatim (courteous user agent)
-            geocoder = NominatimGeocodingProvider(user_agent=nominatim_user_agent or "better-lbnl-os/0.1")
-            loc = geocoder.geocode(address)
+    loc = resolve_location(
+        address=address,
+        latitude=latitude,
+        longitude=longitude,
+        google_maps_api_key=google_maps_api_key,
+        nominatim_user_agent=nominatim_user_agent,
+    )
 
     # Month range from bills
     min_start = min(b.start_date for b in bills)

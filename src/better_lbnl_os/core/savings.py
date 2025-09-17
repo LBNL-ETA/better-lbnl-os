@@ -5,12 +5,23 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Dict, Iterable, List, Optional
 
+import re
+
 import numpy as np
 
 from better_lbnl_os.constants import MINIMUM_UTILITY_MONTHS
 from better_lbnl_os.core.changepoint import piecewise_linear_5p
 from better_lbnl_os.core.preprocessing import get_consecutive_bills
-from better_lbnl_os.models import CalendarizedData
+from better_lbnl_os.core.defaults import (
+    get_default_fuel_price,
+    lookup_egrid_subregion,
+    get_electric_emission_factor,
+    get_fossil_emission_factor,
+    normalize_state_code,
+    infer_state_from_address,
+)
+from better_lbnl_os.core.pipeline import resolve_location
+from better_lbnl_os.models import CalendarizedData, LocationInfo
 from better_lbnl_os.models.benchmarking import BenchmarkResult
 from pydantic import BaseModel, Field
 
@@ -76,6 +87,7 @@ class FuelSavingsResult(BaseModel):
     monthly_cost_usd: List[float]
     monthly_ghg_kg_co2: List[float]
     valid: bool = True
+    metadata: Dict[str, Any] = Field(default_factory=dict)
 
 
 class CombinedSavingsSummary(BaseModel):
@@ -122,6 +134,14 @@ class _UsageArrays:
     cooling_ghg: np.ndarray
 
 
+@dataclass
+class LocationContext:
+    country_code: str
+    state_code: Optional[str]
+    zipcode: Optional[str]
+    egrid_subregion: Optional[str]
+
+
 def _ensure_calendarized_dict(calendarized: CalendarizedData | Dict[str, Any]) -> Dict[str, Any]:
     if hasattr(calendarized, "to_legacy_dict"):
         return calendarized.to_legacy_dict()  # type: ignore[return-value]
@@ -157,6 +177,42 @@ def _ensure_benchmark_dict(benchmark: BenchmarkResult | Dict[str, Any]) -> Dict[
 
 def _build_lookup(items: Iterable[str], values: Iterable[float]) -> Dict[str, float]:
     return {month: float(value) for month, value in zip(items, values)}
+
+
+def _build_location_context(
+    location_info: Optional[LocationInfo],
+    *,
+    address: Optional[str],
+    country_code: Optional[str],
+) -> LocationContext:
+    country = (location_info.country_code if location_info else None) or (country_code or "US")
+    state = None
+    zipcode = None
+    egrid_region = None
+
+    if location_info:
+        state = location_info.state
+        zipcode = location_info.zipcode
+        egrid_region = location_info.egrid_sub_region
+
+    if not state:
+        state = infer_state_from_address(address)
+    state = normalize_state_code(state)
+
+    if zipcode is None and address:
+        match = re.search(r"(\d{5})", address)
+        if match:
+            zipcode = match.group(1)
+
+    if zipcode:
+        egrid_region = lookup_egrid_subregion(zipcode) or egrid_region
+
+    return LocationContext(
+        country_code=country.upper(),
+        state_code=state,
+        zipcode=zipcode,
+        egrid_subregion=egrid_region,
+    )
 
 
 def _extract_series(legacy: Dict[str, Any], energy_type: str, months: List[str]) -> tuple[List[int], List[float], List[float]]:
@@ -244,6 +300,67 @@ def _compute_usage_arrays(
         baseload_ghg=np.nan_to_num(baseload_ghg, nan=0.0),
         cooling_ghg=np.nan_to_num(cooling_ghg, nan=0.0),
     )
+
+
+def _fill_unit_prices(
+    prices: List[float],
+    energy_type: str,
+    location: LocationContext,
+) -> tuple[List[float], Optional[str]]:
+    default_value = get_default_fuel_price(energy_type, location.state_code, location.country_code)
+    filled = []
+    used_default = False
+    for price in prices:
+        if price and price > 0:
+            filled.append(float(price))
+        elif default_value is not None:
+            filled.append(default_value)
+            used_default = True
+        else:
+            filled.append(0.0)
+    source = None
+    if used_default:
+        source = f"default:{location.state_code or location.country_code}"
+    return filled, source
+
+
+def _electric_emission_factor(location: LocationContext) -> Optional[Dict[str, float]]:
+    region = location.egrid_subregion
+    if not region and location.zipcode:
+        region = lookup_egrid_subregion(location.zipcode)
+    return get_electric_emission_factor(region, location.country_code)
+
+
+def _fossil_emission_factor(energy_type: str) -> Optional[Dict[str, float]]:
+    fuel_token = FOSSIL_DEFAULT_FUEL.get(energy_type, "NATURAL_GAS")
+    return get_fossil_emission_factor(fuel_token)
+
+
+def _fill_emission_factors(
+    factors: List[float],
+    energy_type: str,
+    location: LocationContext,
+) -> tuple[List[float], Optional[str]]:
+    if energy_type == "ELECTRICITY":
+        defaults = _electric_emission_factor(location)
+    else:
+        defaults = _fossil_emission_factor(energy_type)
+
+    default_value = defaults.get("CO2e") if defaults else None
+    filled = []
+    used_default = False
+    for factor in factors:
+        if factor and factor > 0:
+            filled.append(float(factor))
+        elif default_value is not None:
+            filled.append(default_value)
+            used_default = True
+        else:
+            filled.append(0.0)
+    source = None
+    if used_default:
+        source = "default"
+    return filled, source
 
 
 def _assemble_usage_details(
@@ -354,9 +471,21 @@ def estimate_savings_for_fuel(
     target_coeffs = select("target_value")
     typical_coeffs = select("nominal_level")
 
-    current_arrays = _compute_usage_arrays(temperatures, current_coeffs, floor_area, days, unit_prices, ghg_factors)
-    target_arrays = _compute_usage_arrays(temperatures, target_coeffs, floor_area, days, unit_prices, ghg_factors)
-    typical_arrays = _compute_usage_arrays(temperatures, typical_coeffs, floor_area, days, unit_prices, ghg_factors)
+    metadata: Dict[str, Any] = {}
+    if location_context is None:
+        location_context = LocationContext(country_code="US", state_code=None, zipcode=None, egrid_subregion=None)
+    metadata["location"] = location_context.__dict__
+
+    filled_prices, price_source = _fill_unit_prices(unit_prices, energy_type, location_context)
+    filled_ghg, ghg_source = _fill_emission_factors(ghg_factors, energy_type, location_context)
+    if price_source:
+        metadata["unit_price_source"] = price_source
+    if ghg_source:
+        metadata["emission_factor_source"] = ghg_source
+
+    current_arrays = _compute_usage_arrays(temperatures, current_coeffs, floor_area, days, filled_prices, filled_ghg)
+    target_arrays = _compute_usage_arrays(temperatures, target_coeffs, floor_area, days, filled_prices, filled_ghg)
+    typical_arrays = _compute_usage_arrays(temperatures, typical_coeffs, floor_area, days, filled_prices, filled_ghg)
 
     usage_current = _assemble_usage_details(months, current_arrays)
     usage_target = _assemble_usage_details(months, target_arrays)
@@ -410,6 +539,7 @@ def estimate_savings_for_fuel(
         monthly_cost_usd=(current_arrays.total_cost).tolist(),
         monthly_ghg_kg_co2=(current_arrays.total_ghg).tolist(),
         valid=True,
+        metadata=metadata,
     )
 
 
@@ -515,11 +645,45 @@ def estimate_savings(
     *,
     floor_area: float,
     savings_target: Optional[str] = None,
+    location_info: Optional[LocationInfo] = None,
+    address: Optional[str] = None,
+    latitude: Optional[float] = None,
+    longitude: Optional[float] = None,
+    google_maps_api_key: Optional[str] = None,
+    nominatim_user_agent: Optional[str] = None,
+    country_code: Optional[str] = None,
 ) -> SavingsSummary:
     """Main entry point for savings estimation."""
 
     benchmark_dict = _ensure_benchmark_dict(benchmark_input)
     legacy_calendarized = _ensure_calendarized_dict(calendarized)
+
+    if location_info is None:
+        if latitude is not None and longitude is not None:
+            location_info = LocationInfo(
+                geo_lat=float(latitude),
+                geo_lng=float(longitude),
+                zipcode=None,
+                state=None,
+                country_code=country_code or "INT",
+            )
+        elif address and (google_maps_api_key or nominatim_user_agent):
+            try:
+                location_info = resolve_location(
+                    address=address,
+                    google_maps_api_key=google_maps_api_key,
+                    nominatim_user_agent=nominatim_user_agent,
+                )
+            except ValueError:
+                location_info = None
+        else:
+            location_info = None
+
+    location_context = _build_location_context(
+        location_info,
+        address=address,
+        country_code=country_code,
+    )
 
     per_fuel: Dict[str, FuelSavingsResult] = {}
     for energy_type in ("ELECTRICITY", "FOSSIL_FUEL"):
@@ -532,6 +696,7 @@ def estimate_savings(
                 floor_area=floor_area,
                 energy_type=energy_type,
                 window=MINIMUM_UTILITY_MONTHS,
+                location_context=location_context,
             )
         except ValueError:
             continue
@@ -542,6 +707,7 @@ def estimate_savings(
         "floor_area": floor_area,
         "savings_target": savings_target,
         "available_energy_types": list(per_fuel.keys()),
+        "location_context": location_context.__dict__,
     }
 
     return SavingsSummary(
@@ -561,4 +727,5 @@ __all__ = [
     "estimate_savings_for_fuel",
     "estimate_savings",
     "SavingsEstimate",  # legacy re-export
+    "LocationContext",
 ]
