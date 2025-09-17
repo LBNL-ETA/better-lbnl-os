@@ -19,6 +19,8 @@ from .template_parsing import SQFT_TO_SQM
 from .measures import TOP_LEVEL_EE_MEASURES
 from .recommendations import SYMPTOM_COEFFICIENTS, SYMPTOM_DESCRIPTIONS
 
+from .savings import MINIMUM_UTILITY_MONTHS, PLOT_EXCEEDANCE
+
 __all__ = [
     # Enums
     "BuildingSpaceType",
@@ -39,5 +41,7 @@ __all__ = [
     # Recommendation metadata
     "SYMPTOM_COEFFICIENTS",
     "SYMPTOM_DESCRIPTIONS",
+    "MINIMUM_UTILITY_MONTHS",
+    "PLOT_EXCEEDANCE",
 ]
 

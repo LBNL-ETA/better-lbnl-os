@@ -13,7 +13,7 @@ import calendar as _calendar
 import pandas as pd
 
 from better_lbnl_os.models import UtilityBillData, WeatherData, CalendarizedData
-from better_lbnl_os.constants import CONVERSION_TO_KWH
+from better_lbnl_os.constants import CONVERSION_TO_KWH, MINIMUM_UTILITY_MONTHS
 
 
 @dataclass
@@ -394,3 +394,75 @@ def trim_series(eui: List[float], degc: List[float]) -> tuple[List[float], List[
         return eui[i0:i1], degc[i0:i1]
     except Exception:
         return eui, degc
+
+
+def get_consecutive_bills(
+    calendarized: dict | CalendarizedData,
+    energy_type: str = "ELECTRICITY",
+    window: int = MINIMUM_UTILITY_MONTHS,
+) -> dict[str, List]:
+    """Return the latest block of consecutive months with positive EUI."""
+
+    if hasattr(calendarized, "to_legacy_dict"):
+        calendarized = calendarized.to_legacy_dict()  # type: ignore[assignment]
+
+    try:
+        aggregated = calendarized["aggregated"]
+        weather = calendarized["weather"]
+        months = aggregated["v_x"]
+        days = aggregated["ls_n_days"]
+        eui_map = aggregated["dict_v_eui"].get(energy_type)
+        temperatures = weather.get("degC", [])
+    except Exception:
+        return {}
+
+    if not eui_map:
+        return {}
+
+    length = min(len(months), len(days), len(eui_map), len(temperatures))
+    if length == 0:
+        return {}
+
+    months = months[-length:]
+    days = days[-length:]
+    eui_values = eui_map[-length:]
+    temperatures = temperatures[-length:]
+
+    df = pd.DataFrame(
+        {
+            "month": pd.to_datetime(months, errors="coerce"),
+            "ls_n_days": pd.to_numeric(days, errors="coerce"),
+            "eui": pd.to_numeric(eui_values, errors="coerce"),
+            "degC": pd.to_numeric(temperatures, errors="coerce"),
+        }
+    ).dropna(subset=["month", "ls_n_days", "eui", "degC"])
+
+    if df.empty:
+        return {}
+
+    df = df.sort_values("month")
+    df = df[df["eui"] > 0]
+    if df.empty:
+        return {}
+
+    df["month_diff"] = df["month"].diff().dt.days.abs()
+    is_consecutive = df["month_diff"].between(27, 31, inclusive="both").fillna(False)
+    df["block"] = (~is_consecutive).cumsum()
+
+    blocks = df.groupby("block").filter(lambda g: len(g) >= window)
+    if blocks.empty:
+        return {}
+
+    last_block_id = blocks["block"].iloc[-1]
+    window_block = blocks[blocks["block"] == last_block_id].tail(window)
+
+    start_month = window_block["month"].iloc[0].strftime("%Y-%m")
+    end_month = window_block["month"].iloc[-1].strftime("%Y-%m")
+
+    return {
+        "ls_months": window_block["month"].dt.strftime("%Y-%m-%d").tolist(),
+        "ls_n_days": window_block["ls_n_days"].astype(int).tolist(),
+        "ls_eui": window_block["eui"].tolist(),
+        "ls_degC": window_block["degC"].tolist(),
+        "period": f"{start_month} to {end_month}",
+    }

@@ -43,7 +43,14 @@ from better_lbnl_os.models import (
 )
 # Result models from their domain-specific modules
 from better_lbnl_os.core.changepoint import ChangePointModelResult
-from better_lbnl_os.core.savings import SavingsEstimate
+from better_lbnl_os.core.savings import (
+    SavingsEstimate,
+    FuelSavingsResult,
+    CombinedSavingsSummary,
+    SavingsSummary,
+    estimate_savings_for_fuel,
+    estimate_savings,
+)
 from better_lbnl_os.models.benchmarking import (
     BenchmarkResult,
     BenchmarkStatistics,
@@ -103,6 +110,11 @@ __all__ = [
     # Result models
     "ChangePointModelResult",
     "SavingsEstimate",
+    "FuelSavingsResult",
+    "CombinedSavingsSummary",
+    "SavingsSummary",
+    "estimate_savings_for_fuel",
+    "estimate_savings",
     # Benchmarking models
     "BenchmarkResult",
     "BenchmarkStatistics",
