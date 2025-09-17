@@ -44,7 +44,22 @@ class ReferenceStatisticsLoader:
                 with importlib.resources.open_text("better_lbnl_os.data.defaults", "manifest.json") as f:
                     manifest_data = json.load(f)
             except (FileNotFoundError, ImportError):
-                # If no built-in data available, return empty manifest
+                manifest_data = {}
+
+        if "entries" not in manifest_data:
+            ref_meta = manifest_data.get("reference_statistics")
+            if ref_meta and isinstance(ref_meta, dict):
+                ref_file = ref_meta.get("file", "reference_statistics.json")
+                try:
+                    with importlib.resources.open_text("better_lbnl_os.data.defaults", ref_file) as ref_fp:
+                        manifest_data = json.load(ref_fp)
+                except FileNotFoundError:
+                    manifest_data = {
+                        "version": "1.0.0",
+                        "created": None,
+                        "entries": []
+                    }
+            else:
                 manifest_data = {
                     "version": "1.0.0",
                     "created": None,
