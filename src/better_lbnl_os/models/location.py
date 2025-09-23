@@ -25,4 +25,18 @@ class LocationInfo(BaseModel):
         return haversine_distance(self.geo_lat, self.geo_lng, other.geo_lat, other.geo_lng)
 
 
-__all__ = ["LocationInfo"]
+
+
+class LocationSummary(BaseModel):
+    """Normalized location metadata for pricing/emission lookups."""
+
+    country_code: str = Field(default="US", description="ISO country code")
+    state_code: Optional[str] = Field(default=None, description="Two-letter state/province code")
+    zipcode: Optional[str] = Field(default=None, description="Postal/ZIP code")
+    egrid_subregion: Optional[str] = Field(default=None, description="eGrid subregion identifier")
+
+    def to_metadata(self) -> dict[str, Optional[str]]:
+        """Return a dict view excluding unset fields."""
+        return self.model_dump(exclude_none=True)
+
+__all__ = ["LocationInfo", "LocationSummary"]

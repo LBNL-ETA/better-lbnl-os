@@ -6,7 +6,7 @@ for building energy analysis workflows.
 
 from .building import BuildingData
 from .utility_bills import UtilityBillData, CalendarizedData, EnergyAggregation, FuelAggregation
-from .location import LocationInfo
+from .location import LocationInfo, LocationSummary
 from .weather import WeatherData, WeatherSeries, WeatherStation
 # Import result models from their new domain-specific modules
 from better_lbnl_os.core.changepoint import ChangePointModelResult
@@ -30,6 +30,7 @@ __all__ = [
     "EnergyAggregation",
     "FuelAggregation",
     "LocationInfo",
+    "LocationSummary",
     "WeatherData",
     "WeatherStation",
     "ChangePointModelResult",

@@ -19,9 +19,10 @@ from better_lbnl_os.core.defaults import (
     get_fossil_emission_factor,
     normalize_state_code,
     infer_state_from_address,
+    FOSSIL_DEFAULT_FUEL,
 )
 from better_lbnl_os.core.pipeline import resolve_location
-from better_lbnl_os.models import CalendarizedData, LocationInfo
+from better_lbnl_os.models import CalendarizedData, LocationInfo, LocationSummary
 from better_lbnl_os.models.benchmarking import BenchmarkResult
 from pydantic import BaseModel, Field
 
@@ -134,14 +135,6 @@ class _UsageArrays:
     cooling_ghg: np.ndarray
 
 
-@dataclass
-class LocationContext:
-    country_code: str
-    state_code: Optional[str]
-    zipcode: Optional[str]
-    egrid_subregion: Optional[str]
-
-
 def _ensure_calendarized_dict(calendarized: CalendarizedData | Dict[str, Any]) -> Dict[str, Any]:
     if hasattr(calendarized, "to_legacy_dict"):
         return calendarized.to_legacy_dict()  # type: ignore[return-value]
@@ -184,7 +177,7 @@ def _build_location_context(
     *,
     address: Optional[str],
     country_code: Optional[str],
-) -> LocationContext:
+) -> LocationSummary:
     country = (location_info.country_code if location_info else None) or (country_code or "US")
     state = None
     zipcode = None
@@ -207,7 +200,7 @@ def _build_location_context(
     if zipcode:
         egrid_region = lookup_egrid_subregion(zipcode) or egrid_region
 
-    return LocationContext(
+    return LocationSummary(
         country_code=country.upper(),
         state_code=state,
         zipcode=zipcode,
@@ -305,7 +298,7 @@ def _compute_usage_arrays(
 def _fill_unit_prices(
     prices: List[float],
     energy_type: str,
-    location: LocationContext,
+    location: LocationSummary,
 ) -> tuple[List[float], Optional[str]]:
     default_value = get_default_fuel_price(energy_type, location.state_code, location.country_code)
     filled = []
@@ -324,7 +317,7 @@ def _fill_unit_prices(
     return filled, source
 
 
-def _electric_emission_factor(location: LocationContext) -> Optional[Dict[str, float]]:
+def _electric_emission_factor(location: LocationSummary) -> Optional[Dict[str, float]]:
     region = location.egrid_subregion
     if not region and location.zipcode:
         region = lookup_egrid_subregion(location.zipcode)
@@ -339,7 +332,7 @@ def _fossil_emission_factor(energy_type: str) -> Optional[Dict[str, float]]:
 def _fill_emission_factors(
     factors: List[float],
     energy_type: str,
-    location: LocationContext,
+    location: LocationSummary,
 ) -> tuple[List[float], Optional[str]]:
     if energy_type == "ELECTRICITY":
         defaults = _electric_emission_factor(location)
@@ -445,6 +438,7 @@ def estimate_savings_for_fuel(
     floor_area: float,
     energy_type: str,
     window: int = MINIMUM_UTILITY_MONTHS,
+    location_context: LocationSummary | None = None,
 ) -> FuelSavingsResult:
     """Estimate savings for a single energy type."""
 
@@ -473,8 +467,8 @@ def estimate_savings_for_fuel(
 
     metadata: Dict[str, Any] = {}
     if location_context is None:
-        location_context = LocationContext(country_code="US", state_code=None, zipcode=None, egrid_subregion=None)
-    metadata["location"] = location_context.__dict__
+        location_context = LocationSummary()
+    metadata["location"] = location_context.model_dump()
 
     filled_prices, price_source = _fill_unit_prices(unit_prices, energy_type, location_context)
     filled_ghg, ghg_source = _fill_emission_factors(ghg_factors, energy_type, location_context)
@@ -650,7 +644,6 @@ def estimate_savings(
     latitude: Optional[float] = None,
     longitude: Optional[float] = None,
     google_maps_api_key: Optional[str] = None,
-    nominatim_user_agent: Optional[str] = None,
     country_code: Optional[str] = None,
 ) -> SavingsSummary:
     """Main entry point for savings estimation."""
@@ -660,19 +653,23 @@ def estimate_savings(
 
     if location_info is None:
         if latitude is not None and longitude is not None:
-            location_info = LocationInfo(
-                geo_lat=float(latitude),
-                geo_lng=float(longitude),
-                zipcode=None,
-                state=None,
-                country_code=country_code or "INT",
-            )
-        elif address and (google_maps_api_key or nominatim_user_agent):
+            if google_maps_api_key is None or not str(google_maps_api_key).strip():
+                raise ValueError("google_maps_api_key is required when latitude/longitude are provided without a LocationInfo")
+            try:
+                location_info = resolve_location(
+                    latitude=latitude,
+                    longitude=longitude,
+                    google_maps_api_key=google_maps_api_key,
+                )
+            except ValueError:
+                location_info = None
+        elif address:
+            if google_maps_api_key is None or not str(google_maps_api_key).strip():
+                raise ValueError("google_maps_api_key is required when address is provided without a LocationInfo")
             try:
                 location_info = resolve_location(
                     address=address,
                     google_maps_api_key=google_maps_api_key,
-                    nominatim_user_agent=nominatim_user_agent,
                 )
             except ValueError:
                 location_info = None
@@ -727,5 +724,4 @@ __all__ = [
     "estimate_savings_for_fuel",
     "estimate_savings",
     "SavingsEstimate",  # legacy re-export
-    "LocationContext",
 ]
