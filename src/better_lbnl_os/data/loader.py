@@ -5,9 +5,9 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 import importlib.resources
 
-from better_lbnl_os.constants.enums import BuildingSpaceType
+from better_lbnl_os.constants.building_types import BuildingSpaceType
 from better_lbnl_os.models.benchmarking import BenchmarkStatistics
-from .models import ReferenceDataManifest, ReferenceDataEntry
+from .reference_data_models import ReferenceDataManifest, ReferenceDataEntry
 
 
 class ReferenceStatisticsLoader:

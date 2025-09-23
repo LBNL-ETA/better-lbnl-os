@@ -4,7 +4,7 @@ from typing import Dict, List, Optional
 from datetime import datetime
 from pydantic import BaseModel, Field
 
-from better_lbnl_os.constants.enums import BuildingSpaceType
+from better_lbnl_os.constants.building_types import BuildingSpaceType
 from better_lbnl_os.models.benchmarking import BenchmarkStatistics
 
 

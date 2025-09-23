@@ -10,7 +10,7 @@ from typing import Dict, List, Optional, Union
 
 import numpy as np
 
-from better_lbnl_os.constants.enums import BuildingSpaceType
+from better_lbnl_os.constants.building_types import BuildingSpaceType
 from better_lbnl_os.models.benchmarking import (
     BenchmarkResult,
     BenchmarkStatistics,

@@ -1,6 +1,6 @@
 """Data package for default benchmark statistics."""
 
-from .models import ReferenceDataEntry, ReferenceDataManifest
+from .reference_data_models import ReferenceDataEntry, ReferenceDataManifest
 from .loader import ReferenceStatisticsLoader
 
 __all__ = [
