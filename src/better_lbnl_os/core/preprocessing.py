@@ -14,6 +14,7 @@ import pandas as pd
 
 from better_lbnl_os.models import UtilityBillData, WeatherData, CalendarizedData
 from better_lbnl_os.constants import CONVERSION_TO_KWH, MINIMUM_UTILITY_MONTHS
+from better_lbnl_os.constants.energy import normalize_fuel_type, normalize_fuel_unit
 
 
 @dataclass
@@ -81,11 +82,16 @@ def calendarize_utility_bills(
         )
     else:
         df_bills["Energy_Type"] = df_bills["Fuel_Type"].map(_infer_energy_type)
+    df_bills["Fuel_Type"] = df_bills["Fuel_Type"].apply(normalize_fuel_type)
+    df_bills["unit"] = df_bills["unit"].apply(normalize_fuel_unit)
 
     # Convert to kWh
     def _to_kwh(row) -> float:
-        key = (row["Fuel_Type"], row["unit"])  # exact match
-        factor = opts.conversion_to_kwh.get(key, 1.0)
+        fuel_token = normalize_fuel_type(row.get("Fuel_Type"))
+        unit_token = normalize_fuel_unit(row.get("unit"))
+        factor = opts.conversion_to_kwh.get((fuel_token, unit_token))
+        if factor is None:
+            return row["consumption"]
         return row["consumption"] * factor
 
     df_bills["standard_consumption"] = df_bills.apply(_to_kwh, axis=1)

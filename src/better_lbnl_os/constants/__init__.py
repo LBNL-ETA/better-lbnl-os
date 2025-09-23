@@ -3,13 +3,20 @@
 Public, stable re-exports for enums, thresholds, energy factors, and mappings.
 """
 
-from .enums import BuildingSpaceType
+from .building_types import BuildingSpaceType
 from .thresholds import (
     DEFAULT_R2_THRESHOLD,
     DEFAULT_CVRMSE_THRESHOLD,
     DEFAULT_SIGNIFICANT_PVAL,
 )
-from .energy import CONVERSION_TO_KWH
+from .energy import (
+    CONVERSION_TO_KWH,
+    FuelType,
+    FuelUnit,
+    normalize_fuel_type,
+    normalize_fuel_unit,
+)
+
 from .mappings import (
     normalize_space_type,
     space_type_to_building_space_type,
@@ -30,6 +37,10 @@ __all__ = [
     "DEFAULT_SIGNIFICANT_PVAL",
     # Energy
     "CONVERSION_TO_KWH",
+    "FuelType",
+    "FuelUnit",
+    "normalize_fuel_type",
+    "normalize_fuel_unit",
     # Mappings
     "normalize_space_type",
     "space_type_to_building_space_type",

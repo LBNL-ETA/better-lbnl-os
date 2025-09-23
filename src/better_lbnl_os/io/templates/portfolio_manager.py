@@ -8,11 +8,10 @@ import pandas as pd
 from pandas.tseries.offsets import MonthEnd
 
 from better_lbnl_os.constants import normalize_space_type, SQFT_TO_SQM
+from better_lbnl_os.constants.energy import normalize_fuel_type, normalize_fuel_unit
 from better_lbnl_os.constants.template_parsing import (
     PM_META_HEADERS as M,
     PM_BILLS_HEADERS as B,
-    FUEL_NAME_MAP,
-    UNIT_NAME_MAP,
 )
 from better_lbnl_os.models import BuildingData, UtilityBillData
 from .types import ParsedPortfolio, ParseMessage
@@ -101,9 +100,9 @@ def read_portfolio_manager(file_like) -> ParsedPortfolio:
                 raise ValueError("End date must be after start date")
             fuel_raw = str(row[B["METER_TYPE"]]).strip()
             unit_raw = str(row[B["USAGE_UNITS"]]).strip()
-            fuel = FUEL_NAME_MAP.get(fuel_raw, fuel_raw)
-            unit = UNIT_NAME_MAP.get(unit_raw, unit_raw)
             qty = float(row[B["USAGE_QTY"]])
+            fuel = normalize_fuel_type(fuel_raw)
+            unit = normalize_fuel_unit(unit_raw)
             cost = None
             if B["COST"] in row and pd.notna(row[B["COST"]]):
                 try:

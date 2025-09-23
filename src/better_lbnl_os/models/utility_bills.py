@@ -5,6 +5,7 @@ from typing import Dict, List, Optional
 from pydantic import BaseModel, Field, model_validator
 
 from better_lbnl_os.constants import CONVERSION_TO_KWH
+from better_lbnl_os.constants.energy import normalize_fuel_type, normalize_fuel_unit
 
 
 class UtilityBillData(BaseModel):
@@ -24,12 +25,10 @@ class UtilityBillData(BaseModel):
         return self
 
     def to_kwh(self) -> float:
-        key = (self.fuel_type, self.units)
-        factor = CONVERSION_TO_KWH.get(key, 1.0)
+        fuel = normalize_fuel_type(self.fuel_type)
+        unit = normalize_fuel_unit(self.units)
+        factor = CONVERSION_TO_KWH.get((fuel, unit), 1.0)
         return self.consumption * factor
-
-    def get_days(self) -> int:
-        return (self.end_date - self.start_date).days
 
     def calculate_daily_average(self) -> float:
         days = self.get_days()

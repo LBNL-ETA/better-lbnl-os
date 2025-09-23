@@ -147,33 +147,3 @@ PM_BILLS_HEADERS = {
     "COST": "Cost ($)",
 }
 
-# Fuel type mappings (expand as needed)
-FUEL_NAME_MAP = {
-    # Common variations
-    "Electric": "ELECTRICITY",
-    "Electricity": "ELECTRICITY",
-    "Natural Gas": "NATURAL_GAS",
-    "Gas": "NATURAL_GAS",
-    "Fuel Oil": "FUEL_OIL",
-    "Fuel Oil #2": "FUEL_OIL",
-    "District Steam": "DISTRICT_STEAM",
-    "District Hot Water": "DISTRICT_HOT_WATER",
-    "District Chilled Water": "DISTRICT_CHILLED_WATER",
-}
-
-# Unit mappings (expand as needed)
-UNIT_NAME_MAP = {
-    # Electricity
-    "kWh": "kWh",
-    "MWh": "MWh",
-    "kWh (thousand Watt-hours)": "kWh",
-    # Natural gas
-    "therms": "therms",
-    "Therms": "therms",
-    "CCF": "CCF",
-    "MCF": "MCF",
-    "ccf": "CCF",
-    # Oil
-    "gallons": "gallons",
-    "Gallons": "gallons",
-}

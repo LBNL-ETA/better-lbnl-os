@@ -7,12 +7,11 @@ from dataclasses import dataclass
 import pandas as pd
 
 from better_lbnl_os.constants import normalize_space_type
+from better_lbnl_os.constants.energy import normalize_fuel_type, normalize_fuel_unit
 from better_lbnl_os.constants.template_parsing import (
     BETTER_BILLS_HEADERS,
     BETTER_META_HEADERS,
     BETTERTemplateConfig,
-    FUEL_NAME_MAP,
-    UNIT_NAME_MAP,
 )
 from better_lbnl_os.models import BuildingData, UtilityBillData
 
@@ -83,8 +82,6 @@ def read_better_excel(file_like, lang: str | None = None) -> ParsedPortfolio:
     result = ParsedPortfolio(metadata={"template_type": "better_excel", "lang": lang})
     config = BETTERTemplateConfig()
 
-    # Read sheets with deterministic skiprows for BETTER template format
-    # BETTER templates have instructions in first rows that must be skipped
     try:
         df_meta = pd.read_excel(
             file_like,
@@ -96,20 +93,7 @@ def read_better_excel(file_like, lang: str | None = None) -> ParsedPortfolio:
         result.errors.append(ParseMessage(severity="error", sheet=sn.meta, message=f"Failed to read sheet: {e}"))
         return result
 
-    try:
-        df_bills = pd.read_excel(
-            file_like,
-            sheet_name=sn.bills,
-            skiprows=config.BILLS_SKIP_ROWS,
-            usecols=config.BILLS_USE_COLS,
-        )
-    except Exception as e:
-        result.errors.append(ParseMessage(severity="error", sheet=sn.bills, message=f"Failed to read sheet: {e}"))
-        return result
-
     # Map columns (no need for retry logic with deterministic skiprows)
-    meta_map = _map_columns(df_meta, BETTER_META_HEADERS, sn.meta, result.errors)
-    bills_map = _map_columns(df_bills, BETTER_BILLS_HEADERS, sn.bills, result.errors, optional_keys=["COST"])
 
     # Check if required columns were found
     if not meta_map or not bills_map:
@@ -166,9 +150,9 @@ def read_better_excel(file_like, lang: str | None = None) -> ParsedPortfolio:
                 raise ValueError("End date must be after start date")
             fuel = str(row[bills_map["FUEL"]]).strip()
             unit = str(row[bills_map["UNIT"]]).strip()
+            fuel = normalize_fuel_type(fuel)
+            unit = normalize_fuel_unit(unit)
             # Try mapping PM-like names if present; otherwise preserve
-            fuel = FUEL_NAME_MAP.get(fuel, fuel)
-            unit = UNIT_NAME_MAP.get(unit, unit)
             cons = float(row[bills_map["CONSUMPTION"]])
             cost = None
             if bills_map.get("COST") and bills_map["COST"] in df_bills.columns and pd.notna(row[bills_map["COST"]]):
