@@ -1,6 +1,6 @@
 """Mappings and normalization helpers."""
 
-from .enums import BuildingSpaceType
+from .building_types import BuildingSpaceType
 
 SPACE_TYPE_SYNONYMS: dict[str, str] = {
     "Retail": BuildingSpaceType.RETAIL_STORE.value,
