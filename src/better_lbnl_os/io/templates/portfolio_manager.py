@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Dict, List
+from typing import Dict, List, Sequence
 
 import pandas as pd
 from pandas.tseries.offsets import MonthEnd
@@ -16,22 +16,63 @@ from better_lbnl_os.constants.template_parsing import (
 from better_lbnl_os.models import BuildingData, UtilityBillData
 from .types import ParsedPortfolio, ParseMessage
 
+PM_SKIPROWS_DEFAULT = 5
+
+
+def _read_pm_sheet(
+    file_like,
+    sheet_name: str,
+    required_columns: Sequence[str],
+    *,
+    parse_dates: Sequence[int] | None = None,
+) -> tuple[pd.DataFrame | None, Exception | None]:
+    """Read a Portfolio Manager sheet, trying with and without skiprows."""
+    base_kwargs: dict[str, object] = {}
+    if parse_dates is not None:
+        base_kwargs["parse_dates"] = list(parse_dates)
+
+    attempts = [
+        {**base_kwargs, "skiprows": PM_SKIPROWS_DEFAULT},
+        base_kwargs,
+    ]
+    last_error: Exception | None = None
+
+    for kwargs in attempts:
+        try:
+            if hasattr(file_like, "seek"):
+                file_like.seek(0)
+            df = pd.read_excel(file_like, sheet_name=sheet_name, **kwargs)
+        except Exception as exc:
+            last_error = exc
+            continue
+
+        df.columns = [
+            col.strip() if isinstance(col, str) else col
+            for col in df.columns
+        ]
+        missing = [col for col in required_columns if col not in df.columns]
+        if missing:
+            last_error = ValueError(f"Missing columns: {missing}")
+            continue
+
+        return df, None
+
+    return None, last_error
+
 
 def read_portfolio_manager(file_like) -> ParsedPortfolio:
     """Parse a Portfolio Manager custom download workbook into a ParsedPortfolio."""
     result = ParsedPortfolio(metadata={"template_type": "portfolio_manager", "unit_system": "IP"})
 
-    # Properties sheet
-    try:
-        df_meta = pd.read_excel(file_like, sheet_name="Properties")
-    except Exception as e:
-        result.errors.append(ParseMessage(severity="error", sheet="Properties", message=f"Failed to read sheet: {e}"))
-        return result
-
-    # Validate required columns
-    missing = [v for v in M.values() if v not in df_meta.columns]
-    if missing:
-        result.errors.append(ParseMessage(severity="error", sheet="Properties", message=f"Missing columns: {missing}"))
+    # Properties sheet (try skipping instructional rows first, then fallback)
+    df_meta, meta_error = _read_pm_sheet(file_like, "Properties", list(M.values()))
+    if df_meta is None:
+        result.errors.append(ParseMessage(
+            severity="error",
+            sheet="Properties",
+            message="Failed to read sheet with expected headers"
+            + (f": {meta_error}" if meta_error else ""),
+        ))
         return result
 
     # Filter rows with PM ID
@@ -43,7 +84,10 @@ def read_portfolio_manager(file_like) -> ParsedPortfolio:
         try:
             pmid = str(row[M["PM_ID"]]).strip()
             name = str(row[M["PROP_NAME"]]).strip()
-            loc = f"{row[M['CITY']]} , {row[M['STATE']]} {row[M['POSTAL']]}".strip()
+            city = str(row[M["CITY"]]).strip()
+            state = str(row[M["STATE"]]).strip()
+            postal = str(row[M["POSTAL"]]).strip()
+            loc = f"{city}, {state} {postal}".strip()
             gfa_units = str(row[M["GFA_UNITS"]]).strip()
             gfa = float(row[M["GFA"]])
             if gfa_units.lower().startswith("sq"):
@@ -55,16 +99,15 @@ def read_portfolio_manager(file_like) -> ParsedPortfolio:
         except Exception as e:
             result.errors.append(ParseMessage(severity="error", sheet="Properties", message=f"Invalid building row: {e}"))
 
-    # Meter Entries sheet
-    try:
-        df_bills = pd.read_excel(file_like, sheet_name="Meter Entries")
-    except Exception as e:
-        result.errors.append(ParseMessage(severity="error", sheet="Meter Entries", message=f"Failed to read sheet: {e}"))
-        return result
-
-    missing_b = [v for v in B.values() if v not in df_bills.columns]
-    if missing_b:
-        result.errors.append(ParseMessage(severity="error", sheet="Meter Entries", message=f"Missing columns: {missing_b}"))
+    # Meter Entries sheet (same skiprows handling)
+    df_bills, bills_error = _read_pm_sheet(file_like, "Meter Entries", list(B.values()))
+    if df_bills is None:
+        result.errors.append(ParseMessage(
+            severity="error",
+            sheet="Meter Entries",
+            message="Failed to read sheet with expected headers"
+            + (f": {bills_error}" if bills_error else ""),
+        ))
         return result
 
     # Keep only positive usage
