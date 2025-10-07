@@ -40,8 +40,8 @@ def calendarize_utility_bills(
     floor_area: float,
     weather: Optional[List[WeatherData]] = None,
     options: Optional[CalendarizationOptions] = None,
-) -> CalendarizedData:
-    """Convert utility bills into calendar-month aggregates (typed output).
+) -> Dict:
+    """Convert utility bills into calendar-month aggregates (returns dict for compatibility).
 
     Args:
         bills: List of UtilityBillData entries.
@@ -50,7 +50,7 @@ def calendarize_utility_bills(
         options: Optional CalendarizationOptions for mappings and factors.
 
     Returns:
-        CalendarizedData with weather, detailed (by Fuel_Type), and aggregated (by Energy_Type).
+        Dictionary with keys 'weather', 'detailed', 'aggregated' containing calendarized data.
     """
     opts = options or CalendarizationOptions()
 
@@ -58,9 +58,9 @@ def calendarize_utility_bills(
         legacy = {
             "weather": {"degC": [], "degF": []},
             "detailed": {"v_x": []},
-            "aggregated": {"v_x": [], "ls_n_days": []},
+            "aggregated": {"periods": [], "days_in_period": []},
         }
-        return CalendarizedData.from_legacy_dict(legacy)
+        return legacy
 
     # ------------------ Prepare daily utility bill data ------------------
     rows = []
@@ -136,9 +136,9 @@ def calendarize_utility_bills(
         legacy = {
             "weather": {"degC": [], "degF": []},
             "detailed": {"v_x": []},
-            "aggregated": {"v_x": [], "ls_n_days": []},
+            "aggregated": {"periods": [], "days_in_period": []},
         }
-        return CalendarizedData.from_legacy_dict(legacy)
+        return legacy
 
     df_daily = pd.concat(daily_chunks, ignore_index=True)
     df_daily["Year-Month"] = df_daily["date"].dt.strftime("%Y-%m")
@@ -301,8 +301,7 @@ def calendarize_utility_bills(
         "dict_v_ghg_factors": _subset("Energy_Type", "unit_emission"),
     }
 
-    legacy = {"weather": out_weather, "detailed": detailed, "aggregated": aggregated}
-    return CalendarizedData.from_legacy_dict(legacy)
+    return {"weather": out_weather, "detailed": detailed, "aggregated": aggregated}
 
 
 # Note: Single canonical API above returns CalendarizedData
@@ -329,8 +328,9 @@ def get_consecutive_months(
     if hasattr(calendarized, "to_legacy_dict"):
         calendarized = calendarized.to_legacy_dict()  # type: ignore[assignment]
     try:
-        periods = calendarized["aggregated"].get("v_x") or calendarized["aggregated"].get("periods")
-        ls_n_days = calendarized["aggregated"]["ls_n_days"]
+        # Support both old and new key names
+        periods = calendarized["aggregated"].get("periods") or calendarized["aggregated"].get("v_x")
+        ls_n_days = calendarized["aggregated"].get("days_in_period") or calendarized["aggregated"].get("ls_n_days")
         eui_map = calendarized["aggregated"]["dict_v_eui"]
         degC = calendarized["weather"]["degC"]
     except Exception:

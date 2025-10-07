@@ -155,10 +155,16 @@ class TestStatisticalFunctions:
     def test_calculate_r_squared_no_variance(self):
         """Test R² calculation when actual values have no variance."""
         y_actual = np.array([5, 5, 5, 5, 5])  # No variance
-        y_predicted = np.array([4, 5, 6, 4, 6])
-        
-        with pytest.raises(Exception, match="no variability"):
-            calculate_r_squared(y_actual, y_predicted)
+        y_predicted = np.array([5, 5, 5, 5, 5])  # Perfect prediction
+
+        # When actual has no variance but prediction is perfect, R² = 1
+        r2 = calculate_r_squared(y_actual, y_predicted)
+        assert r2 == 1.0
+
+        # When actual has no variance and prediction differs, R² = 0
+        y_predicted_diff = np.array([4, 5, 6, 4, 6])
+        r2_diff = calculate_r_squared(y_actual, y_predicted_diff)
+        assert r2_diff == 0.0
     
     def test_calculate_cvrmse(self):
         """Test CV-RMSE calculation."""

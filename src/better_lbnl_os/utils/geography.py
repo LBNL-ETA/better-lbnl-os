@@ -130,19 +130,24 @@ def geocode(address: str, api_key: str, weather_stations: list = None) -> Locati
                 g = geocoder.google(address, method="reverse", key=api_key)
                 
         if g.error == "REQUEST_DENIED":
+            # Don't wrap API denial errors - let them propagate directly
             raise Exception("Google Maps API denied geocoding request")
-            
+
         lat, lng = g.latlng
         zipcode = g.postal
         country_code = g.country
-        
+
         # Extract state for US addresses
         if country_code == 'US':
             state = g.state
         else:
             state = 'INT'
-            
+
     except Exception as e:
+        # If it's an API denial, re-raise without wrapping
+        if "Google Maps API denied" in str(e):
+            raise
+        # Otherwise wrap with helpful message
         logger.exception(f"Could not geocode location: {e}")
         raise Exception(f'Cannot geocode location: {address}. '
                        f'Please check your building address and provide more details.') from e

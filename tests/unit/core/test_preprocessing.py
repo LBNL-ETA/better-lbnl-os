@@ -84,10 +84,10 @@ def test_calendarize_with_gas_conversion_and_emissions():
     # Should have one month
     assert res["aggregated"]["periods"][0].startswith("2023-03-01")
 
-    # Converted to kWh: 1000 therms * 29.3
+    # Converted to kWh: 1000 therms * 29.307 (actual conversion factor)
     energy = res["aggregated"]["dict_v_energy"]["FOSSIL_FUEL"][0]
-    assert round(energy, 2) == round(1000 * 29.3, 2)
+    assert round(energy, 2) == round(1000 * 29.307, 2)
 
     # Emissions present (kg CO2): kWh * factor
     ghg = res["aggregated"]["dict_v_ghg"]["FOSSIL_FUEL"][0]
-    assert round(ghg, 2) == round(1000 * 29.3 * 0.18, 2)
+    assert round(ghg, 2) == round(1000 * 29.307 * 0.18, 2)

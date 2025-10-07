@@ -43,7 +43,9 @@ def test_calendarization_converts_complex_units():
         )
     ]
     calendarized = calendarize_utility_bills(bills=bills, floor_area=100.0)
-    energy_dict = calendarized.detailed.energy_kwh
-    key = "Fuel_Type - FUEL_OIL_4 - standard_consumption"
+    # calendarize_utility_bills now returns a dict, not CalendarizedData
+    energy_dict = calendarized["detailed"]["dict_v_energy"]
+    # The key format is the fuel type
+    key = "FUEL_OIL_4"
     assert key in energy_dict
     assert energy_dict[key][0] == pytest.approx(427.88, rel=1e-6)

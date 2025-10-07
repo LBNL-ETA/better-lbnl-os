@@ -60,7 +60,15 @@ def fit_changepoint_model(
     """
     # Input validation
     _validate_model_inputs(x, y)
-    
+
+    # Check for constant or near-constant data (early 1P detection)
+    # If data has no variance, skip changepoint fitting and use 1P model directly
+    y_std = np.std(y)
+    y_mean = np.mean(y)
+    if y_std < 1e-6 or (y_mean != 0 and y_std / abs(y_mean) < 0.01):
+        # Data is essentially constant, use 1P model (baseload only)
+        return _fit_1p_model(x, y, max_cv_rmse)
+
     # Set up bounds for model fitting
     bounds = _create_model_bounds(x, y)
     
@@ -103,6 +111,8 @@ def _validate_model_inputs(x: np.ndarray, y: np.ndarray) -> None:
         raise ValueError("y must have at least one element")
     if np.size(y) != np.size(x):
         raise ValueError("x and y arrays must have the same length")
+    if np.size(x) < 3:
+        raise ValueError("Need at least 3 data points for change-point modeling")
     if all(np.isnan(x)):
         raise ValueError("x data cannot be all NaN")
 
@@ -485,13 +495,14 @@ def calculate_r_squared(y_actual: np.ndarray, y_predicted: Union[np.ndarray, flo
     residuals = y_actual - y_predicted
     ss_residuals = np.sum(residuals ** 2)
     ss_total = np.sum((y_actual - np.mean(y_actual)) ** 2)
-    
+
+    # For constant data (no variance), R² is undefined but we return 0
+    # This occurs when fitting 1P model to constant data
     if ss_total == 0:
-        raise Exception(
-            "Cannot calculate R² because there is no variability in the actual values. "
-            "Please ensure your data contains varying energy consumption values."
-        )
-    
+        # If residuals are also 0 (perfect prediction of constant), return 1
+        # Otherwise return 0 (model predicts mean, which is the best we can do)
+        return 1.0 if ss_residuals == 0 else 0.0
+
     return 1 - (ss_residuals / ss_total)
 
 
