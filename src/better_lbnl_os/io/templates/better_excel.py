@@ -93,7 +93,27 @@ def read_better_excel(file_like, lang: str | None = None) -> ParsedPortfolio:
         result.errors.append(ParseMessage(severity="error", sheet=sn.meta, message=f"Failed to read sheet: {e}"))
         return result
 
+    try:
+        df_bills = pd.read_excel(
+            file_like,
+            sheet_name=sn.bills,
+            skiprows=config.BILLS_SKIP_ROWS,
+            usecols=config.BILLS_USE_COLS,
+            parse_dates=config.BILLS_DATE_COLS,
+        )
+    except Exception as e:
+        result.errors.append(ParseMessage(severity="error", sheet=sn.bills, message=f"Failed to read sheet: {e}"))
+        return result
+
     # Map columns (no need for retry logic with deterministic skiprows)
+    meta_map = _map_columns(df_meta, BETTER_META_HEADERS, sn.meta, result.errors)
+    bills_map = _map_columns(
+        df_bills,
+        BETTER_BILLS_HEADERS,
+        sn.bills,
+        result.errors,
+        optional_keys=["COST"],
+    )
 
     # Check if required columns were found
     if not meta_map or not bills_map:
