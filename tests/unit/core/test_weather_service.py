@@ -11,14 +11,14 @@ from better_lbnl_os.models import LocationInfo, WeatherData, WeatherStation
 
 class MockWeatherProvider(WeatherDataProvider):
     """Mock weather provider for testing."""
-    
+
     def __init__(self):
         # Override methods with mocks at the instance level
         self.get_monthly_average = Mock()
         self.get_daily_temperatures = Mock()
         self.get_weather_data = Mock()
-        self.get_nearest_station = Mock()
-        self.validate_date_range = Mock(return_value=True)
+        self._get_nearest_station = Mock()
+        self._validate_date_range = Mock(return_value=True)
 
     # Satisfy ABC requirements; these will be shadowed by instance mocks
     def get_monthly_average(self, latitude, longitude, year, month):  # type: ignore[override]
@@ -29,10 +29,16 @@ class MockWeatherProvider(WeatherDataProvider):
 
     def get_weather_data(self, latitude, longitude, year, month):  # type: ignore[override]
         raise NotImplementedError
-    
+
+    def get_nearest_station(self, latitude, longitude, max_distance_km=100.0):
+        return self._get_nearest_station(latitude, longitude, max_distance_km)
+
+    def validate_date_range(self, start_date, end_date):
+        return self._validate_date_range(start_date, end_date)
+
     def get_provider_name(self):
         return "Mock"
-    
+
     def get_api_limits(self):
         return {'requests_per_day': 1000}
 
@@ -79,13 +85,13 @@ class TestWeatherService(unittest.TestCase):
             date(2023, 12, 31)
         )
         self.assertTrue(result)
-        self.mock_provider.validate_date_range.assert_called_once()
-        
+        self.mock_provider._validate_date_range.assert_called_once()
+
         # Test without end date (should use today)
-        self.mock_provider.validate_date_range.reset_mock()
+        self.mock_provider._validate_date_range.reset_mock()
         result = self.service.validate_data_availability(date(2023, 1, 1))
         self.assertTrue(result)
-        self.mock_provider.validate_date_range.assert_called_once()
+        self.mock_provider._validate_date_range.assert_called_once()
     
     def test_find_nearest_station(self):
         """Test finding nearest station."""
@@ -96,12 +102,12 @@ class TestWeatherService(unittest.TestCase):
             longitude=-122.3,
             distance_km=5.0
         )
-        self.mock_provider.get_nearest_station.return_value = mock_station
-        
+        self.mock_provider._get_nearest_station.return_value = mock_station
+
         station = self.service.find_nearest_station(37.8716, -122.2727)
-        
+
         self.assertEqual(station, mock_station)
-        self.mock_provider.get_nearest_station.assert_called_once_with(
+        self.mock_provider._get_nearest_station.assert_called_once_with(
             37.8716, -122.2727, 100.0
         )
     

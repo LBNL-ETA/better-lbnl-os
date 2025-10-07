@@ -14,7 +14,7 @@ from better_lbnl_os.models.benchmarking import (
     CoefficientBenchmarkStatistics,
     EnergyTypeBenchmarkStatistics,
 )
-from better_lbnl_os.models.results import ChangePointModelResult
+from better_lbnl_os.core.changepoint import ChangePointModelResult
 from better_lbnl_os.utils.statistics import (
     calculate_coefficient_statistics,
     calculate_percentile_from_z_score,

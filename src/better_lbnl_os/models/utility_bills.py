@@ -24,6 +24,10 @@ class UtilityBillData(BaseModel):
             raise ValueError("End date must be after start date")
         return self
 
+    def get_days(self) -> int:
+        """Calculate number of days in billing period."""
+        return (self.end_date - self.start_date).days
+
     def to_kwh(self) -> float:
         fuel = normalize_fuel_type(self.fuel_type)
         unit = normalize_fuel_unit(self.units)
