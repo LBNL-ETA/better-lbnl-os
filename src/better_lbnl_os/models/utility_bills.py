@@ -90,8 +90,10 @@ class CalendarizedData(BaseModel):
                 "dict_v_ghg_factors": self.detailed.unit_emission_kg_per_kwh,
             },
             "aggregated": {
-                "periods": fmt_months(self.aggregated.months),  # Changed from v_x
-                "days_in_period": list(self.aggregated.days_in_period),  # Changed from ls_n_days
+                "periods": fmt_months(self.aggregated.months),  # Modern key
+                "v_x": fmt_months(self.aggregated.months),  # Legacy alias for Django compatibility
+                "days_in_period": list(self.aggregated.days_in_period),  # Modern key
+                "ls_n_days": list(self.aggregated.days_in_period),  # Legacy alias for Django compatibility
                 "dict_v_energy": self.aggregated.energy_kwh,
                 "dict_v_costs": self.aggregated.cost,
                 "dict_v_ghg": self.aggregated.ghg_kg,

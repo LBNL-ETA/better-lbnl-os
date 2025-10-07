@@ -11,7 +11,7 @@ import numpy as np
 
 from better_lbnl_os.constants import MINIMUM_UTILITY_MONTHS
 from better_lbnl_os.core.changepoint import piecewise_linear_5p
-from better_lbnl_os.core.preprocessing import get_consecutive_bills
+from better_lbnl_os.core.preprocessing import get_consecutive_months
 from better_lbnl_os.core.defaults import (
     get_default_fuel_price,
     lookup_egrid_subregion,
@@ -210,15 +210,19 @@ def _build_location_context(
 
 def _extract_series(legacy: Dict[str, Any], energy_type: str, months: List[str]) -> tuple[List[int], List[float], List[float]]:
     aggregated = legacy.get("aggregated", {})
+    # Support both modern and legacy keys for dict input
+    periods = aggregated.get("periods", aggregated.get("v_x", []))
+    days_list = aggregated.get("days_in_period", aggregated.get("ls_n_days", []))
+
     unit_prices_map = _build_lookup(
-        aggregated.get("v_x", []),
+        periods,
         aggregated.get("dict_v_unit_prices", {}).get(energy_type, []),
     )
     ghg_map = _build_lookup(
-        aggregated.get("v_x", []),
+        periods,
         aggregated.get("dict_v_ghg_factors", {}).get(energy_type, []),
     )
-    days_map = _build_lookup(aggregated.get("v_x", []), aggregated.get("ls_n_days", []))
+    days_map = _build_lookup(periods, days_list)
     days = [int(days_map.get(month, 30)) for month in months]
     unit_prices = [unit_prices_map.get(month, 0.0) for month in months]
     ghg_factors = [ghg_map.get(month, 0.0) for month in months]
@@ -371,8 +375,8 @@ def _assemble_usage_details(
         "heating_sensitive_ghg": arrays.heating_ghg.tolist(),
         "baseload_ghg": arrays.baseload_ghg.tolist(),
         "cooling_sensitive_ghg": arrays.cooling_ghg.tolist(),
-        "ls_months": months,
-        "ls_n_days": arrays.days.astype(int).tolist(),
+        "months": months,  # Modern key (was ls_months)
+        "days": arrays.days.astype(int).tolist(),  # Modern key (was ls_n_days)
     }
 
 
@@ -446,12 +450,12 @@ def estimate_savings_for_fuel(
         raise ValueError(f"Benchmark data missing energy type: {energy_type}")
 
     legacy_calendarized = _ensure_calendarized_dict(calendarized)
-    consecutive = get_consecutive_bills(calendarized, energy_type=energy_type, window=window)
+    consecutive = get_consecutive_months(calendarized, energy_type=energy_type, window=window)
     if not consecutive:
         raise ValueError("Not enough consecutive bills to estimate savings")
 
-    months = consecutive["ls_months"]
-    temperatures = consecutive["ls_degC"]
+    months = consecutive["months"]  # Modern key (was ls_months)
+    temperatures = consecutive["degC"]  # Modern key (was ls_degC)
     days, unit_prices, ghg_factors = _extract_series(legacy_calendarized, energy_type, months)
     period_label = consecutive["period"]
 

@@ -407,7 +407,23 @@ def get_consecutive_bills(
     energy_type: str = "ELECTRICITY",
     window: int = MINIMUM_UTILITY_MONTHS,
 ) -> dict[str, List]:
-    """Return the latest block of consecutive months with positive EUI."""
+    """Return the latest block of consecutive months with positive EUI.
+
+    .. deprecated::
+        Use :func:`get_consecutive_months` instead. This function is maintained
+        only for backward compatibility with Django integration and returns keys
+        with legacy `ls_` prefixes.
+
+    Returns:
+        Dict with keys: ls_months, ls_n_days, ls_eui, ls_degC, period
+    """
+    import warnings
+    warnings.warn(
+        "get_consecutive_bills() is deprecated. Use get_consecutive_months() instead, "
+        "which returns modern key names (months, days, eui, degC).",
+        DeprecationWarning,
+        stacklevel=2
+    )
 
     if hasattr(calendarized, "to_legacy_dict"):
         calendarized = calendarized.to_legacy_dict()  # type: ignore[assignment]
