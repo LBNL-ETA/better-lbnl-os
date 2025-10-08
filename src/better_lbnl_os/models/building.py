@@ -57,7 +57,7 @@ class BuildingData(BaseModel):
         from better_lbnl_os.constants import space_type_to_benchmark_category
 
         category = space_type_to_benchmark_category(self.space_type)
-        return category.value
+        return category.benchmark_id
 
     def get_space_type_code(self) -> str:
         """Return the enum code (name) for the current space type (e.g., "Office" -> "OFFICE")."""

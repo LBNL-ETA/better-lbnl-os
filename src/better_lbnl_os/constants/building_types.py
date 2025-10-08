@@ -95,4 +95,46 @@ class BuildingSpaceType(Enum):
         return benchmark_map[benchmark_id]
 
 
+def space_type_to_benchmark_category(space_type: str) -> BuildingSpaceType:
+    """Map a space type string to a BuildingSpaceType enum.
 
+    Args:
+        space_type: Building space type as string (e.g., "Office", "OFFICE", "Hotel")
+
+    Returns:
+        BuildingSpaceType enum value
+
+    Raises:
+        ValueError: If space_type doesn't match any known type
+
+    Examples:
+        >>> space_type_to_benchmark_category("Office")
+        BuildingSpaceType.OFFICE
+        >>> space_type_to_benchmark_category("OFFICE")
+        BuildingSpaceType.OFFICE
+        >>> space_type_to_benchmark_category("K-12 School")
+        BuildingSpaceType.K12
+    """
+    if not space_type:
+        return BuildingSpaceType.OTHER
+
+    # Normalize the input
+    normalized = space_type.strip()
+
+    # Try exact match with enum value (display name)
+    for building_type in BuildingSpaceType:
+        if building_type.value == normalized:
+            return building_type
+
+    # Try exact match with enum name
+    for building_type in BuildingSpaceType:
+        if building_type.name == normalized.upper().replace("-", "_").replace(" ", "_"):
+            return building_type
+
+    # Try exact match with benchmark_id
+    for building_type in BuildingSpaceType:
+        if building_type.benchmark_id == normalized.upper():
+            return building_type
+
+    # If no match found, return OTHER
+    return BuildingSpaceType.OTHER

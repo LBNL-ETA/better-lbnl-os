@@ -3,7 +3,7 @@
 Public, stable re-exports for enums, thresholds, energy factors, and mappings.
 """
 
-from .building_types import BuildingSpaceType
+from .building_types import BuildingSpaceType, space_type_to_benchmark_category
 from .thresholds import (
     DEFAULT_R2_THRESHOLD,
     DEFAULT_CVRMSE_THRESHOLD,
@@ -31,6 +31,7 @@ from .savings import MINIMUM_UTILITY_MONTHS, PLOT_EXCEEDANCE
 __all__ = [
     # Enums
     "BuildingSpaceType",
+    "space_type_to_benchmark_category",
     # Thresholds
     "DEFAULT_R2_THRESHOLD",
     "DEFAULT_CVRMSE_THRESHOLD",
