@@ -11,6 +11,7 @@ from better_lbnl_os.constants.energy import (
 )
 from better_lbnl_os.core.preprocessing import calendarize_utility_bills
 from better_lbnl_os.models import UtilityBillData
+from better_lbnl_os.models.utility_bills import CalendarizedData
 
 
 def test_normalize_fuel_type_aliases():
@@ -43,8 +44,9 @@ def test_calendarization_converts_complex_units():
         )
     ]
     calendarized = calendarize_utility_bills(bills=bills, floor_area=100.0)
-    # calendarize_utility_bills now returns a dict, not CalendarizedData
-    energy_dict = calendarized["detailed"]["dict_v_energy"]
+    # calendarize_utility_bills now returns CalendarizedData model
+    assert isinstance(calendarized, CalendarizedData)
+    energy_dict = calendarized.detailed.energy_kwh
     # The key format is the fuel type
     key = "FUEL_OIL_4"
     assert key in energy_dict

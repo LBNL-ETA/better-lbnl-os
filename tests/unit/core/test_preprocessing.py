@@ -7,6 +7,7 @@ from better_lbnl_os.core.preprocessing import (
     CalendarizationOptions,
 )
 from better_lbnl_os.models import UtilityBillData, WeatherData
+from better_lbnl_os.models.utility_bills import CalendarizedData
 
 
 def test_calendarize_basic_electricity_only():
@@ -36,30 +37,30 @@ def test_calendarize_basic_electricity_only():
 
     res = calendarize_utility_bills(bills, floor_area=10000.0, weather=weather)
 
-    # Validate keys
-    assert set(res.keys()) == {"weather", "detailed", "aggregated"}
+    # Now returns CalendarizedData model instead of dict
+    assert isinstance(res, CalendarizedData)
 
     # Two months
-    assert len(res["aggregated"]["periods"]) == 2
-    assert len(res["aggregated"]["days_in_period"]) == 2
+    assert len(res.aggregated.months) == 2
+    assert len(res.aggregated.days_in_period) == 2
 
     # Energy totals by Energy_Type
-    energy = res["aggregated"]["dict_v_energy"]["ELECTRICITY"]
+    energy = res.aggregated.energy_kwh["ELECTRICITY"]
     assert energy[0] == 30000
     assert energy[1] == 28000
 
     # Unit price equals cost/kwh
-    unit_prices = res["aggregated"]["dict_v_unit_prices"]["ELECTRICITY"]
+    unit_prices = res.aggregated.unit_price_per_kwh["ELECTRICITY"]
     assert round(unit_prices[0], 6) == round(4500.0 / 30000.0, 6)
     assert round(unit_prices[1], 6) == round(4200.0 / 28000.0, 6)
 
     # Daily EUI present
-    eui = res["aggregated"]["dict_v_eui"]["ELECTRICITY"]
+    eui = res.aggregated.daily_eui_kwh_per_m2["ELECTRICITY"]
     # Jan: 30000 / 10000 / 31
     assert round(eui[0], 6) == round(30000 / 10000.0 / 31.0, 6)
 
     # Weather merged
-    assert res["weather"]["degC"] == [10.0, 12.0]
+    assert res.weather.degC == [10.0, 12.0]
 
 
 def test_calendarize_with_gas_conversion_and_emissions():
@@ -81,13 +82,16 @@ def test_calendarize_with_gas_conversion_and_emissions():
     )
     res = calendarize_utility_bills(bills, floor_area=5000.0, weather=None, options=opts)
 
+    # Now returns CalendarizedData model
+    assert isinstance(res, CalendarizedData)
+
     # Should have one month
-    assert res["aggregated"]["periods"][0].startswith("2023-03-01")
+    assert res.aggregated.months[0].strftime("%Y-%m-%d") == "2023-03-01"
 
     # Converted to kWh: 1000 therms * 29.307 (actual conversion factor)
-    energy = res["aggregated"]["dict_v_energy"]["FOSSIL_FUEL"][0]
+    energy = res.aggregated.energy_kwh["FOSSIL_FUEL"][0]
     assert round(energy, 2) == round(1000 * 29.307, 2)
 
     # Emissions present (kg CO2): kWh * factor
-    ghg = res["aggregated"]["dict_v_ghg"]["FOSSIL_FUEL"][0]
+    ghg = res.aggregated.ghg_kg["FOSSIL_FUEL"][0]
     assert round(ghg, 2) == round(1000 * 29.307 * 0.18, 2)

@@ -31,19 +31,24 @@ class ModelData(TypedDict):
 
 
 def prepare_model_data(
-    calendarized: dict | CalendarizedData,
+    calendarized: "CalendarizedData | dict",
     energy_types: tuple[str, ...] = ("ELECTRICITY", "FOSSIL_FUEL"),
     window: int = 12,
 ) -> dict[str, ModelData]:
     """Extract, gate, and trim model-ready arrays per energy type.
 
-    Returns a dict keyed by energy type with keys: temperature, eui, months, days.
-    Only includes energy types with sufficient consecutive data after trimming.
-    """
-    # Accept typed or legacy dict
-    if hasattr(calendarized, "to_legacy_dict"):
-        calendarized = calendarized.to_legacy_dict()  # type: ignore[assignment]
+    Args:
+        calendarized: CalendarizedData model or legacy dict format
+        energy_types: Energy types to process
+        window: Minimum consecutive months required
 
+    Returns:
+        Dict keyed by energy type with ModelData (temperature, eui, months, days).
+        Only includes energy types with sufficient consecutive data after trimming.
+
+    Note:
+        Uses get_consecutive_months() which handles both CalendarizedData and dict.
+    """
     out: dict[str, ModelData] = {}
     for et in energy_types:
         block = get_consecutive_months(calendarized, energy_type=et, window=window)

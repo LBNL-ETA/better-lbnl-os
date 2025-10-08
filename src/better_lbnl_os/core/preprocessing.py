@@ -7,12 +7,19 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import date, timedelta
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, TYPE_CHECKING
 
 import calendar as _calendar
 import pandas as pd
 
-from better_lbnl_os.models import UtilityBillData, WeatherData, CalendarizedData
+from better_lbnl_os.models import UtilityBillData, WeatherData
+# Import CalendarizedData and related from submodules to avoid circular imports
+from better_lbnl_os.models.utility_bills import (
+    CalendarizedData,
+    FuelAggregation,
+    EnergyAggregation,
+)
+from better_lbnl_os.models.weather import WeatherSeries
 from better_lbnl_os.constants import CONVERSION_TO_KWH, MINIMUM_UTILITY_MONTHS
 from better_lbnl_os.constants.energy import normalize_fuel_type, normalize_fuel_unit
 
@@ -40,8 +47,8 @@ def calendarize_utility_bills(
     floor_area: float,
     weather: Optional[List[WeatherData]] = None,
     options: Optional[CalendarizationOptions] = None,
-) -> Dict:
-    """Convert utility bills into calendar-month aggregates (returns dict for compatibility).
+) -> CalendarizedData:
+    """Convert utility bills into calendar-month aggregates.
 
     Args:
         bills: List of UtilityBillData entries.
@@ -50,17 +57,20 @@ def calendarize_utility_bills(
         options: Optional CalendarizationOptions for mappings and factors.
 
     Returns:
-        Dictionary with keys 'weather', 'detailed', 'aggregated' containing calendarized data.
+        CalendarizedData model with typed weather, detailed, and aggregated data.
+
+    Note:
+        For Django/API compatibility, call `.to_legacy_dict()` on the result.
     """
     opts = options or CalendarizationOptions()
 
     if not bills:
-        legacy = {
-            "weather": {"degC": [], "degF": []},
-            "detailed": {"v_x": []},
-            "aggregated": {"periods": [], "days_in_period": []},
-        }
-        return legacy
+        # Return empty CalendarizedData
+        return CalendarizedData(
+            weather=WeatherSeries(degC=[], degF=[]),
+            detailed=FuelAggregation(),
+            aggregated=EnergyAggregation(),
+        )
 
     # ------------------ Prepare daily utility bill data ------------------
     rows = []
@@ -132,13 +142,12 @@ def calendarize_utility_bills(
         daily_chunks.append(pd.DataFrame(data))
 
     if not daily_chunks:
-        # No valid days
-        legacy = {
-            "weather": {"degC": [], "degF": []},
-            "detailed": {"v_x": []},
-            "aggregated": {"periods": [], "days_in_period": []},
-        }
-        return legacy
+        # No valid days - return empty CalendarizedData
+        return CalendarizedData(
+            weather=WeatherSeries(degC=[], degF=[]),
+            detailed=FuelAggregation(),
+            aggregated=EnergyAggregation(),
+        )
 
     df_daily = pd.concat(daily_chunks, ignore_index=True)
     df_daily["Year-Month"] = df_daily["date"].dt.strftime("%Y-%m")
@@ -288,20 +297,37 @@ def calendarize_utility_bills(
         "dict_v_ghg_factors": _subset("Fuel_Type", "unit_emission"),
     }
 
-    aggregated = {
-        "periods": periods,
-        "v_x": periods,  # alias for compatibility with Django naming
-        "days_in_period": df_monthly["days_in_month"].tolist(),
-        "ls_n_days": df_monthly["days_in_month"].tolist(),  # alias
-        "dict_v_energy": _subset("Energy_Type", "standard_consumption"),
-        "dict_v_costs": _subset("Energy_Type", "standard_cost"),
-        "dict_v_ghg": _subset("Energy_Type", "standard_emission"),
-        "dict_v_eui": _subset("Energy_Type", "daily_standard_eui"),
-        "dict_v_unit_prices": _subset("Energy_Type", "unit_price"),
-        "dict_v_ghg_factors": _subset("Energy_Type", "unit_emission"),
-    }
+    # Convert periods to date objects
+    period_dates = [pd.Timestamp(p).date() for p in periods]
+    days_in_period = df_monthly["days_in_month"].tolist()
 
-    return {"weather": out_weather, "detailed": detailed, "aggregated": aggregated}
+    # Build CalendarizedData model directly
+    return CalendarizedData(
+        weather=WeatherSeries(
+            degC=out_weather["degC"],
+            degF=out_weather["degF"],
+        ),
+        detailed=FuelAggregation(
+            months=period_dates,
+            days_in_period=days_in_period,
+            energy_kwh=_subset("Fuel_Type", "standard_consumption"),
+            cost=_subset("Fuel_Type", "standard_cost"),
+            ghg_kg=_subset("Fuel_Type", "standard_emission"),
+            daily_eui_kwh_per_m2=_subset("Fuel_Type", "daily_standard_eui"),
+            unit_price_per_kwh=_subset("Fuel_Type", "unit_price"),
+            unit_emission_kg_per_kwh=_subset("Fuel_Type", "unit_emission"),
+        ),
+        aggregated=EnergyAggregation(
+            months=period_dates,
+            days_in_period=days_in_period,
+            energy_kwh=_subset("Energy_Type", "standard_consumption"),
+            cost=_subset("Energy_Type", "standard_cost"),
+            ghg_kg=_subset("Energy_Type", "standard_emission"),
+            daily_eui_kwh_per_m2=_subset("Energy_Type", "daily_standard_eui"),
+            unit_price_per_kwh=_subset("Energy_Type", "unit_price"),
+            unit_emission_kg_per_kwh=_subset("Energy_Type", "unit_emission"),
+        ),
+    )
 
 
 # Note: Single canonical API above returns CalendarizedData
@@ -309,41 +335,57 @@ def calendarize_utility_bills(
 
 # ------------------ Additional helpers for model preparation ------------------
 def get_consecutive_months(
-    calendarized: Dict,
+    calendarized: "CalendarizedData | Dict",
     energy_type: str = "ELECTRICITY",
     window: int = 12,
 ) -> Dict[str, List]:
     """Select the last block of consecutive months with positive EUI.
 
-    Returns empty dict if no block of length >= window exists.
+    Args:
+        calendarized: CalendarizedData model or legacy dict format
+        energy_type: Energy type to extract (ELECTRICITY or FOSSIL_FUEL)
+        window: Minimum consecutive months required
 
-    Output keys:
-    - months: list[str] YYYY-MM-01
-    - degC: list[float]
-    - eui: list[float]
-    - days: list[int]
-    - period: "YYYY-MM to YYYY-MM"
+    Returns:
+        Dict with keys: months, degC, eui, days, period
+        Empty dict if insufficient data
+
+    Note:
+        Prefers CalendarizedData for type-safe property access.
+        Falls back to dict for backward compatibility.
     """
-    # Accept typed or legacy dict
-    if hasattr(calendarized, "to_legacy_dict"):
-        calendarized = calendarized.to_legacy_dict()  # type: ignore[assignment]
-    try:
-        # Support both old and new key names
-        periods = calendarized["aggregated"].get("periods") or calendarized["aggregated"].get("v_x")
-        ls_n_days = calendarized["aggregated"].get("days_in_period") or calendarized["aggregated"].get("ls_n_days")
-        eui_map = calendarized["aggregated"]["dict_v_eui"]
-        degC = calendarized["weather"]["degC"]
-    except Exception:
-        return {}
+    # Fast path: Work with CalendarizedData directly (type-safe)
+    if isinstance(calendarized, CalendarizedData):
+        try:
+            periods = [m.strftime("%Y-%m-01") for m in calendarized.aggregated.months]
+            days = list(calendarized.aggregated.days_in_period)
+            eui_map = calendarized.aggregated.daily_eui_kwh_per_m2
+            degC = list(calendarized.weather.degC)
+        except Exception:
+            return {}
 
-    if not periods or energy_type not in eui_map:
-        return {}
+        if not periods or energy_type not in eui_map:
+            return {}
+    else:
+        # Fallback: Support legacy dict (for Django compatibility)
+        try:
+            aggregated = calendarized.get("aggregated", {})
+            # Support both modern and legacy key names
+            periods = aggregated.get("periods", aggregated.get("v_x"))
+            days = aggregated.get("days_in_period", aggregated.get("ls_n_days"))
+            eui_map = aggregated.get("dict_v_eui", {})
+            degC = calendarized.get("weather", {}).get("degC", [])
+        except Exception:
+            return {}
+
+        if not periods or energy_type not in eui_map:
+            return {}
 
     df = pd.DataFrame({
         "month": pd.to_datetime(pd.Series(periods)),
         "eui": pd.Series(eui_map[energy_type]).astype(float),
         "degC": pd.Series(degC).astype(float),
-        "days": pd.Series(ls_n_days).astype(int),
+        "days": pd.Series(days).astype(int),
     })
 
     # Keep positive EUI months and sort
