@@ -410,27 +410,41 @@ def _fit_1p_model(
 def piecewise_linear_5p(
     x: np.ndarray,
     heating_slope: Optional[float],
-    heating_changepoint: Optional[float], 
+    heating_changepoint: Optional[float],
     baseload: float,
     cooling_changepoint: Optional[float],
     cooling_slope: Optional[float]
 ) -> np.ndarray:
     """
     Five-parameter piecewise linear function for change-point modeling.
-    
+
     This function implements the classic change-point model:
     - Heating slope (negative) below heating changepoint
-    - Flat baseload between changepoints  
+    - Flat baseload between changepoints
     - Cooling slope (positive) above cooling changepoint
-    
+
+    Visual representation:
+
+        k1  \              / k2
+             \            /
+        y0    \__________/
+              cpL      cpR
+
+    Where:
+        k1 = heating_slope (typically negative)
+        k2 = cooling_slope (typically positive)
+        y0 = baseload (constant energy use)
+        cpL = heating_changepoint
+        cpR = cooling_changepoint
+
     Args:
         x: Temperature values
         heating_slope: Slope for heating regime (typically negative)
         heating_changepoint: Temperature where heating turns on
         baseload: Constant energy use in neutral zone
-        cooling_changepoint: Temperature where cooling turns on  
+        cooling_changepoint: Temperature where cooling turns on
         cooling_slope: Slope for cooling regime (typically positive)
-        
+
     Returns:
         Predicted energy use values
     """
