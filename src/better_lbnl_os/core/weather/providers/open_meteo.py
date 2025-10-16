@@ -176,3 +176,161 @@ class OpenMeteoProvider(WeatherDataProvider):
                 "historical_data_available": True,
                 "data_from_year": 1940,
             }
+
+    def get_weather_data_batch(
+        self,
+        latitude: float,
+        longitude: float,
+        start_year: int,
+        start_month: int,
+        end_year: int,
+        end_month: int,
+    ) -> List[WeatherData]:
+        """
+        Fetch weather data for multiple months in a single API request.
+
+        This is an optimized batch method that makes one HTTP request instead of
+        N separate requests for N months of data.
+
+        Args:
+            latitude: Location latitude
+            longitude: Location longitude
+            start_year: Start year
+            start_month: Start month (1-12)
+            end_year: End year
+            end_month: End month (1-12)
+
+        Returns:
+            List of WeatherData objects, one per month
+        """
+        try:
+            # Calculate the full date range
+            start_date = pd.Timestamp(start_year, start_month, 1)
+
+            # Calculate end date (last day of end_month)
+            if end_month == 12:
+                end_date = pd.Timestamp(end_year + 1, 1, 1) - pd.Timedelta(days=1)
+            else:
+                end_date = pd.Timestamp(end_year, end_month + 1, 1) - pd.Timedelta(days=1)
+
+            # Validate date range
+            if not self.validate_date_range(start_date.date(), end_date.date()):
+                logger.warning(
+                    f"Invalid date range for batch request: {start_date.date()} to {end_date.date()}"
+                )
+                return []
+
+            # Make single API request for entire range
+            params = {
+                "latitude": latitude,
+                "longitude": longitude,
+                "start_date": start_date.strftime("%Y-%m-%d"),
+                "end_date": end_date.strftime("%Y-%m-%d"),
+                "hourly": "temperature_2m",
+                "daily": "temperature_2m_max,temperature_2m_min,temperature_2m_mean",
+                "timezone": "UTC",
+            }
+            if self.api_key:
+                params["apikey"] = self.api_key
+
+            logger.info(
+                f"Fetching batch weather data from {start_date.date()} to {end_date.date()}"
+            )
+            response = requests.get(self.base_url, params=params, timeout=30)
+            response.raise_for_status()
+            data = response.json()
+
+            # Extract hourly and daily data
+            if "hourly" not in data or "temperature_2m" not in data["hourly"]:
+                logger.warning("No hourly temperature data in batch response")
+                return []
+
+            hourly_times = pd.to_datetime(data["hourly"]["time"])
+            hourly_temps = data["hourly"]["temperature_2m"]
+
+            daily_data = data.get("daily", {})
+            daily_times = pd.to_datetime(daily_data.get("time", []))
+            daily_mins = daily_data.get("temperature_2m_min", [])
+            daily_maxs = daily_data.get("temperature_2m_max", [])
+
+            # Split data into monthly chunks
+            weather_list = []
+            current_year = start_year
+            current_month = start_month
+
+            while (current_year < end_year) or (
+                current_year == end_year and current_month <= end_month
+            ):
+                # Filter hourly data for this month
+                month_mask = (hourly_times.year == current_year) & (
+                    hourly_times.month == current_month
+                )
+                month_hourly_temps = [
+                    t for t, m in zip(hourly_temps, month_mask) if m and t is not None
+                ]
+
+                if not month_hourly_temps:
+                    logger.warning(
+                        f"No hourly data for {current_year}-{current_month:02d}"
+                    )
+                    current_month += 1
+                    if current_month > 12:
+                        current_month = 1
+                        current_year += 1
+                    continue
+
+                # Calculate monthly average
+                avg_temp_c = calculate_monthly_average(month_hourly_temps)
+
+                # Filter daily data for this month to get min/max
+                if len(daily_times) > 0:
+                    daily_month_mask = (daily_times.year == current_year) & (
+                        daily_times.month == current_month
+                    )
+                    month_mins = [
+                        t for t, m in zip(daily_mins, daily_month_mask) if m and t is not None
+                    ]
+                    month_maxs = [
+                        t for t, m in zip(daily_maxs, daily_month_mask) if m and t is not None
+                    ]
+                    min_temp = min(month_mins) if month_mins else None
+                    max_temp = max(month_maxs) if month_maxs else None
+                else:
+                    min_temp = None
+                    max_temp = None
+
+                # Create WeatherData object for this month
+                weather = WeatherData(
+                    latitude=latitude,
+                    longitude=longitude,
+                    year=current_year,
+                    month=current_month,
+                    avg_temp_c=avg_temp_c,
+                    min_temp_c=min_temp,
+                    max_temp_c=max_temp,
+                    data_source="OpenMeteo",
+                )
+                weather_list.append(weather)
+
+                logger.debug(
+                    f"Processed batch data for {current_year}-{current_month:02d}, "
+                    f"avg: {avg_temp_c:.1f}°C"
+                )
+
+                # Move to next month
+                current_month += 1
+                if current_month > 12:
+                    current_month = 1
+                    current_year += 1
+
+            logger.info(
+                f"Successfully fetched {len(weather_list)} months in single batch request"
+            )
+            return weather_list
+
+        except RequestException as e:
+            logger.error(f"OpenMeteo batch API request failed: {e}")
+            return []
+        except Exception as e:
+            logger.error(f"Error processing OpenMeteo batch data: {e}")
+            return []

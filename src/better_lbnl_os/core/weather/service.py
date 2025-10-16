@@ -81,34 +81,64 @@ class WeatherService:
     ) -> List[WeatherData]:
         """
         Get weather data for a date range.
-        
+
+        This method first attempts to use the provider's batch fetching method
+        (if available) for optimal performance. If batch fetching is not supported
+        or fails, it falls back to fetching data month-by-month.
+
         Args:
             location: Location information
             start_year: Start year
             start_month: Start month
             end_year: End year
             end_month: End month
-            
+
         Returns:
             List of WeatherData objects
         """
+        # Validate location
+        if not location.is_valid_coordinates():
+            logger.error(f"Invalid coordinates: {location.geo_lat}, {location.geo_lng}")
+            return []
+
+        # Try batch fetching first (optimization for providers that support it)
+        batch_data = self.provider.get_weather_data_batch(
+            location.geo_lat,
+            location.geo_lng,
+            start_year,
+            start_month,
+            end_year,
+            end_month
+        )
+
+        # If batch fetching succeeded, use the results
+        if batch_data:
+            logger.info(f"Retrieved {len(batch_data)} months via batch request")
+            # Add station info to all weather data if available
+            if location.noaa_station_id:
+                for weather in batch_data:
+                    weather.station_id = location.noaa_station_id
+            return batch_data
+
+        # Fall back to month-by-month fetching
+        logger.debug("Batch fetching not available or failed, using month-by-month fetching")
         weather_data = []
-        
+
         # Generate list of year-month pairs
         current_year = start_year
         current_month = start_month
-        
+
         while (current_year < end_year) or (current_year == end_year and current_month <= end_month):
             weather = self.get_weather_data(location, current_year, current_month)
             if weather:
                 weather_data.append(weather)
-            
+
             # Move to next month
             current_month += 1
             if current_month > 12:
                 current_month = 1
                 current_year += 1
-        
+
         logger.info(f"Retrieved {len(weather_data)} months of weather data")
         return weather_data
     

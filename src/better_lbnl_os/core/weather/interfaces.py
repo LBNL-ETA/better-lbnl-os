@@ -72,3 +72,34 @@ class WeatherDataProvider(ABC):
             "historical_data_available": True,
         }
 
+    def get_weather_data_batch(
+        self,
+        latitude: float,
+        longitude: float,
+        start_year: int,
+        start_month: int,
+        end_year: int,
+        end_month: int,
+    ) -> List[WeatherData]:
+        """
+        Get weather data for a date range in a single batch request.
+
+        This is an optional optimization method. Providers that support batch
+        fetching can override this to make fewer API calls. If not overridden,
+        the service will fall back to month-by-month fetching.
+
+        Args:
+            latitude: Location latitude
+            longitude: Location longitude
+            start_year: Start year
+            start_month: Start month (1-12)
+            end_year: End year
+            end_month: End month (1-12)
+
+        Returns:
+            List of WeatherData objects, one per month in the range
+        """
+        # Default implementation: not supported, return empty list
+        # Services should fall back to month-by-month fetching
+        return []
+
