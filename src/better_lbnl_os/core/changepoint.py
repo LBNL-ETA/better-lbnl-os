@@ -338,13 +338,13 @@ def _determine_model_type(
             'cooling_changepoint': model_row['cooling_changepoint'],
             'cooling_slope': model_row['cooling_slope']
         }
-        
-        test_coeffs = [None, None, coefficients['baseload'], 
+
+        test_coeffs = [None, None, coefficients['baseload'],
                       coefficients['cooling_changepoint'], coefficients['cooling_slope']]
-        
+
         if _check_r2_threshold(x, y, test_coeffs, min_r_squared):
-            return "3P-C", coefficients
-            
+            return "3P Cooling", coefficients
+
     elif heating_significant and not cooling_significant:
         # 3P heating model
         coefficients = {
@@ -354,12 +354,12 @@ def _determine_model_type(
             'cooling_changepoint': None,
             'cooling_slope': None
         }
-        
+
         test_coeffs = [coefficients['heating_slope'], coefficients['heating_changepoint'],
                       coefficients['baseload'], None, None]
-        
+
         if _check_r2_threshold(x, y, test_coeffs, min_r_squared):
-            return "3P-H", coefficients
+            return "3P Heating", coefficients
     
     return "No-fit", {}
 
@@ -674,8 +674,8 @@ def plot_changepoint_model(
     # Create info text
     model_type_map = {
         "1P": "1-Parameter",
-        "3P-H": "3-Parameter Heating",
-        "3P-C": "3-Parameter Cooling",
+        "3P Heating": "3-Parameter Heating",
+        "3P Cooling": "3-Parameter Cooling",
         "5P": "5-Parameter",
     }
     model_label_long = model_type_map.get(model_result.model_type, model_result.model_type)
@@ -755,7 +755,7 @@ class ChangePointModelResult(BaseModel):
     cooling_slope: float | None = Field(None, description="Cooling slope coefficient")
     r_squared: float = Field(..., ge=0, le=1, description="R-squared value")
     cvrmse: float = Field(..., ge=0, description="CV(RMSE) value")
-    model_type: str = Field(..., description="Model type (1P, 3P-H, 3P-C, 5P)")
+    model_type: str = Field(..., description="Model type (1P, 3P Heating, 3P Cooling, 5P)")
     heating_pvalue: float | None = Field(None, description="P-value for heating slope significance")
     cooling_pvalue: float | None = Field(None, description="P-value for cooling slope significance")
 
@@ -765,20 +765,8 @@ class ChangePointModelResult(BaseModel):
 
     def get_model_complexity(self) -> int:
         """Get number of parameters in the model."""
-        model_params = {"1P": 1, "3P-H": 3, "3P-C": 3, "5P": 5}
+        model_params = {"1P": 1, "3P Heating": 3, "3P Cooling": 3, "5P": 5}
         return model_params.get(self.model_type, 1)
-
-    def get_model_type_label(self, style: str = "short") -> str:
-        """Get human-readable model type label."""
-        short_to_long = {
-            "1P": "1P",
-            "3P-H": "3P Heating",
-            "3P-C": "3P Cooling",
-            "5P": "5P",
-        }
-        if style == "long":
-            return short_to_long.get(self.model_type, self.model_type)
-        return self.model_type
 
     def estimate_annual_consumption(self, annual_hdd: float, annual_cdd: float) -> float:
         """Estimate annual energy consumption using heating/cooling degree days."""

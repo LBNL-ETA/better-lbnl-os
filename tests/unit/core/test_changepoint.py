@@ -221,7 +221,7 @@ class TestChangePointModelIntegration:
         
         assert isinstance(result, ChangePointModelResult)
         # Should detect heating relationship (3P-H or 5P)
-        assert result.model_type in ["3P-H", "5P"]
+        assert result.model_type in ["3P Heating", "5P"]
         assert result.heating_slope is not None
         assert result.heating_slope < 0  # Should be negative for heating
         assert result.r_squared > 0.8  # Should have good fit
@@ -241,7 +241,7 @@ class TestChangePointModelResult:
     def test_model_validation_valid_model(self):
         """Test model validation with good quality model."""
         result = ChangePointModelResult(
-            model_type="3P-H",
+            model_type="3P Heating",
             heating_slope=-2.0,
             heating_change_point=18.0,
             baseload=80.0,
