@@ -1,0 +1,35 @@
+name: Feature request
+description: Suggest an idea or improvement for BETTER-LBNL-OS.
+title: "[Feature]: "
+labels:
+  - enhancement
+  - needs-triage
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for proposing enhancements! This helps us plan the roadmap.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: Describe the feature or change you would like to see.
+    validations:
+      required: true
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation
+      description: What problem does this solve? Why is it valuable?
+    validations:
+      required: true
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: Share any implementation ideas, APIs, or alternatives considered.
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
+      description: Add any other context or screenshots about the feature request.

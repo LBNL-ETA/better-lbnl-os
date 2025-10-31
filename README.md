@@ -1,11 +1,11 @@
 # BETTER-LBNL
 
-[![CI](https://github.com/LBNL-ETA/better-lbnl/actions/workflows/ci.yml/badge.svg)](https://github.com/LBNL-ETA/better-lbnl/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/LBNL-ETA/better-lbnl/branch/main/graph/badge.svg)](https://codecov.io/gh/LBNL-ETA/better-lbnl)
-[![PyPI version](https://badge.fury.io/py/better-lbnl.svg)](https://badge.fury.io/py/better-lbnl)
-[![Python Versions](https://img.shields.io/pypi/pyversions/better-lbnl.svg)](https://pypi.org/project/better-lbnl/)
+[![CI](https://github.com/LBNL-ETA/better-lbnl-os/actions/workflows/ci.yml/badge.svg)](https://github.com/LBNL-ETA/better-lbnl-os/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/LBNL-ETA/better-lbnl-os/branch/main/graph/badge.svg)](https://codecov.io/gh/LBNL-ETA/better-lbnl-os)
+[![PyPI version](https://badge.fury.io/py/better-lbnl-os.svg)](https://badge.fury.io/py/better-lbnl-os)
+[![Python Versions](https://img.shields.io/pypi/pyversions/better-lbnl-os.svg)](https://pypi.org/project/better-lbnl-os/)
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
-[![Documentation Status](https://readthedocs.org/projects/better-lbnl/badge/?version=latest)](https://better-lbnl.readthedocs.io/en/latest/?badge=latest)
+[![Documentation Status](https://readthedocs.org/projects/better-lbnl-os/badge/?version=latest)](https://better-lbnl-os.readthedocs.io/en/latest/?badge=latest)
 
 Open-source Python library for building energy analytics, extracted from BETTER (Building Efficiency Targeting Tool for Energy Retrofits).
 
