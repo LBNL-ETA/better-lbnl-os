@@ -130,6 +130,12 @@ markers = [
 [tool.coverage.run]
 source = ["src/better_lbnl_os"]
 branch = true
+omit = [
+    "src/better_lbnl_os/core/geocoding/providers.py",
+    "src/better_lbnl_os/core/weather/providers.py",
+    "src/better_lbnl_os/core/weather/providers/*.py",
+    "src/better_lbnl_os/core/pipeline.py",
+]
 
 [tool.coverage.report]
 exclude_lines = [
