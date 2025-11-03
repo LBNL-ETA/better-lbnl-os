@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
   security-events: write
 
 env:
@@ -138,8 +139,17 @@ jobs:
 
       - name: Upload Trivy results to GitHub Security
         uses: github/codeql-action/upload-sarif@v3
+        continue-on-error: true
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
         with:
           sarif_file: 'trivy-results.sarif'
+
+      - name: Upload Trivy results as artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: trivy-results
+          path: trivy-results.sarif
 
   docs:
     name: Build Documentation
