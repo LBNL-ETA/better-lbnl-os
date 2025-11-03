@@ -1,7 +1,9 @@
 """Unit tests for UtilityBillData domain model."""
 
-import pytest
 from datetime import date
+
+import pytest
+
 from better_lbnl_os.models import UtilityBillData
 
 

@@ -1,13 +1,14 @@
 """Unit tests for benchmarking data models."""
 
 import pytest
+
 from better_lbnl_os.models.benchmarking import (
-    CoefficientBenchmarkStatistics,
-    EnergyTypeBenchmarkStatistics,
+    BenchmarkResult,
     BenchmarkStatistics,
     CoefficientBenchmarkResult,
+    CoefficientBenchmarkStatistics,
     EnergyTypeBenchmarkResult,
-    BenchmarkResult,
+    EnergyTypeBenchmarkStatistics,
 )
 
 

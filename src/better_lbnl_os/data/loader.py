@@ -1,29 +1,28 @@
 """Flexible loader for reference benchmark statistics."""
 
+import importlib.resources
 import json
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
-import importlib.resources
 
 from better_lbnl_os.constants.building_types import BuildingSpaceType
 from better_lbnl_os.models.benchmarking import BenchmarkStatistics
-from .reference_data_models import ReferenceDataManifest, ReferenceDataEntry
+
+from .reference_data_models import ReferenceDataManifest
 
 
 class ReferenceStatisticsLoader:
     """Loader for reference benchmark statistics with flexible data sources."""
 
-    def __init__(self, custom_path: Optional[str] = None):
-        """
-        Initialize loader with optional custom data path.
+    def __init__(self, custom_path: str | None = None):
+        """Initialize loader with optional custom data path.
 
         Args:
             custom_path: Path to custom JSON manifest. If None, uses built-in data.
         """
         self.custom_path = custom_path
         self.data_source = custom_path or "built-in"
-        self._manifest: Optional[ReferenceDataManifest] = None
-        self._cache: Dict[Tuple[str, BuildingSpaceType], BenchmarkStatistics] = {}
+        self._manifest: ReferenceDataManifest | None = None
+        self._cache: dict[tuple[str, BuildingSpaceType], BenchmarkStatistics] = {}
 
     def _load_manifest(self) -> ReferenceDataManifest:
         """Load manifest from either custom path or built-in data."""
@@ -36,7 +35,7 @@ class ReferenceStatisticsLoader:
             if not custom_file.exists():
                 raise FileNotFoundError(f"Custom reference data file not found: {self.custom_path}")
 
-            with open(custom_file, "r", encoding="utf-8") as f:
+            with open(custom_file, encoding="utf-8") as f:
                 manifest_data = json.load(f)
         else:
             # Load from built-in package data
@@ -84,9 +83,8 @@ class ReferenceStatisticsLoader:
         self,
         country_code: str,
         building_type: BuildingSpaceType
-    ) -> Optional[BenchmarkStatistics]:
-        """
-        Load statistics for given country and building type.
+    ) -> BenchmarkStatistics | None:
+        """Load statistics for given country and building type.
 
         Args:
             country_code: ISO 3166-1 alpha-2 country code (e.g., 'US', 'MX')
@@ -112,9 +110,8 @@ class ReferenceStatisticsLoader:
         self._cache[cache_key] = entry.statistics
         return entry.statistics
 
-    def list_available(self) -> List[Tuple[str, BuildingSpaceType]]:
-        """
-        List all available (country_code, building_type) combinations.
+    def list_available(self) -> list[tuple[str, BuildingSpaceType]]:
+        """List all available (country_code, building_type) combinations.
 
         Returns:
             List of tuples containing (country_code, building_type)
@@ -123,8 +120,7 @@ class ReferenceStatisticsLoader:
         return manifest.list_available()
 
     def has_statistics(self, country_code: str, building_type: BuildingSpaceType) -> bool:
-        """
-        Check if statistics are available for given country and building type.
+        """Check if statistics are available for given country and building type.
 
         Args:
             country_code: ISO 3166-1 alpha-2 country code

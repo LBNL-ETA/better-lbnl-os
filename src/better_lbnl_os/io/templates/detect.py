@@ -2,16 +2,14 @@
 
 from __future__ import annotations
 
-from typing import Optional
-
 import pandas as pd
 
-from .types import ParsedPortfolio
 from .better_excel import read_better_excel
 from .portfolio_manager import read_portfolio_manager
+from .types import ParsedPortfolio
 
 
-def detect_template(file_like) -> Optional[str]:
+def detect_template(file_like) -> str | None:
     """Detect template type by looking for known sheet names.
 
     Returns 'better_excel' | 'portfolio_manager' | None

@@ -10,18 +10,18 @@ application.
 from __future__ import annotations
 
 from collections.abc import Iterable
-from typing import Any, Optional, Union
+from typing import Any
 
 from better_lbnl_os.constants import (
-    BuildingSpaceType,
-    TOP_LEVEL_EE_MEASURES,
     SYMPTOM_COEFFICIENTS,
     SYMPTOM_DESCRIPTIONS,
+    TOP_LEVEL_EE_MEASURES,
+    BuildingSpaceType,
 )
 from better_lbnl_os.models.benchmarking import BenchmarkResult
 from better_lbnl_os.models.recommendations import (
-    EERecommendationResult,
     EEMeasureRecommendation,
+    EERecommendationResult,
     InefficiencySymptom,
 )
 
@@ -29,22 +29,21 @@ BETTER_MEASURES = TOP_LEVEL_EE_MEASURES
 
 
 def _benchmark_result_to_dict(
-    benchmark_input: Union[BenchmarkResult, dict[str, Any]]
-) -> dict[str, dict[str, dict[str, Optional[float]]]]:
+    benchmark_input: BenchmarkResult | dict[str, Any]
+) -> dict[str, dict[str, dict[str, float | None]]]:
     """Normalise results to the legacy benchmarking dictionary structure."""
-
     if isinstance(benchmark_input, dict):
         return benchmark_input
 
     if not isinstance(benchmark_input, BenchmarkResult):
         raise TypeError("benchmark_input must be BenchmarkResult or benchmarking dict")
 
-    result: dict[str, dict[str, dict[str, Optional[float]]]] = {}
+    result: dict[str, dict[str, dict[str, float | None]]] = {}
     for energy_type in ("ELECTRICITY", "FOSSIL_FUEL"):
         et_result = getattr(benchmark_input, energy_type, None)
         if not et_result:
             continue
-        coeffs: dict[str, dict[str, Optional[float]]] = {}
+        coeffs: dict[str, dict[str, float | None]] = {}
         for coeff in SYMPTOM_COEFFICIENTS:
             coeff_result = getattr(et_result, coeff, None)
             if not coeff_result:
@@ -58,29 +57,29 @@ def _benchmark_result_to_dict(
     return result
 
 
-def _lt(value: Optional[float], target: Optional[float]) -> bool:
+def _lt(value: float | None, target: float | None) -> bool:
     return value is not None and target is not None and value < target
 
 
-def _gt(value: Optional[float], target: Optional[float]) -> bool:
+def _gt(value: float | None, target: float | None) -> bool:
     return value is not None and target is not None and value > target
 
 
-def _severity_lt(value: Optional[float], target: Optional[float]) -> Optional[float]:
+def _severity_lt(value: float | None, target: float | None) -> float | None:
     if value is None or target is None:
         return None
     return max(0.0, target - value)
 
 
-def _severity_gt(value: Optional[float], target: Optional[float]) -> Optional[float]:
+def _severity_gt(value: float | None, target: float | None) -> float | None:
     if value is None or target is None:
         return None
     return max(0.0, value - target)
 
 
 def _first_trigger_lt(
-    pairs: Iterable[tuple[Optional[float], Optional[float]]]
-) -> Optional[tuple[Optional[float], Optional[float], Optional[float]]]:
+    pairs: Iterable[tuple[float | None, float | None]]
+) -> tuple[float | None, float | None, float | None] | None:
     for value, target in pairs:
         if _lt(value, target):
             return value, target, _severity_lt(value, target)
@@ -88,8 +87,8 @@ def _first_trigger_lt(
 
 
 def _first_trigger_gt(
-    pairs: Iterable[tuple[Optional[float], Optional[float]]]
-) -> Optional[tuple[Optional[float], Optional[float], Optional[float]]]:
+    pairs: Iterable[tuple[float | None, float | None]]
+) -> tuple[float | None, float | None, float | None] | None:
     for value, target in pairs:
         if _gt(value, target):
             return value, target, _severity_gt(value, target)
@@ -97,13 +96,12 @@ def _first_trigger_gt(
 
 
 def detect_symptoms(
-    benchmark_input: Union[BenchmarkResult, dict[str, Any]]
+    benchmark_input: BenchmarkResult | dict[str, Any]
 ) -> list[InefficiencySymptom]:
     """Detect inefficiency symptoms using the legacy BETTER rules."""
-
     data = _benchmark_result_to_dict(benchmark_input)
 
-    def _val(energy: str, coeff: str, key: str) -> Optional[float]:
+    def _val(energy: str, coeff: str, key: str) -> float | None:
         return data.get(energy, {}).get(coeff, {}).get(key)
 
     symptoms: list[InefficiencySymptom] = []
@@ -283,13 +281,12 @@ def detect_symptoms(
 
 def map_symptoms_to_measures(symptoms: list[InefficiencySymptom]) -> list[EEMeasureRecommendation]:
     """Map detected symptoms to the top-level BETTER measures."""
-
     symptom_ids = {symptom.symptom_id for symptom in symptoms}
     recommendations: dict[str, EEMeasureRecommendation] = {}
 
     def _add_measure(
         measure_token: str,
-        triggers: Union[str, Iterable[str]],
+        triggers: str | Iterable[str],
         *,
         priority: str = "medium",
     ) -> None:
@@ -396,12 +393,11 @@ def map_symptoms_to_measures(symptoms: list[InefficiencySymptom]) -> list[EEMeas
 
 
 def recommend_ee_measures(
-    benchmark_input: Union[BenchmarkResult, dict[str, Any]],
+    benchmark_input: BenchmarkResult | dict[str, Any],
     *,
-    building_type: Optional[BuildingSpaceType] = None,
+    building_type: BuildingSpaceType | None = None,
 ) -> EERecommendationResult:
     """Produce EE recommendations for the provided benchmarking results."""
-
     symptoms = detect_symptoms(benchmark_input)
     recommendations = map_symptoms_to_measures(symptoms)
     recommendations.sort(key=lambda rec: rec.measure_id)

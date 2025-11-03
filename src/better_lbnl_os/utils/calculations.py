@@ -3,9 +3,9 @@
 Pure functions for weather data processing and temperature conversions.
 """
 
-from typing import List, Union
-import numpy as np
 import math
+
+import numpy as np
 
 
 def celsius_to_fahrenheit(temp_c: float) -> float:
@@ -31,13 +31,13 @@ def convert_temperature(temp: float, from_unit: str = 'C', to_unit: str = 'F') -
         raise ValueError(f"Invalid temperature units: from {from_unit} to {to_unit}")
 
 
-def convert_temperature_list(temps: List[float], from_unit: str = 'C', to_unit: str = 'F') -> List[float]:
+def convert_temperature_list(temps: list[float], from_unit: str = 'C', to_unit: str = 'F') -> list[float]:
     if not temps:
         return []
     return [convert_temperature(t, from_unit, to_unit) for t in temps]
 
 
-def calculate_monthly_average(hourly_temps: Union[np.ndarray, List[float]]) -> float:
+def calculate_monthly_average(hourly_temps: np.ndarray | list[float]) -> float:
     if not hourly_temps:
         return float('nan')
     if not isinstance(hourly_temps, np.ndarray):

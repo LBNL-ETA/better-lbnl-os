@@ -6,7 +6,6 @@ import json
 import re
 from functools import lru_cache
 from importlib import resources
-from typing import Dict, Optional
 
 import pandas as pd
 
@@ -82,26 +81,26 @@ def _load_fuel_price_table() -> pd.DataFrame:
 
 
 @lru_cache
-def _load_zip_region_map() -> Dict[str, str]:
+def _load_zip_region_map() -> dict[str, str]:
     with resources.files("better_lbnl_os.data.defaults").joinpath("zip_region_map.csv").open("rb") as fp:
         df = pd.read_csv(fp, dtype={"str_ZIP": str})
     df["zipcode"] = df["str_ZIP"].str.zfill(5)
-    return dict(zip(df["zipcode"], df["eGRID_Subregion_1"]))
+    return dict(zip(df["zipcode"], df["eGRID_Subregion_1"], strict=False))
 
 
 @lru_cache
-def _load_egrid_factors() -> Dict[str, Dict[str, float]]:
+def _load_egrid_factors() -> dict[str, dict[str, float]]:
     with resources.files("better_lbnl_os.data.defaults").joinpath("egrid_emission_factors_2024.json").open("r", encoding="utf-8") as fp:
         return json.load(fp)
 
 
 @lru_cache
-def _load_fossil_factors() -> Dict[str, Dict[str, Dict[str, float]]]:
+def _load_fossil_factors() -> dict[str, dict[str, dict[str, float]]]:
     with resources.files("better_lbnl_os.data.defaults").joinpath("fossil_emission_factors_2024.json").open("r", encoding="utf-8") as fp:
         return json.load(fp)
 
 
-def normalize_state_code(value: Optional[str]) -> Optional[str]:
+def normalize_state_code(value: str | None) -> str | None:
     if not value:
         return None
     value = value.strip()
@@ -116,7 +115,7 @@ def normalize_state_code(value: Optional[str]) -> Optional[str]:
     return None
 
 
-def infer_state_from_address(address: Optional[str]) -> Optional[str]:
+def infer_state_from_address(address: str | None) -> str | None:
     if not address:
         return None
     parts = [part.strip() for part in address.split(",") if part.strip()]
@@ -130,7 +129,7 @@ def infer_state_from_address(address: Optional[str]) -> Optional[str]:
     return None
 
 
-def get_default_fuel_price(energy_type: str, state: Optional[str], country_code: Optional[str]) -> Optional[float]:
+def get_default_fuel_price(energy_type: str, state: str | None, country_code: str | None) -> float | None:
     column = ENERGY_TYPE_TO_PRICE_COLUMN.get(energy_type)
     if column is None:
         return None
@@ -147,7 +146,7 @@ def get_default_fuel_price(energy_type: str, state: Optional[str], country_code:
     return None
 
 
-def lookup_egrid_subregion(zipcode: Optional[str]) -> Optional[str]:
+def lookup_egrid_subregion(zipcode: str | None) -> str | None:
     if not zipcode:
         return None
     zip_clean = re.sub(r"[^0-9]", "", str(zipcode))
@@ -157,7 +156,7 @@ def lookup_egrid_subregion(zipcode: Optional[str]) -> Optional[str]:
     return None
 
 
-def get_electric_emission_factor(region: Optional[str], country_code: Optional[str]) -> Optional[Dict[str, float]]:
+def get_electric_emission_factor(region: str | None, country_code: str | None) -> dict[str, float] | None:
     factors = _load_egrid_factors()
     if region and region in factors:
         return factors[region]
@@ -169,7 +168,7 @@ def get_electric_emission_factor(region: Optional[str], country_code: Optional[s
 def get_fossil_emission_factor(
     fuel_token: str,
     region_group: str = "OTHERS",
-) -> Optional[Dict[str, float]]:
+) -> dict[str, float] | None:
     groups = _load_fossil_factors()
     group = groups.get(region_group) or groups.get("OTHERS")
     if not group:

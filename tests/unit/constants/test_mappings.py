@@ -1,12 +1,13 @@
 """Unit tests for space type mappings and normalization."""
 
 import pytest
+
+from better_lbnl_os.constants.building_types import BuildingSpaceType
 from better_lbnl_os.constants.mappings import (
+    SPACE_TYPE_SYNONYMS,
     normalize_space_type,
     space_type_to_building_space_type,
-    SPACE_TYPE_SYNONYMS,
 )
-from better_lbnl_os.constants.building_types import BuildingSpaceType
 
 
 class TestNormalizeSpaceType:

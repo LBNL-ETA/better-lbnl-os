@@ -9,12 +9,12 @@ SQFT_TO_SQM = 0.092903
 @dataclass
 class BETTERTemplateConfig:
     """Configuration for BETTER Excel template parsing."""
-    
+
     # Property Information sheet
     META_SKIP_ROWS = 3  # Skip instruction rows, headers are on row 3 (0-indexed row 2)
     META_USE_COLS = "A:F"
-    
-    # Utility Data sheet  
+
+    # Utility Data sheet
     BILLS_SKIP_ROWS = 2  # Skip instruction rows, headers are on row 3
     BILLS_USE_COLS = "A:G"
     BILLS_DATE_COLS = [1, 2]  # Start and End date columns

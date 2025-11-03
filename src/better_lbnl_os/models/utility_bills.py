@@ -1,7 +1,7 @@
 """Utility bill and calendarized data domain models."""
 
 from datetime import date, datetime
-from typing import Dict, List, Optional
+
 from pydantic import BaseModel, Field, model_validator
 
 from better_lbnl_os.constants import CONVERSION_TO_KWH
@@ -16,7 +16,7 @@ class UtilityBillData(BaseModel):
     end_date: date = Field(..., description="Billing period end date")
     consumption: float = Field(..., ge=0, description="Energy consumption")
     units: str = Field(..., description="Units of consumption")
-    cost: Optional[float] = Field(None, ge=0, description="Cost in dollars")
+    cost: float | None = Field(None, ge=0, description="Cost in dollars")
 
     @model_validator(mode="after")
     def validate_dates(self):
@@ -38,7 +38,7 @@ class UtilityBillData(BaseModel):
         days = self.get_days()
         return self.consumption / days if days > 0 else 0.0
 
-    def calculate_cost_per_unit(self) -> Optional[float]:
+    def calculate_cost_per_unit(self) -> float | None:
         if self.cost is not None and self.consumption > 0:
             return self.cost / self.consumption
         return None
@@ -48,14 +48,14 @@ from .weather import WeatherSeries
 
 
 class TimeSeriesAggregation(BaseModel):
-    months: List[date] = Field(default_factory=list)
-    days_in_period: List[int] = Field(default_factory=list)
-    energy_kwh: Dict[str, List[float]] = Field(default_factory=dict)
-    cost: Dict[str, List[float]] = Field(default_factory=dict)
-    ghg_kg: Dict[str, List[float]] = Field(default_factory=dict)
-    daily_eui_kwh_per_m2: Dict[str, List[float]] = Field(default_factory=dict)
-    unit_price_per_kwh: Dict[str, List[float]] = Field(default_factory=dict)
-    unit_emission_kg_per_kwh: Dict[str, List[float]] = Field(default_factory=dict)
+    months: list[date] = Field(default_factory=list)
+    days_in_period: list[int] = Field(default_factory=list)
+    energy_kwh: dict[str, list[float]] = Field(default_factory=dict)
+    cost: dict[str, list[float]] = Field(default_factory=dict)
+    ghg_kg: dict[str, list[float]] = Field(default_factory=dict)
+    daily_eui_kwh_per_m2: dict[str, list[float]] = Field(default_factory=dict)
+    unit_price_per_kwh: dict[str, list[float]] = Field(default_factory=dict)
+    unit_emission_kg_per_kwh: dict[str, list[float]] = Field(default_factory=dict)
 
 
 class EnergyAggregation(TimeSeriesAggregation):
@@ -71,8 +71,8 @@ class CalendarizedData(BaseModel):
     aggregated: EnergyAggregation = Field(default_factory=EnergyAggregation)
     detailed: FuelAggregation = Field(default_factory=FuelAggregation)
 
-    def to_legacy_dict(self) -> Dict:
-        def fmt_months(ms: List[date]) -> List[str]:
+    def to_legacy_dict(self) -> dict:
+        def fmt_months(ms: list[date]) -> list[str]:
             return [m.strftime("%Y-%m-01") for m in ms]
 
         return {
@@ -104,9 +104,9 @@ class CalendarizedData(BaseModel):
         }
 
     @classmethod
-    def from_legacy_dict(cls, data: Dict) -> "CalendarizedData":
-        def parse_months(vx: Optional[List[str]]) -> List[date]:
-            out: List[date] = []
+    def from_legacy_dict(cls, data: dict) -> "CalendarizedData":
+        def parse_months(vx: list[str] | None) -> list[date]:
+            out: list[date] = []
             for s in vx or []:
                 try:
                     # Accept YYYY-MM or YYYY-MM-01
@@ -155,8 +155,8 @@ class CalendarizedData(BaseModel):
 
 
 __all__ = [
-    "UtilityBillData",
     "CalendarizedData",
     "EnergyAggregation",
     "FuelAggregation",
+    "UtilityBillData",
 ]

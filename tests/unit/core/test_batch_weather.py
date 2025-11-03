@@ -1,11 +1,10 @@
 """Unit tests for batch weather fetching optimization."""
 
 import unittest
-from unittest.mock import Mock, patch, MagicMock
-from datetime import date
+from unittest.mock import MagicMock, Mock, patch
 
-from better_lbnl_os.core.weather.service import WeatherService
 from better_lbnl_os.core.weather.providers.open_meteo import OpenMeteoProvider
+from better_lbnl_os.core.weather.service import WeatherService
 from better_lbnl_os.models import LocationInfo, WeatherData
 
 

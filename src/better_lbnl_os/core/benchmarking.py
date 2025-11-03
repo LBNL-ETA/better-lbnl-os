@@ -6,11 +6,11 @@ change-point model coefficients and provides performance ratings and targets.
 """
 
 import logging
-from typing import Dict, List, Optional, Union
 
 import numpy as np
 
 from better_lbnl_os.constants.building_types import BuildingSpaceType
+from better_lbnl_os.core.changepoint import ChangePointModelResult
 from better_lbnl_os.models.benchmarking import (
     BenchmarkResult,
     BenchmarkStatistics,
@@ -18,7 +18,6 @@ from better_lbnl_os.models.benchmarking import (
     EnergyTypeBenchmarkResult,
     EnergyTypeBenchmarkStatistics,
 )
-from better_lbnl_os.core.changepoint import ChangePointModelResult
 from better_lbnl_os.utils.statistics import (
     assign_performance_rating,
     calculate_coefficient_statistics,
@@ -30,8 +29,8 @@ logger = logging.getLogger(__name__)
 
 
 def create_statistics_from_models(
-    change_point_models: List[ChangePointModelResult],
-    building_ids: Optional[List[str]] = None
+    change_point_models: list[ChangePointModelResult],
+    building_ids: list[str] | None = None
 ) -> BenchmarkStatistics:
     """Create benchmark statistics from a collection of change-point models.
 
@@ -67,7 +66,7 @@ def create_statistics_from_models(
 
     # Extract coefficients from each model
     for i, model in enumerate(change_point_models):
-        building_id = building_ids[i] if building_ids and i < len(building_ids) else f"building_{i}"
+        building_ids[i] if building_ids and i < len(building_ids) else f"building_{i}"
 
         # For simplicity, assume ELECTRICITY models have cooling dominance
         # and FOSSIL_FUEL models have heating dominance
@@ -156,9 +155,9 @@ def get_target_coefficient_value(
 
 def benchmark_coefficient(
     coefficient_name: str,
-    coefficient_value: Optional[float],
-    median: Optional[float],
-    stdev: Optional[float],
+    coefficient_value: float | None,
+    median: float | None,
+    stdev: float | None,
     savings_target: str,
     floor_area: float
 ) -> CoefficientBenchmarkResult:
@@ -233,11 +232,11 @@ def benchmark_coefficient(
 
 
 def benchmark_building(
-    change_point_results: Dict[str, ChangePointModelResult],
+    change_point_results: dict[str, ChangePointModelResult],
     benchmark_statistics: BenchmarkStatistics,
     floor_area: float,
     savings_target: str = "NOMINAL",
-    building_id: Optional[str] = None
+    building_id: str | None = None
 ) -> BenchmarkResult:
     """Benchmark a building's change-point models against reference statistics.
 
@@ -321,8 +320,8 @@ def benchmark_building(
 
 
 def calculate_portfolio_statistics(
-    building_results: List[BenchmarkResult]
-) -> Dict[str, float]:
+    building_results: list[BenchmarkResult]
+) -> dict[str, float]:
     """Calculate portfolio-level statistics from individual building results.
 
     Args:
@@ -372,11 +371,10 @@ _default_loader = None
 
 def get_reference_statistics(
     country_code: str,
-    building_type: Union[str, BuildingSpaceType],
-    custom_data_path: Optional[str] = None
-) -> Optional[BenchmarkStatistics]:
-    """
-    Get reference statistics for benchmarking.
+    building_type: str | BuildingSpaceType,
+    custom_data_path: str | None = None
+) -> BenchmarkStatistics | None:
+    """Get reference statistics for benchmarking.
 
     Args:
         country_code: ISO country code (e.g., 'US', 'MX')
@@ -407,16 +405,15 @@ def get_reference_statistics(
 
 
 def benchmark_with_reference(
-    change_point_results: Dict[str, ChangePointModelResult],
+    change_point_results: dict[str, ChangePointModelResult],
     floor_area: float,
     country_code: str,
-    building_type: Union[str, BuildingSpaceType],
-    custom_statistics_path: Optional[str] = None,
+    building_type: str | BuildingSpaceType,
+    custom_statistics_path: str | None = None,
     savings_target: str = "NOMINAL",
-    building_id: Optional[str] = None
+    building_id: str | None = None
 ) -> BenchmarkResult:
-    """
-    Benchmark building using reference statistics.
+    """Benchmark building using reference statistics.
 
     Allows using either built-in statistics or custom data.
 
@@ -453,10 +450,9 @@ def benchmark_with_reference(
 
 
 def list_available_reference_statistics(
-    custom_data_path: Optional[str] = None
-) -> List[tuple[str, BuildingSpaceType]]:
-    """
-    List all available reference statistics.
+    custom_data_path: str | None = None
+) -> list[tuple[str, BuildingSpaceType]]:
+    """List all available reference statistics.
 
     Args:
         custom_data_path: Optional path to custom JSON manifest
@@ -471,12 +467,12 @@ def list_available_reference_statistics(
 
 
 __all__ = [
-    "create_statistics_from_models",
     "benchmark_building",
     "benchmark_coefficient",
-    "get_target_coefficient_value",
-    "calculate_portfolio_statistics",
-    "get_reference_statistics",
     "benchmark_with_reference",
+    "calculate_portfolio_statistics",
+    "create_statistics_from_models",
+    "get_reference_statistics",
+    "get_target_coefficient_value",
     "list_available_reference_statistics",
 ]

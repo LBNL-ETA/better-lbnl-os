@@ -5,30 +5,30 @@ Calendarizes utility bills to monthly aggregates aligned with weather data.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from datetime import date, timedelta
-from typing import Dict, List, Optional, TYPE_CHECKING
-
 import calendar as _calendar
+from dataclasses import dataclass, field
+from datetime import timedelta
+
 import pandas as pd
 
+from better_lbnl_os.constants import CONVERSION_TO_KWH, MINIMUM_UTILITY_MONTHS
+from better_lbnl_os.constants.energy import normalize_fuel_type, normalize_fuel_unit
 from better_lbnl_os.models import UtilityBillData, WeatherData
+
 # Import CalendarizedData and related from submodules to avoid circular imports
 from better_lbnl_os.models.utility_bills import (
     CalendarizedData,
-    FuelAggregation,
     EnergyAggregation,
+    FuelAggregation,
 )
 from better_lbnl_os.models.weather import WeatherSeries
-from better_lbnl_os.constants import CONVERSION_TO_KWH, MINIMUM_UTILITY_MONTHS
-from better_lbnl_os.constants.energy import normalize_fuel_type, normalize_fuel_unit
 
 
 @dataclass
 class CalendarizationOptions:
-    energy_type_map: Optional[Dict[str, str]] = None
-    conversion_to_kwh: Dict[tuple[str, str], float] = field(default_factory=lambda: CONVERSION_TO_KWH)
-    emission_factor_by_fuel: Optional[Dict[str, float]] = None  # kg CO2 per kWh
+    energy_type_map: dict[str, str] | None = None
+    conversion_to_kwh: dict[tuple[str, str], float] = field(default_factory=lambda: CONVERSION_TO_KWH)
+    emission_factor_by_fuel: dict[str, float] | None = None  # kg CO2 per kWh
     fill_strategy: str = "mean"  # for unit_price/unit_emission; currently only 'mean' supported
 
 
@@ -43,10 +43,10 @@ def _infer_energy_type(fuel_type: str) -> str:
 
 
 def calendarize_utility_bills(
-    bills: List[UtilityBillData],
+    bills: list[UtilityBillData],
     floor_area: float,
-    weather: Optional[List[WeatherData]] = None,
-    options: Optional[CalendarizationOptions] = None,
+    weather: list[WeatherData] | None = None,
+    options: CalendarizationOptions | None = None,
 ) -> CalendarizedData:
     """Convert utility bills into calendar-month aggregates.
 
@@ -123,7 +123,7 @@ def calendarize_utility_bills(
     df_bills["bill_end_date"] = pd.to_datetime(df_bills["bill_end_date"])
     df_bills["days"] = (df_bills["bill_end_date"] - df_bills["bill_start_date"]).dt.days + 1
 
-    daily_chunks: List[pd.DataFrame] = []
+    daily_chunks: list[pd.DataFrame] = []
     for _, row in df_bills.iterrows():
         # guard invalid ranges
         if row["days"] <= 0:
@@ -184,10 +184,10 @@ def calendarize_utility_bills(
             pivot_values.append("unit_emission")
         if "unit_price" in df_monthly.columns:
             pivot_values.append("unit_price")
-        
+
         if not pivot_values:
             return pd.DataFrame(index=pd.Index([], name="Year-Month"))
-            
+
         df_monthly = df_monthly.pivot_table(index="Year-Month", columns=var, values=pivot_values)
         df_monthly.columns = [f"{var} - {' - '.join(col[::-1]).strip()}" for col in df_monthly.columns.values]
         return df_monthly
@@ -237,7 +237,7 @@ def calendarize_utility_bills(
     if weather:
         # Dedup by year, month — keep first occurrence
         seen = set()
-        uniq: List[WeatherData] = []
+        uniq: list[WeatherData] = []
         for w in weather:
             key = (w.year, w.month)
             if key in seen:
@@ -279,14 +279,14 @@ def calendarize_utility_bills(
         "degF": df_monthly["avg_value_f"].tolist(),
     }
 
-    def _subset(prefix: str, metric: str) -> Dict[str, List[float]]:
+    def _subset(prefix: str, metric: str) -> dict[str, list[float]]:
         return {
             c.split(" - ")[1]: df_monthly[c].tolist()
             for c in cols
             if c.startswith(prefix) and c.endswith(metric)
         }
 
-    detailed = {
+    {
         "periods": periods,
         "v_x": periods,  # alias for compatibility with Django naming
         "dict_v_energy": _subset("Fuel_Type", "standard_consumption"),
@@ -335,10 +335,10 @@ def calendarize_utility_bills(
 
 # ------------------ Additional helpers for model preparation ------------------
 def get_consecutive_months(
-    calendarized: "CalendarizedData | Dict",
+    calendarized: CalendarizedData | dict,
     energy_type: str = "ELECTRICITY",
     window: int = 12,
-) -> Dict[str, List]:
+) -> dict[str, list]:
     """Select the last block of consecutive months with positive EUI.
 
     Args:
@@ -425,7 +425,7 @@ def get_consecutive_months(
     }
 
 
-def trim_series(eui: List[float], degc: List[float]) -> tuple[List[float], List[float]]:
+def trim_series(eui: list[float], degc: list[float]) -> tuple[list[float], list[float]]:
     """Trim leading and trailing zeros from EUI while keeping arrays aligned.
 
     If arrays are empty or lengths mismatch, returns inputs unchanged.
@@ -448,7 +448,7 @@ def get_consecutive_bills(
     calendarized: dict | CalendarizedData,
     energy_type: str = "ELECTRICITY",
     window: int = MINIMUM_UTILITY_MONTHS,
-) -> dict[str, List]:
+) -> dict[str, list]:
     """Return the latest block of consecutive months with positive EUI.
 
     .. deprecated::

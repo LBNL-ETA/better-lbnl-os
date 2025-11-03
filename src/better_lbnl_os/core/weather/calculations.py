@@ -5,7 +5,8 @@ re-exports them for backwards compatibility.
 """
 
 import warnings
-from better_lbnl_os.utils.calculations import *  # noqa: F401,F403
+
+from better_lbnl_os.utils.calculations import *  # noqa: F403
 
 warnings.warn(
     "better_lbnl_os.core.weather.calculations has moved to better_lbnl_os.utils.calculations",

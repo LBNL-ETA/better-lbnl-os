@@ -194,6 +194,16 @@ ignore_missing_imports = true
 [tool.ruff]
 target-version = "py310"
 line-length = 100
+exclude = [
+    ".git",
+    ".venv",
+    "__pycache__",
+    "build",
+    "dist",
+    "docs/_build",
+]
+
+[tool.ruff.lint]
 select = [
     "E",    # pycodestyle errors
     "W",    # pycodestyle warnings
@@ -217,20 +227,13 @@ ignore = [
     "E501",  # Line too long (handled by black)
     "S101",  # Use of assert detected (needed for tests)
 ]
-exclude = [
-    ".git",
-    ".venv",
-    "__pycache__",
-    "build",
-    "dist",
-    "docs/_build",
-]
 
-[tool.ruff.per-file-ignores]
-"tests/*" = ["S101", "D"]
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101", "D", "B017"]
 "docs/conf.py" = ["D"]
+"examples/*" = ["T201", "D103"]
 
-[tool.ruff.pydocstyle]
+[tool.ruff.lint.pydocstyle]
 convention = "google"
 
 [tool.isort]

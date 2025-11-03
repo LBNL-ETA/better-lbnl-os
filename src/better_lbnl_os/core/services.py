@@ -1,15 +1,14 @@
 """Core services for orchestrating building energy analytics workflows (moved)."""
 
-from typing import List
 
+from better_lbnl_os.core.changepoint import ChangePointModelResult
+from better_lbnl_os.core.recommendations import EEMeasureRecommendation
+from better_lbnl_os.core.savings import SavingsEstimate
 from better_lbnl_os.models import (
     BuildingData,
     UtilityBillData,
     WeatherData,
 )
-from better_lbnl_os.core.changepoint import ChangePointModelResult
-from better_lbnl_os.core.savings import SavingsEstimate
-from better_lbnl_os.core.recommendations import EEMeasureRecommendation
 from better_lbnl_os.models.benchmarking import BenchmarkResult
 
 
@@ -19,8 +18,8 @@ class BuildingAnalyticsService:
     def analyze_building(
         self,
         building: BuildingData,
-        utility_bills: List[UtilityBillData],
-        weather_data: List[WeatherData],
+        utility_bills: list[UtilityBillData],
+        weather_data: list[WeatherData],
     ) -> dict:
         # Placeholder implementation
         return {
@@ -32,16 +31,16 @@ class BuildingAnalyticsService:
     def fit_models(
         self,
         building: BuildingData,
-        utility_bills: List[UtilityBillData],
-        weather_data: List[WeatherData],
-    ) -> List[ChangePointModelResult]:
+        utility_bills: list[UtilityBillData],
+        weather_data: list[WeatherData],
+    ) -> list[ChangePointModelResult]:
         # Placeholder - will integrate with core algorithms
         return []
 
     def benchmark_building(
         self,
         building: BuildingData,
-        model_results: List[ChangePointModelResult],
+        model_results: list[ChangePointModelResult],
     ) -> BenchmarkResult:
         # Placeholder - will implement benchmarking logic
         return BenchmarkResult(
@@ -57,7 +56,7 @@ class BuildingAnalyticsService:
         self,
         building: BuildingData,
         benchmark_result: BenchmarkResult,
-        utility_bills: List[UtilityBillData],
+        utility_bills: list[UtilityBillData],
     ) -> SavingsEstimate:
         # Placeholder - will implement savings calculation
         return SavingsEstimate(
@@ -70,9 +69,9 @@ class BuildingAnalyticsService:
     def recommend_measures(
         self,
         building: BuildingData,
-        model_results: List[ChangePointModelResult],
+        model_results: list[ChangePointModelResult],
         benchmark_result: BenchmarkResult,
-    ) -> List[EEMeasureRecommendation]:
+    ) -> list[EEMeasureRecommendation]:
         # Placeholder - will implement recommendation engine
         return []
 
@@ -81,8 +80,8 @@ class PortfolioBenchmarkService:
     """Service for portfolio-level benchmarking and analysis."""
 
     def __init__(self):
-        self.buildings: List[BuildingData] = []
-        self.results: List[BenchmarkResult] = []
+        self.buildings: list[BuildingData] = []
+        self.results: list[BenchmarkResult] = []
 
     def add_building(self, building: BuildingData, benchmark_result: BenchmarkResult) -> None:
         self.buildings.append(building)
@@ -101,7 +100,7 @@ class PortfolioBenchmarkService:
             "rating_distribution": rating_counts,
         }
 
-    def identify_improvement_targets(self, top_n: int = 10) -> List[str]:
+    def identify_improvement_targets(self, top_n: int = 10) -> list[str]:
         sorted_results = sorted(self.results, key=lambda r: r.percentile, reverse=True)
         return [r.building_id for r in sorted_results[:top_n]]
 

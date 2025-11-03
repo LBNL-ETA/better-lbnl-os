@@ -4,9 +4,11 @@ This file provides common test fixtures that can be used across all test modules
 Fixtures defined here are automatically available to all tests.
 """
 
-import pytest
 from datetime import date
-from better_lbnl_os.models import BuildingData, UtilityBillData, LocationInfo, WeatherData
+
+import pytest
+
+from better_lbnl_os.models import BuildingData, LocationInfo, UtilityBillData, WeatherData
 
 
 @pytest.fixture

@@ -1,11 +1,10 @@
-"""
-Simple Weather Data Example
+"""Simple Weather Data Example.
 
 This is a minimal example showing how to get weather data
 for a location.
 """
 
-from better_lbnl_os.core.weather import WeatherService, OpenMeteoProvider
+from better_lbnl_os.core.weather import OpenMeteoProvider, WeatherService
 from better_lbnl_os.models import LocationInfo
 
 
@@ -17,13 +16,13 @@ def main():
         zipcode="94709",
         state="CA"
     )
-    
+
     # 2. Create weather service
     service = WeatherService(provider=OpenMeteoProvider())
-    
+
     # 3. Get weather data for January 2023
     weather = service.get_weather_data(location, 2023, 1)
-    
+
     # 4. Display results
     if weather:
         print(f"Average Temperature: {weather.avg_temp_c:.1f}°C / {weather.avg_temp_f:.1f}°F")

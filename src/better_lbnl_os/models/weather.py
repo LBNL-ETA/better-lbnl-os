@@ -1,20 +1,20 @@
 """Weather domain models."""
 
-from typing import Optional
+
 from pydantic import BaseModel, Field
 
 
 class WeatherData(BaseModel):
     """Domain model for weather data with calculation methods."""
 
-    station_id: Optional[str] = Field(None, description="Weather station identifier")
+    station_id: str | None = Field(None, description="Weather station identifier")
     latitude: float = Field(..., description="Station latitude")
     longitude: float = Field(..., description="Station longitude")
     year: int = Field(..., description="Year of observation")
     month: int = Field(..., ge=1, le=12, description="Month of observation")
     avg_temp_c: float = Field(..., description="Monthly average temperature in Celsius")
-    min_temp_c: Optional[float] = Field(None, description="Minimum temperature in Celsius")
-    max_temp_c: Optional[float] = Field(None, description="Maximum temperature in Celsius")
+    min_temp_c: float | None = Field(None, description="Minimum temperature in Celsius")
+    max_temp_c: float | None = Field(None, description="Maximum temperature in Celsius")
     data_source: str = Field(default="OpenMeteo", description="Data source (NOAA, OpenMeteo, etc.)")
 
     @property
@@ -24,7 +24,7 @@ class WeatherData(BaseModel):
         return celsius_to_fahrenheit(self.avg_temp_c)
 
     @property
-    def min_temp_f(self) -> Optional[float]:
+    def min_temp_f(self) -> float | None:
         if self.min_temp_c is not None:
             from better_lbnl_os.utils.calculations import celsius_to_fahrenheit
 
@@ -32,7 +32,7 @@ class WeatherData(BaseModel):
         return None
 
     @property
-    def max_temp_f(self) -> Optional[float]:
+    def max_temp_f(self) -> float | None:
         if self.max_temp_c is not None:
             from better_lbnl_os.utils.calculations import celsius_to_fahrenheit
 
@@ -55,8 +55,8 @@ class WeatherStation(BaseModel):
     name: str = Field(..., description="Station name")
     latitude: float = Field(..., ge=-90, le=90, description="Station latitude")
     longitude: float = Field(..., ge=-180, le=180, description="Station longitude")
-    elevation: Optional[float] = Field(None, description="Station elevation in meters")
-    distance_km: Optional[float] = Field(None, description="Distance from target location in km")
+    elevation: float | None = Field(None, description="Station elevation in meters")
+    distance_km: float | None = Field(None, description="Distance from target location in km")
     data_source: str = Field(default="NOAA", description="Data source")
 
     def distance_to(self, lat: float, lng: float) -> float:

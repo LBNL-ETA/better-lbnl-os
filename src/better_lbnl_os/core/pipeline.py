@@ -3,21 +3,27 @@
 from __future__ import annotations
 
 import logging
-from typing import TypedDict, Optional
+from typing import TypedDict
 
 import numpy as np
 
 from better_lbnl_os.constants import DEFAULT_CVRMSE_THRESHOLD, DEFAULT_R2_THRESHOLD
 from better_lbnl_os.core.changepoint import fit_changepoint_model
+from better_lbnl_os.core.geocoding.providers import GoogleMapsGeocodingProvider
 from better_lbnl_os.core.preprocessing import (
     calendarize_utility_bills,
     get_consecutive_months,
     trim_series,
 )
-from better_lbnl_os.models import ChangePointModelResult, UtilityBillData, WeatherData, CalendarizedData, LocationInfo
-from better_lbnl_os.core.weather.service import WeatherService
 from better_lbnl_os.core.weather.providers import OpenMeteoProvider
-from better_lbnl_os.core.geocoding.providers import GoogleMapsGeocodingProvider
+from better_lbnl_os.core.weather.service import WeatherService
+from better_lbnl_os.models import (
+    CalendarizedData,
+    ChangePointModelResult,
+    LocationInfo,
+    UtilityBillData,
+    WeatherData,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +37,7 @@ class ModelData(TypedDict):
 
 
 def prepare_model_data(
-    calendarized: "CalendarizedData | dict",
+    calendarized: CalendarizedData | dict,
     energy_types: tuple[str, ...] = ("ELECTRICITY", "FOSSIL_FUEL"),
     window: int = 12,
 ) -> dict[str, ModelData]:
@@ -82,13 +88,12 @@ def prepare_model_data(
 
 def resolve_location(
     *,
-    address: Optional[str] = None,
-    latitude: Optional[float] = None,
-    longitude: Optional[float] = None,
-    google_maps_api_key: Optional[str] = None,
+    address: str | None = None,
+    latitude: float | None = None,
+    longitude: float | None = None,
+    google_maps_api_key: str | None = None,
 ) -> LocationInfo:
     """Resolve location metadata using Google Maps geocoding."""
-
     if google_maps_api_key is None or not str(google_maps_api_key).strip():
         raise ValueError("google_maps_api_key is required to resolve a location")
 
@@ -109,7 +114,7 @@ def fit_calendarized_models(
     energy_types: tuple[str, ...] = ("ELECTRICITY", "FOSSIL_FUEL"),
 ) -> dict[str, ChangePointModelResult]:
     """Fit change-point models for available energy types from calendarized data.
-    
+
     Args:
         calendarized: Either a CalendarizedData object or legacy dict format
         min_r_squared: Minimum R² threshold for model acceptance
@@ -170,11 +175,11 @@ def fit_models_from_inputs(
 
 def get_weather_for_bills(
     bills: list[UtilityBillData],
-    address: Optional[str] = None,
-    latitude: Optional[float] = None,
-    longitude: Optional[float] = None,
-    google_maps_api_key: Optional[str] = None,
-    openmeteo_api_key: Optional[str] = None,
+    address: str | None = None,
+    latitude: float | None = None,
+    longitude: float | None = None,
+    google_maps_api_key: str | None = None,
+    openmeteo_api_key: str | None = None,
 ) -> list[WeatherData]:
     """Fetch monthly weather for the full bill date range using OpenMeteo.
 
@@ -187,7 +192,7 @@ def get_weather_for_bills(
 
     Returns:
         List of WeatherData, one per month.
-    
+
     Raises:
         ValueError: If neither coordinates nor address provided, or if geocoding API key missing
     """
@@ -224,17 +229,17 @@ def get_weather_for_bills(
 def fit_models_with_auto_weather(
     bills: list[UtilityBillData],
     floor_area: float,
-    address: Optional[str] = None,
-    latitude: Optional[float] = None,
-    longitude: Optional[float] = None,
-    google_maps_api_key: Optional[str] = None,
-    openmeteo_api_key: Optional[str] = None,
+    address: str | None = None,
+    latitude: float | None = None,
+    longitude: float | None = None,
+    google_maps_api_key: str | None = None,
+    openmeteo_api_key: str | None = None,
     min_r_squared: float = DEFAULT_R2_THRESHOLD,
     max_cv_rmse: float = DEFAULT_CVRMSE_THRESHOLD,
     use_typed: bool = True,
 ) -> dict[str, ChangePointModelResult]:
     """Convenience function that fetches weather and fits models in one call.
-    
+
     Args:
         bills: List of utility bills
         floor_area: Building floor area in square meters (must be positive)
@@ -245,7 +250,7 @@ def fit_models_with_auto_weather(
         min_r_squared: Minimum R² threshold for model acceptance
         max_cv_rmse: Maximum CV-RMSE threshold for model acceptance
         use_typed: If True, use typed CalendarizedData (recommended)
-    
+
     Returns:
         Dictionary mapping energy type to fitted model results
     """
@@ -257,7 +262,7 @@ def fit_models_with_auto_weather(
         google_maps_api_key=google_maps_api_key,
         openmeteo_api_key=openmeteo_api_key,
     )
-    
+
     return fit_models_from_inputs(
         bills=bills,
         floor_area=floor_area,

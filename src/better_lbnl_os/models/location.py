@@ -1,6 +1,6 @@
 """Location info domain model."""
 
-from typing import Optional
+
 from pydantic import BaseModel, Field
 
 
@@ -9,12 +9,12 @@ class LocationInfo(BaseModel):
 
     geo_lat: float = Field(..., description="Latitude coordinate")
     geo_lng: float = Field(..., description="Longitude coordinate")
-    zipcode: Optional[str] = Field(None, description="Postal/ZIP code")
-    state: Optional[str] = Field(None, description="State or province")
+    zipcode: str | None = Field(None, description="Postal/ZIP code")
+    state: str | None = Field(None, description="State or province")
     country_code: str = Field(default="US", description="ISO country code")
-    noaa_station_id: Optional[str] = Field(None, description="NOAA weather station ID")
-    noaa_station_name: Optional[str] = Field(None, description="NOAA weather station name")
-    egrid_sub_region: Optional[str] = Field(None, description="eGrid subregion for emissions")
+    noaa_station_id: str | None = Field(None, description="NOAA weather station ID")
+    noaa_station_name: str | None = Field(None, description="NOAA weather station name")
+    egrid_sub_region: str | None = Field(None, description="eGrid subregion for emissions")
 
     def is_valid_coordinates(self) -> bool:
         return (-90 <= self.geo_lat <= 90) and (-180 <= self.geo_lng <= 180)
@@ -31,11 +31,11 @@ class LocationSummary(BaseModel):
     """Normalized location metadata for pricing/emission lookups."""
 
     country_code: str = Field(default="US", description="ISO country code")
-    state_code: Optional[str] = Field(default=None, description="Two-letter state/province code")
-    zipcode: Optional[str] = Field(default=None, description="Postal/ZIP code")
-    egrid_subregion: Optional[str] = Field(default=None, description="eGrid subregion identifier")
+    state_code: str | None = Field(default=None, description="Two-letter state/province code")
+    zipcode: str | None = Field(default=None, description="Postal/ZIP code")
+    egrid_subregion: str | None = Field(default=None, description="eGrid subregion identifier")
 
-    def to_metadata(self) -> dict[str, Optional[str]]:
+    def to_metadata(self) -> dict[str, str | None]:
         """Return a dict view excluding unset fields."""
         return self.model_dump(exclude_none=True)
 

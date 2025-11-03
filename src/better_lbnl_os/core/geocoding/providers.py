@@ -11,7 +11,6 @@ from better_lbnl_os.core.defaults import lookup_egrid_subregion, normalize_state
 from better_lbnl_os.core.geocoding.interfaces import GeocodingProvider
 from better_lbnl_os.models import LocationInfo
 
-
 logger = logging.getLogger(__name__)
 
 

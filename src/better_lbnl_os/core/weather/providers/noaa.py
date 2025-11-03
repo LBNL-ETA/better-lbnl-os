@@ -2,11 +2,9 @@
 
 import logging
 from datetime import date, datetime
-from typing import List, Optional
 
-from better_lbnl_os.models.weather import WeatherData, WeatherStation
 from better_lbnl_os.core.weather.interfaces import WeatherDataProvider
-
+from better_lbnl_os.models.weather import WeatherData, WeatherStation
 
 logger = logging.getLogger(__name__)
 
@@ -20,25 +18,25 @@ class NOAAProvider(WeatherDataProvider):
 
     def get_monthly_average(
         self, latitude: float, longitude: float, year: int, month: int
-    ) -> Optional[float]:
+    ) -> float | None:
         logger.warning("NOAA provider not yet implemented")
         return None
 
     def get_daily_temperatures(
         self, latitude: float, longitude: float, start_date: date, end_date: date
-    ) -> List[float]:
+    ) -> list[float]:
         logger.warning("NOAA provider not yet implemented")
         return []
 
     def get_weather_data(
         self, latitude: float, longitude: float, year: int, month: int
-    ) -> Optional[WeatherData]:
+    ) -> WeatherData | None:
         logger.warning("NOAA provider not yet implemented")
         return None
 
     def get_nearest_station(
         self, latitude: float, longitude: float, max_distance_km: float = 100.0
-    ) -> Optional[WeatherStation]:
+    ) -> WeatherStation | None:
         logger.warning("NOAA station search not yet implemented")
         return None
 

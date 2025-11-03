@@ -6,7 +6,7 @@ available under `better_lbnl_os.core.weather.providers`.
 
 import warnings
 
-from .providers import OpenMeteoProvider, NOAAProvider  # re-export
+from .providers import NOAAProvider, OpenMeteoProvider  # re-export
 
 warnings.warn(
     "better_lbnl_os.core.weather.providers is deprecated as a flat module. "
@@ -16,4 +16,4 @@ warnings.warn(
     stacklevel=2,
 )
 
-__all__ = ["OpenMeteoProvider", "NOAAProvider"]
+__all__ = ["NOAAProvider", "OpenMeteoProvider"]

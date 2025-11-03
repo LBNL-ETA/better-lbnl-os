@@ -5,7 +5,7 @@ Defines contracts for pluggable weather data providers.
 
 from abc import ABC, abstractmethod
 from datetime import date
-from typing import List, Optional, Dict, Any
+from typing import Any
 
 from better_lbnl_os.models.weather import WeatherData, WeatherStation
 
@@ -20,7 +20,7 @@ class WeatherDataProvider(ABC):
         longitude: float,
         year: int,
         month: int,
-    ) -> Optional[float]:
+    ) -> float | None:
         """Monthly average temperature in Celsius, or None if unavailable."""
         raise NotImplementedError
 
@@ -31,7 +31,7 @@ class WeatherDataProvider(ABC):
         longitude: float,
         start_date: date,
         end_date: date,
-    ) -> List[float]:
+    ) -> list[float]:
         """List of daily average temperatures in Celsius."""
         raise NotImplementedError
 
@@ -42,7 +42,7 @@ class WeatherDataProvider(ABC):
         longitude: float,
         year: int,
         month: int,
-    ) -> Optional[WeatherData]:
+    ) -> WeatherData | None:
         """Complete weather data for a month, or None if unavailable."""
         raise NotImplementedError
 
@@ -52,7 +52,7 @@ class WeatherDataProvider(ABC):
         latitude: float,
         longitude: float,
         max_distance_km: float = 100.0,
-    ) -> Optional[WeatherStation]:
+    ) -> WeatherStation | None:
         """Nearest station to a location, or None if none within range."""
         raise NotImplementedError
 
@@ -64,7 +64,7 @@ class WeatherDataProvider(ABC):
     def get_provider_name(self) -> str:
         return self.__class__.__name__.replace("Provider", "")
 
-    def get_api_limits(self) -> Dict[str, Any]:
+    def get_api_limits(self) -> dict[str, Any]:
         return {
             "requests_per_hour": None,
             "requests_per_day": None,
@@ -80,9 +80,8 @@ class WeatherDataProvider(ABC):
         start_month: int,
         end_year: int,
         end_month: int,
-    ) -> List[WeatherData]:
-        """
-        Get weather data for a date range in a single batch request.
+    ) -> list[WeatherData]:
+        """Get weather data for a date range in a single batch request.
 
         This is an optional optimization method. Providers that support batch
         fetching can override this to make fewer API calls. If not overridden,

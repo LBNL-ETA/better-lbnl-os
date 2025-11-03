@@ -1,7 +1,6 @@
 """Tests for benchmarking functionality."""
 
 import pytest
-import numpy as np
 
 from better_lbnl_os.core.benchmarking import (
     benchmark_building,
@@ -9,17 +8,17 @@ from better_lbnl_os.core.benchmarking import (
     create_statistics_from_models,
     get_target_coefficient_value,
 )
+from better_lbnl_os.core.changepoint import ChangePointModelResult
 from better_lbnl_os.models.benchmarking import (
     BenchmarkStatistics,
     CoefficientBenchmarkStatistics,
     EnergyTypeBenchmarkStatistics,
 )
-from better_lbnl_os.core.changepoint import ChangePointModelResult
 from better_lbnl_os.utils.statistics import (
+    assign_performance_rating,
     calculate_coefficient_statistics,
     calculate_percentile_from_z_score,
     calculate_z_score,
-    assign_performance_rating,
 )
 
 

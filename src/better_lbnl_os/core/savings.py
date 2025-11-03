@@ -2,29 +2,29 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Any, Dict, Iterable, List, Optional
-
 import re
+from collections.abc import Iterable
+from dataclasses import dataclass
+from typing import Any
 
 import numpy as np
+from pydantic import BaseModel, Field
 
 from better_lbnl_os.constants import MINIMUM_UTILITY_MONTHS
 from better_lbnl_os.core.changepoint import piecewise_linear_5p
-from better_lbnl_os.core.preprocessing import get_consecutive_months
 from better_lbnl_os.core.defaults import (
+    FOSSIL_DEFAULT_FUEL,
     get_default_fuel_price,
-    lookup_egrid_subregion,
     get_electric_emission_factor,
     get_fossil_emission_factor,
-    normalize_state_code,
     infer_state_from_address,
-    FOSSIL_DEFAULT_FUEL,
+    lookup_egrid_subregion,
+    normalize_state_code,
 )
 from better_lbnl_os.core.pipeline import resolve_location
+from better_lbnl_os.core.preprocessing import get_consecutive_months
 from better_lbnl_os.models import CalendarizedData, LocationInfo, LocationSummary
 from better_lbnl_os.models.benchmarking import BenchmarkResult
-from pydantic import BaseModel, Field
 
 
 class SavingsEstimate(BaseModel):
@@ -50,8 +50,8 @@ class UsageTotals(BaseModel):
     energy_kwh: float = 0.0
     cost_usd: float = 0.0
     ghg_kg_co2: float = 0.0
-    eui_kwh_per_m2: Optional[float] = None
-    ghg_intensity_kg_co2_per_m2: Optional[float] = None
+    eui_kwh_per_m2: float | None = None
+    ghg_intensity_kg_co2_per_m2: float | None = None
     energy_components: ComponentTotals = Field(default_factory=ComponentTotals)
     cost_components: ComponentTotals = Field(default_factory=ComponentTotals)
     ghg_components: ComponentTotals = Field(default_factory=ComponentTotals)
@@ -69,8 +69,8 @@ class FuelSavingsResult(BaseModel):
     """Savings summary for a single energy type."""
 
     energy_type: str
-    months: List[str]
-    days_in_period: List[int]
+    months: list[str]
+    days_in_period: list[int]
     period_label: str
     current: UsageTotals
     target: UsageTotals
@@ -81,14 +81,14 @@ class FuelSavingsResult(BaseModel):
     cost_savings_percent: float
     ghg_savings_kg_co2: float
     ghg_savings_percent: float
-    eui_savings_kwh_per_m2: Optional[float]
-    ghg_intensity_reduction_kg_co2_per_m2: Optional[float]
+    eui_savings_kwh_per_m2: float | None
+    ghg_intensity_reduction_kg_co2_per_m2: float | None
     component_savings: ComponentSavings
-    monthly_energy_kwh: List[float]
-    monthly_cost_usd: List[float]
-    monthly_ghg_kg_co2: List[float]
+    monthly_energy_kwh: list[float]
+    monthly_cost_usd: list[float]
+    monthly_ghg_kg_co2: list[float]
     valid: bool = True
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
 
 class CombinedSavingsSummary(BaseModel):
@@ -103,8 +103,8 @@ class CombinedSavingsSummary(BaseModel):
     cost_savings_percent: float
     ghg_savings_kg_co2: float
     ghg_savings_percent: float
-    eui_savings_kwh_per_m2: Optional[float]
-    ghg_intensity_reduction_kg_co2_per_m2: Optional[float]
+    eui_savings_kwh_per_m2: float | None
+    ghg_intensity_reduction_kg_co2_per_m2: float | None
     component_savings: ComponentSavings
     valid: bool
 
@@ -112,14 +112,14 @@ class CombinedSavingsSummary(BaseModel):
 class SavingsSummary(BaseModel):
     """Top-level savings report."""
 
-    per_fuel: Dict[str, FuelSavingsResult]
+    per_fuel: dict[str, FuelSavingsResult]
     combined: CombinedSavingsSummary
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
 
 @dataclass
 class _UsageArrays:
-    months: List[str]
+    months: list[str]
     days: np.ndarray
     total_energy: np.ndarray
     heating_energy: np.ndarray
@@ -135,7 +135,7 @@ class _UsageArrays:
     cooling_ghg: np.ndarray
 
 
-def _ensure_calendarized_dict(calendarized: CalendarizedData | Dict[str, Any]) -> Dict[str, Any]:
+def _ensure_calendarized_dict(calendarized: CalendarizedData | dict[str, Any]) -> dict[str, Any]:
     if hasattr(calendarized, "to_legacy_dict"):
         return calendarized.to_legacy_dict()  # type: ignore[return-value]
     if isinstance(calendarized, dict):
@@ -143,16 +143,16 @@ def _ensure_calendarized_dict(calendarized: CalendarizedData | Dict[str, Any]) -
     raise TypeError("calendarized input must be CalendarizedData or dict")
 
 
-def _ensure_benchmark_dict(benchmark: BenchmarkResult | Dict[str, Any]) -> Dict[str, Any]:
+def _ensure_benchmark_dict(benchmark: BenchmarkResult | dict[str, Any]) -> dict[str, Any]:
     if isinstance(benchmark, dict):
         return benchmark
     if isinstance(benchmark, BenchmarkResult):
-        result: Dict[str, Any] = {}
+        result: dict[str, Any] = {}
         for energy_type in ("ELECTRICITY", "FOSSIL_FUEL"):
             et = getattr(benchmark, energy_type, None)
             if not et:
                 continue
-            coeffs: Dict[str, Dict[str, Optional[float]]] = {}
+            coeffs: dict[str, dict[str, float | None]] = {}
             for coeff in ("baseload", "heating_slope", "heating_change_point", "cooling_change_point", "cooling_slope"):
                 coeff_result = getattr(et, coeff, None)
                 if coeff_result is None:
@@ -168,15 +168,15 @@ def _ensure_benchmark_dict(benchmark: BenchmarkResult | Dict[str, Any]) -> Dict[
     raise TypeError("benchmark_input must be BenchmarkResult or dict")
 
 
-def _build_lookup(items: Iterable[str], values: Iterable[float]) -> Dict[str, float]:
-    return {month: float(value) for month, value in zip(items, values)}
+def _build_lookup(items: Iterable[str], values: Iterable[float]) -> dict[str, float]:
+    return {month: float(value) for month, value in zip(items, values, strict=False)}
 
 
 def _build_location_context(
-    location_info: Optional[LocationInfo],
+    location_info: LocationInfo | None,
     *,
-    address: Optional[str],
-    country_code: Optional[str],
+    address: str | None,
+    country_code: str | None,
 ) -> LocationSummary:
     country = (location_info.country_code if location_info else None) or (country_code or "US")
     state = None
@@ -208,7 +208,7 @@ def _build_location_context(
     )
 
 
-def _extract_series(legacy: Dict[str, Any], energy_type: str, months: List[str]) -> tuple[List[int], List[float], List[float]]:
+def _extract_series(legacy: dict[str, Any], energy_type: str, months: list[str]) -> tuple[list[int], list[float], list[float]]:
     aggregated = legacy.get("aggregated", {})
     # Support both modern and legacy keys for dict input
     periods = aggregated.get("periods", aggregated.get("v_x", []))
@@ -230,12 +230,12 @@ def _extract_series(legacy: Dict[str, Any], energy_type: str, months: List[str])
 
 
 def _compute_usage_arrays(
-    temperatures: List[float],
-    coefficients: Dict[str, Optional[float]],
+    temperatures: list[float],
+    coefficients: dict[str, float | None],
     floor_area: float,
-    days: List[int],
-    unit_prices: List[float],
-    ghg_factors: List[float],
+    days: list[int],
+    unit_prices: list[float],
+    ghg_factors: list[float],
 ) -> _UsageArrays:
     arr_temp = np.asarray(temperatures, dtype=float)
     arr_days = np.asarray(days, dtype=float)
@@ -300,10 +300,10 @@ def _compute_usage_arrays(
 
 
 def _fill_unit_prices(
-    prices: List[float],
+    prices: list[float],
     energy_type: str,
     location: LocationSummary,
-) -> tuple[List[float], Optional[str]]:
+) -> tuple[list[float], str | None]:
     default_value = get_default_fuel_price(energy_type, location.state_code, location.country_code)
     filled = []
     used_default = False
@@ -321,23 +321,23 @@ def _fill_unit_prices(
     return filled, source
 
 
-def _electric_emission_factor(location: LocationSummary) -> Optional[Dict[str, float]]:
+def _electric_emission_factor(location: LocationSummary) -> dict[str, float] | None:
     region = location.egrid_subregion
     if not region and location.zipcode:
         region = lookup_egrid_subregion(location.zipcode)
     return get_electric_emission_factor(region, location.country_code)
 
 
-def _fossil_emission_factor(energy_type: str) -> Optional[Dict[str, float]]:
+def _fossil_emission_factor(energy_type: str) -> dict[str, float] | None:
     fuel_token = FOSSIL_DEFAULT_FUEL.get(energy_type, "NATURAL_GAS")
     return get_fossil_emission_factor(fuel_token)
 
 
 def _fill_emission_factors(
-    factors: List[float],
+    factors: list[float],
     energy_type: str,
     location: LocationSummary,
-) -> tuple[List[float], Optional[str]]:
+) -> tuple[list[float], str | None]:
     if energy_type == "ELECTRICITY":
         defaults = _electric_emission_factor(location)
     else:
@@ -361,9 +361,9 @@ def _fill_emission_factors(
 
 
 def _assemble_usage_details(
-    months: List[str],
+    months: list[str],
     arrays: _UsageArrays,
-) -> Dict[str, List[float]]:
+) -> dict[str, list[float]]:
     return {
         "ls_energy": arrays.total_energy.tolist(),
         "heating_sensitive_energy": arrays.heating_energy.tolist(),
@@ -380,7 +380,7 @@ def _assemble_usage_details(
     }
 
 
-def _summarize_usage(details: Dict[str, List[float]], floor_area: float) -> UsageTotals:
+def _summarize_usage(details: dict[str, list[float]], floor_area: float) -> UsageTotals:
     energy_components = ComponentTotals(
         heating_sensitive=float(np.sum(details["heating_sensitive_energy"])),
         baseload=float(np.sum(details["baseload_energy"])),
@@ -436,8 +436,8 @@ def _component_savings(current: UsageTotals, target: UsageTotals) -> ComponentSa
 
 
 def estimate_savings_for_fuel(
-    benchmark_data: Dict[str, Any],
-    calendarized: CalendarizedData | Dict[str, Any],
+    benchmark_data: dict[str, Any],
+    calendarized: CalendarizedData | dict[str, Any],
     *,
     floor_area: float,
     energy_type: str,
@@ -445,7 +445,6 @@ def estimate_savings_for_fuel(
     location_context: LocationSummary | None = None,
 ) -> FuelSavingsResult:
     """Estimate savings for a single energy type."""
-
     if energy_type not in benchmark_data:
         raise ValueError(f"Benchmark data missing energy type: {energy_type}")
 
@@ -462,14 +461,14 @@ def estimate_savings_for_fuel(
     coeff_block = benchmark_data[energy_type]
     coeff_keys = ["baseload", "heating_slope", "heating_change_point", "cooling_change_point", "cooling_slope"]
 
-    def select(step: str) -> Dict[str, Optional[float]]:
+    def select(step: str) -> dict[str, float | None]:
         return {key: coeff_block.get(key, {}).get(step) for key in coeff_keys}
 
     current_coeffs = select("coefficient_value")
     target_coeffs = select("target_value")
     typical_coeffs = select("nominal_level")
 
-    metadata: Dict[str, Any] = {}
+    metadata: dict[str, Any] = {}
     if location_context is None:
         location_context = LocationSummary()
     metadata["location"] = location_context.model_dump()
@@ -541,7 +540,7 @@ def estimate_savings_for_fuel(
     )
 
 
-def _combine_usage_totals(results: Dict[str, FuelSavingsResult], floor_area: float) -> CombinedSavingsSummary:
+def _combine_usage_totals(results: dict[str, FuelSavingsResult], floor_area: float) -> CombinedSavingsSummary:
     if not results:
         empty_totals = UsageTotals()
         empty_components = ComponentSavings()
@@ -638,20 +637,19 @@ def _combine_usage_totals(results: Dict[str, FuelSavingsResult], floor_area: flo
 
 
 def estimate_savings(
-    benchmark_input: BenchmarkResult | Dict[str, Any],
-    calendarized: CalendarizedData | Dict[str, Any],
+    benchmark_input: BenchmarkResult | dict[str, Any],
+    calendarized: CalendarizedData | dict[str, Any],
     *,
     floor_area: float,
-    savings_target: Optional[str] = None,
-    location_info: Optional[LocationInfo] = None,
-    address: Optional[str] = None,
-    latitude: Optional[float] = None,
-    longitude: Optional[float] = None,
-    google_maps_api_key: Optional[str] = None,
-    country_code: Optional[str] = None,
+    savings_target: str | None = None,
+    location_info: LocationInfo | None = None,
+    address: str | None = None,
+    latitude: float | None = None,
+    longitude: float | None = None,
+    google_maps_api_key: str | None = None,
+    country_code: str | None = None,
 ) -> SavingsSummary:
     """Main entry point for savings estimation."""
-
     benchmark_dict = _ensure_benchmark_dict(benchmark_input)
     legacy_calendarized = _ensure_calendarized_dict(calendarized)
 
@@ -686,7 +684,7 @@ def estimate_savings(
         country_code=country_code,
     )
 
-    per_fuel: Dict[str, FuelSavingsResult] = {}
+    per_fuel: dict[str, FuelSavingsResult] = {}
     for energy_type in ("ELECTRICITY", "FOSSIL_FUEL"):
         if energy_type not in benchmark_dict:
             continue
@@ -719,13 +717,13 @@ def estimate_savings(
 
 
 __all__ = [
-    "ComponentTotals",
-    "UsageTotals",
-    "ComponentSavings",
-    "FuelSavingsResult",
     "CombinedSavingsSummary",
-    "SavingsSummary",
-    "estimate_savings_for_fuel",
-    "estimate_savings",
+    "ComponentSavings",
+    "ComponentTotals",
+    "FuelSavingsResult",
     "SavingsEstimate",  # legacy re-export
+    "SavingsSummary",
+    "UsageTotals",
+    "estimate_savings",
+    "estimate_savings_for_fuel",
 ]

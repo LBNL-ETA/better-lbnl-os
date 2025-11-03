@@ -1,6 +1,7 @@
 """Unit tests for BuildingData domain model."""
 
 import pytest
+
 from better_lbnl_os.models import BuildingData
 
 
@@ -69,8 +70,6 @@ class TestBuildingData:
 
     def test_validate_bills_empty(self):
         """Test validation with no bills."""
-        from better_lbnl_os.models import UtilityBillData
-        from datetime import date
 
         building = BuildingData(
             name="Test",
@@ -85,8 +84,9 @@ class TestBuildingData:
 
     def test_validate_bills_with_gaps(self):
         """Test validation detects gaps between billing periods."""
-        from better_lbnl_os.models import UtilityBillData
         from datetime import date
+
+        from better_lbnl_os.models import UtilityBillData
 
         building = BuildingData(
             name="Test",
@@ -118,8 +118,9 @@ class TestBuildingData:
 
     def test_validate_bills_non_positive_consumption(self):
         """Test validation detects non-positive consumption."""
-        from better_lbnl_os.models import UtilityBillData
         from datetime import date
+
+        from better_lbnl_os.models import UtilityBillData
 
         building = BuildingData(
             name="Test",
@@ -144,8 +145,9 @@ class TestBuildingData:
 
     def test_validate_bills_unusually_high_consumption(self):
         """Test validation detects unusually high consumption."""
-        from better_lbnl_os.models import UtilityBillData
         from datetime import date
+
+        from better_lbnl_os.models import UtilityBillData
 
         building = BuildingData(
             name="Test",
@@ -170,8 +172,9 @@ class TestBuildingData:
 
     def test_validate_bills_valid(self):
         """Test validation passes with valid bills."""
-        from better_lbnl_os.models import UtilityBillData
         from datetime import date
+
+        from better_lbnl_os.models import UtilityBillData
 
         building = BuildingData(
             name="Test",

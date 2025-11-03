@@ -11,18 +11,18 @@ Results are validated against known Django app outputs to ensure backward compat
 """
 
 import json
-import pytest
 from pathlib import Path
 
-from better_lbnl_os.models import CalendarizedData
+import pytest
+
 from better_lbnl_os import (
-    fit_calendarized_models,
     benchmark_with_reference,
-    recommend_ee_measures,
     estimate_savings,
+    fit_calendarized_models,
+    recommend_ee_measures,
 )
 from better_lbnl_os.constants.building_types import BuildingSpaceType
-
+from better_lbnl_os.models import CalendarizedData
 
 # Building configurations - acts as a simple data factory for test parameterization
 BUILDING_CONFIGS = {
@@ -147,7 +147,7 @@ class TestCompleteWorkflow:
             / building_config["fixture"]
         )
 
-        with open(fixture_path, "r") as f:
+        with open(fixture_path) as f:
             legacy_dict = json.load(f)
 
         return CalendarizedData.from_legacy_dict(legacy_dict)
@@ -216,7 +216,7 @@ class TestCompleteWorkflow:
             expected["baseload_coefficient"], rel=0.05  # Allow 5% tolerance
         )
 
-        if "cooling_change_point" in expected and expected["cooling_change_point"]:
+        if expected.get("cooling_change_point"):
             assert elec_model.cooling_change_point == pytest.approx(
                 expected["cooling_change_point"], abs=2.0  # Allow 2°C tolerance
             )

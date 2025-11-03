@@ -1,5 +1,4 @@
-"""
-Change-point model fitting algorithms for building energy analysis.
+"""Change-point model fitting algorithms for building energy analysis.
 
 This module contains pure change-point modeling functions for statistical
 analysis of energy consumption patterns with respect to temperature.
@@ -8,19 +7,18 @@ from __future__ import annotations
 
 import logging
 from math import isclose
-from typing import Dict, Optional, Tuple, Union
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
-from scipy import optimize, stats
 from pydantic import BaseModel, Field
+from scipy import optimize, stats
 
 # ChangePointModelResult defined at end of file to avoid circular imports
 from better_lbnl_os.constants import (
-    DEFAULT_R2_THRESHOLD,
     DEFAULT_CVRMSE_THRESHOLD,
+    DEFAULT_R2_THRESHOLD,
     DEFAULT_SIGNIFICANT_PVAL,
 )
 
@@ -34,28 +32,27 @@ def fit_changepoint_model(
     y: np.ndarray,
     min_r_squared: float = DEFAULT_R2_THRESHOLD,
     max_cv_rmse: float = DEFAULT_CVRMSE_THRESHOLD
-) -> "ChangePointModelResult":
-    """
-    Fit a change-point model to any x,y data relationship.
-    
+) -> ChangePointModelResult:
+    """Fit a change-point model to any x,y data relationship.
+
     This is the main entry point for change-point model fitting. It automatically
     determines the best model type (1P, 3P, or 5P) based on statistical significance
     and model quality metrics.
-    
+
     Common usage examples:
-    - Energy analysis: x=temperature, y=energy_use  
+    - Energy analysis: x=temperature, y=energy_use
     - Price analysis: x=price, y=demand
     - Time series: x=time, y=usage
-    
+
     Args:
         x: Array of independent variable values (e.g., temperature, price, time)
         y: Array of dependent variable values (e.g., energy_use, demand, usage)
         min_r_squared: Minimum R² threshold for model acceptance
         max_cv_rmse: Maximum CV-RMSE threshold for model acceptance
-        
+
     Returns:
         ChangePointModelResult with fitted coefficients and quality metrics
-        
+
     Raises:
         ValueError: If input arrays are invalid or empty
         Exception: If model fitting fails
@@ -73,35 +70,35 @@ def fit_changepoint_model(
 
     # Set up bounds for model fitting
     bounds = _create_model_bounds(x, y)
-    
+
     # Try fitting with different change-point bounds
     search_bounds = _create_changepoint_search_bounds(x, n_bins=8)
     fit_results = []
-    
+
     for cp_bounds in search_bounds:
         try:
             # Update bounds for this iteration
             iteration_bounds = bounds.copy()
             iteration_bounds[0][1] = cp_bounds[0][0]  # left changepoint lower
-            iteration_bounds[1][1] = cp_bounds[0][1]  # left changepoint upper  
+            iteration_bounds[1][1] = cp_bounds[0][1]  # left changepoint upper
             iteration_bounds[0][3] = cp_bounds[1][0]  # right changepoint lower
             iteration_bounds[1][3] = cp_bounds[1][1]  # right changepoint upper
-            
+
             result = _fit_model_once(x, y, iteration_bounds)
             fit_results.append(result)
-            
+
         except Exception:
             # Some bounds combinations may fail - this is expected
             continue
-    
+
     if not fit_results:
         raise Exception("Could not fit any change-point model with given data")
-    
+
     # Select best model and determine type
     optimal_model = _select_optimal_model(
         fit_results, x, y, min_r_squared, max_cv_rmse
     )
-    
+
     return optimal_model
 
 
@@ -126,7 +123,7 @@ def _create_model_bounds(x: np.ndarray, y: np.ndarray) -> list:
     baseline_bounds = [np.min(y), np.max(y)]  # baseline value
     right_cp_bounds = [np.min(x), np.max(x)]  # right changepoint
     right_slope_bounds = [0, np.inf]  # right slope (positive for energy/temperature)
-    
+
     return [
         [left_slope_bounds[0], left_cp_bounds[0], baseline_bounds[0], right_cp_bounds[0], right_slope_bounds[0]],
         [left_slope_bounds[1], left_cp_bounds[1], baseline_bounds[1], right_cp_bounds[1], right_slope_bounds[1]]
@@ -137,7 +134,7 @@ def _create_changepoint_search_bounds(x: np.ndarray, n_bins: int = 4) -> list:
     """Create search bounds for left and right changepoints."""
     bin_width = np.ptp(x) / n_bins
     marks = [np.min(x) + i * bin_width for i in range(n_bins + 1)]
-    
+
     bounds_list = []
     for i in range(len(marks) - 1):
         for j in range(i + 1, len(marks) - 1):
@@ -145,15 +142,15 @@ def _create_changepoint_search_bounds(x: np.ndarray, n_bins: int = 4) -> list:
                 (marks[i], marks[i + 1]),  # left changepoint bounds
                 (marks[j], marks[j + 1])   # right changepoint bounds
             ])
-    
+
     return bounds_list
 
 
 def _fit_model_once(
-    x: np.ndarray, 
-    y: np.ndarray, 
+    x: np.ndarray,
+    y: np.ndarray,
     bounds: list
-) -> Dict:
+) -> dict:
     """Fit the piecewise linear model once with given bounds."""
     # Perform curve fitting
     popt, pcov = optimize.curve_fit(
@@ -163,12 +160,12 @@ def _fit_model_once(
         bounds=bounds,
         method='dogbox'
     )
-    
+
     # Calculate model quality metrics
     y_predicted = piecewise_linear_5p(x, *popt)
     r2 = calculate_r_squared(y, y_predicted)
     cvrmse = calculate_cvrmse(y, y_predicted)
-    
+
     # Check slope significance
     pval_left, valid_left = _check_slope_significance(
         popt[0], x, y, popt, is_left_slope=True
@@ -176,7 +173,7 @@ def _fit_model_once(
     pval_right, valid_right = _check_slope_significance(
         popt[4], x, y, popt, is_left_slope=False
     )
-    
+
     return {
         "coefficients": popt,
         "covariance": pcov,
@@ -192,55 +189,55 @@ def _fit_model_once(
 def _check_slope_significance(
     slope: float,
     x: np.ndarray,
-    y: np.ndarray, 
+    y: np.ndarray,
     coefficients: np.ndarray,
     is_left_slope: bool
-) -> Tuple[Optional[float], bool]:
+) -> tuple[float | None, bool]:
     """Check if a left or right slope is statistically significant."""
     if isclose(slope, 0, abs_tol=1e-5):
         return None, False
-    
+
     if is_left_slope:
         # Check left slope significance
         changepoint = coefficients[1]
         mask = x <= changepoint
     else:
-        # Check right slope significance  
+        # Check right slope significance
         changepoint = coefficients[3]
         mask = x >= changepoint
-    
+
     x_subset = x[mask]
     y_subset = y[mask]
-    
+
     if len(x_subset) <= 2:
         return np.inf, False
-    
+
     y_predicted = piecewise_linear_5p(x_subset, *coefficients)
     pvalue = _calculate_slope_pvalue(slope, x_subset, y_subset, y_predicted)
-    
+
     return pvalue, pvalue < DEFAULT_SIGNIFICANT_PVAL
 
 
 def _calculate_slope_pvalue(
     slope: float,
     x_data: np.ndarray,
-    y_data: np.ndarray, 
+    y_data: np.ndarray,
     y_predicted: np.ndarray
 ) -> float:
     """Calculate p-value for regression slope significance."""
     if len(x_data) <= 2:
         return np.inf
-        
+
     # Calculate standard error of slope
     residuals = y_data - y_predicted
     sample_variance = np.sum(residuals ** 2) / (len(x_data) - 2)
     sum_squares_x = np.sum((x_data - np.mean(x_data)) ** 2)
     standard_error = np.sqrt(sample_variance / sum_squares_x)
-    
+
     # Calculate t-statistic and p-value
     t_statistic = slope / standard_error
     pvalue = stats.t.sf(np.abs(t_statistic), len(x_data) - 1) * 2  # two-tailed test
-    
+
     return pvalue
 
 
@@ -250,7 +247,7 @@ def _select_optimal_model(
     y: np.ndarray,
     min_r_squared: float,
     max_cv_rmse: float
-) -> "ChangePointModelResult":
+) -> ChangePointModelResult:
     """Select the optimal model from fit results and determine model type."""
     # Convert results to DataFrame for easier analysis
     rows = []
@@ -263,31 +260,31 @@ def _select_optimal_model(
             result["heating_significant"], result["cooling_significant"]
         ]
         rows.append(row)
-    
+
     df_fits = pd.DataFrame(rows, columns=[
         'heating_slope', 'heating_changepoint', 'baseload', 'cooling_changepoint', 'cooling_slope',
         'r_squared', 'cvrmse', 'heating_pvalue', 'cooling_pvalue',
         'heating_significant', 'cooling_significant'
     ])
-    
+
     # Filter for models with at least one significant slope
     df_significant = df_fits[
         (df_fits['heating_significant']) | (df_fits['cooling_significant'])
     ]
-    
+
     if len(df_significant) > 0:
         # Select model with highest R²
         best_idx = df_significant['r_squared'].idxmax()
         best_model = df_significant.loc[best_idx]
-        
+
         # Determine model type and validate
         model_type, coefficients = _determine_model_type(best_model, x, y, min_r_squared)
-        
+
         if model_type != "No-fit":
             return ChangePointModelResult(
                 model_type=model_type,
                 heating_slope=coefficients.get('heating_slope'),
-                heating_change_point=coefficients.get('heating_changepoint'), 
+                heating_change_point=coefficients.get('heating_changepoint'),
                 baseload=coefficients['baseload'],
                 cooling_change_point=coefficients.get('cooling_changepoint'),
                 cooling_slope=coefficients.get('cooling_slope'),
@@ -296,7 +293,7 @@ def _select_optimal_model(
                 heating_pvalue=best_model['heating_pvalue'],
                 cooling_pvalue=best_model['cooling_pvalue']
             )
-    
+
     # Try 1P model as fallback
     return _fit_1p_model(x, y, max_cv_rmse)
 
@@ -306,11 +303,11 @@ def _determine_model_type(
     x: np.ndarray,
     y: np.ndarray,
     min_r_squared: float
-) -> Tuple[str, Dict]:
+) -> tuple[str, dict]:
     """Determine model type (5P, 3P, etc.) and extract coefficients."""
     heating_significant = model_row['heating_significant']
     cooling_significant = model_row['cooling_significant']
-    
+
     if heating_significant and cooling_significant:
         # 5P model
         coefficients = {
@@ -320,17 +317,17 @@ def _determine_model_type(
             'cooling_changepoint': model_row['cooling_changepoint'],
             'cooling_slope': model_row['cooling_slope']
         }
-        
+
         # Validate R² threshold
         test_coeffs = [
             coefficients['heating_slope'], coefficients['heating_changepoint'],
-            coefficients['baseload'], coefficients['cooling_changepoint'], 
+            coefficients['baseload'], coefficients['cooling_changepoint'],
             coefficients['cooling_slope']
         ]
-        
+
         if _check_r2_threshold(x, y, test_coeffs, min_r_squared):
             return "5P", coefficients
-            
+
     elif cooling_significant and not heating_significant:
         # 3P cooling model
         coefficients = {
@@ -362,7 +359,7 @@ def _determine_model_type(
 
         if _check_r2_threshold(x, y, test_coeffs, min_r_squared):
             return "3P Heating", coefficients
-    
+
     return "No-fit", {}
 
 
@@ -382,19 +379,19 @@ def _fit_1p_model(
     x: np.ndarray,
     y: np.ndarray,
     max_cv_rmse: float
-) -> "ChangePointModelResult":
+) -> ChangePointModelResult:
     """Fit a 1P (constant) model as fallback."""
     baseload = np.mean(y)
     predicted = np.full_like(y, baseload)
-    
+
     r2 = calculate_r_squared(y, predicted)
     cvrmse = calculate_cvrmse(y, predicted)
-    
+
     if cvrmse <= max_cv_rmse:
         model_type = "1P"
     else:
         model_type = "No-fit"
-    
+
     return ChangePointModelResult(
         model_type=model_type,
         heating_slope=None,
@@ -411,14 +408,13 @@ def _fit_1p_model(
 
 def piecewise_linear_5p(
     x: np.ndarray,
-    heating_slope: Optional[float],
-    heating_changepoint: Optional[float],
+    heating_slope: float | None,
+    heating_changepoint: float | None,
     baseload: float,
-    cooling_changepoint: Optional[float],
-    cooling_slope: Optional[float]
+    cooling_changepoint: float | None,
+    cooling_slope: float | None
 ) -> np.ndarray:
-    """
-    Five-parameter piecewise linear function for change-point modeling.
+    r"""Five-parameter piecewise linear function for change-point modeling.
 
     This function implements the classic change-point model:
     - Heating slope (negative) below heating changepoint
@@ -452,49 +448,48 @@ def piecewise_linear_5p(
     """
     if baseload is None:
         return np.full_like(x, np.nan)
-    
+
     # Handle 1P model (baseload only)
     if all(param is None or np.isnan(param) for param in [
         heating_slope, heating_changepoint, cooling_changepoint, cooling_slope
     ]):
         return np.full_like(x, baseload)
-    
+
     # Handle 3P models by setting missing parameters
     if heating_changepoint is None or heating_slope is None or np.isnan(heating_changepoint) or np.isnan(heating_slope):
         heating_changepoint = cooling_changepoint
         heating_slope = 0
-        
+
     if cooling_changepoint is None or cooling_slope is None or np.isnan(cooling_changepoint) or np.isnan(cooling_slope):
-        cooling_changepoint = heating_changepoint  
+        cooling_changepoint = heating_changepoint
         cooling_slope = 0
-    
+
     # Define conditions and functions for piecewise model
     conditions = [
         x < heating_changepoint,
         (x >= heating_changepoint) & (x <= cooling_changepoint),
         x > cooling_changepoint
     ]
-    
+
     functions = [
         lambda x: heating_slope * x + baseload - heating_slope * heating_changepoint,
         lambda x: baseload,
         lambda x: cooling_slope * x + baseload - cooling_slope * cooling_changepoint
     ]
-    
+
     return np.piecewise(x, conditions, functions)
 
 
-def calculate_r_squared(y_actual: np.ndarray, y_predicted: Union[np.ndarray, float]) -> float:
-    """
-    Calculate R-squared (coefficient of determination).
-    
+def calculate_r_squared(y_actual: np.ndarray, y_predicted: np.ndarray | float) -> float:
+    """Calculate R-squared (coefficient of determination).
+
     Args:
         y_actual: Actual values
         y_predicted: Predicted values
-        
+
     Returns:
         R-squared value between 0 and 1
-        
+
     Raises:
         ValueError: If inputs are invalid
         Exception: If there's no variance in actual values
@@ -507,7 +502,7 @@ def calculate_r_squared(y_actual: np.ndarray, y_predicted: Union[np.ndarray, flo
         raise ValueError("y_predicted must be numpy array or float")
     if isinstance(y_predicted, np.ndarray) and y_predicted.size == 0:
         raise ValueError("y_predicted cannot be empty array")
-    
+
     residuals = y_actual - y_predicted
     ss_residuals = np.sum(residuals ** 2)
     ss_total = np.sum((y_actual - np.mean(y_actual)) ** 2)
@@ -523,34 +518,32 @@ def calculate_r_squared(y_actual: np.ndarray, y_predicted: Union[np.ndarray, flo
 
 
 def calculate_cvrmse(y_actual: np.ndarray, y_predicted: np.ndarray) -> float:
-    """
-    Calculate Coefficient of Variation of Root Mean Squared Error.
-    
+    """Calculate Coefficient of Variation of Root Mean Squared Error.
+
     Args:
         y_actual: Actual values
         y_predicted: Predicted values
-        
+
     Returns:
         CV-RMSE value
     """
     rmse = np.sqrt(np.mean((y_actual - y_predicted) ** 2))
     mean_actual = np.mean(y_actual)
-    
+
     return rmse / mean_actual if mean_actual != 0 else np.inf
 
 
 def plot_changepoint_model(
     x: np.ndarray,
     y: np.ndarray,
-    model_result: "ChangePointModelResult",
+    model_result: ChangePointModelResult,
     x_label: str = "X",
     y_label: str = "Y",
-    title: Optional[str] = None,
-    figsize: Tuple[int, int] = (12, 6),
-    save_path: Optional[str] = None
-) -> Tuple[plt.Figure, plt.Axes]:
-    """
-    Plot change-point model results with data points and fitted line.
+    title: str | None = None,
+    figsize: tuple[int, int] = (12, 6),
+    save_path: str | None = None
+) -> tuple[plt.Figure, plt.Axes]:
+    """Plot change-point model results with data points and fitted line.
 
     Args:
         x: Independent variable data (e.g., temperature)
@@ -618,7 +611,7 @@ def plot_changepoint_model(
     heating_color = '#d62728'
     cooling_color = '#1f77b4'
 
-    def _is_zero(value: Optional[float]) -> bool:
+    def _is_zero(value: float | None) -> bool:
         return value is None or isclose(value, 0.0, abs_tol=1e-6)
 
     def _plot_segment(
@@ -626,8 +619,8 @@ def plot_changepoint_model(
         y_vals: np.ndarray,
         *,
         color: str,
-        label: Optional[str],
-    ) -> Optional[Line2D]:
+        label: str | None,
+    ) -> Line2D | None:
         if x_vals.size == 0:
             return None
         (line,) = ax.plot(x_vals, y_vals, color=color, linewidth=2, label=label)
@@ -635,7 +628,7 @@ def plot_changepoint_model(
 
     # Heating segment (left of heating change point)
     heating_cp = model_result.heating_change_point
-    heating_line: Optional[Line2D] = None
+    heating_line: Line2D | None = None
     if heating_cp is not None and not _is_zero(model_result.heating_slope):
         mask = x_range <= heating_cp
         heating_line = _plot_segment(
@@ -660,7 +653,7 @@ def plot_changepoint_model(
     )
 
     # Cooling segment (right of cooling change point)
-    cooling_line: Optional[Line2D] = None
+    cooling_line: Line2D | None = None
     if cooling_cp is not None and not _is_zero(model_result.cooling_slope):
         mask = x_range >= cooling_cp
         cooling_line = _plot_segment(
@@ -706,7 +699,7 @@ def plot_changepoint_model(
         fontsize=10,
         verticalalignment='top',
         horizontalalignment='left',
-        bbox=dict(boxstyle='round', facecolor='white', alpha=0.8),
+        bbox={"boxstyle": 'round', "facecolor": 'white', "alpha": 0.8},
     )
 
     # Set labels and title

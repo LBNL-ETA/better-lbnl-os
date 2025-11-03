@@ -1,5 +1,4 @@
-"""
-Demonstration of benchmarking functionality in better-lbnl-os.
+"""Demonstration of benchmarking functionality in better-lbnl-os.
 
 This script shows how to:
 1. Create change-point models
@@ -8,17 +7,13 @@ This script shows how to:
 4. Interpret the results
 """
 
+from better_lbnl_os.models.results import ChangePointModelResult
+
 from better_lbnl_os.core.benchmarking import (
     benchmark_building,
     create_statistics_from_models,
-    calculate_portfolio_statistics,
 )
-from better_lbnl_os.models.results import ChangePointModelResult
-from better_lbnl_os.models.benchmarking import (
-    BenchmarkStatistics,
-    CoefficientBenchmarkStatistics,
-    EnergyTypeBenchmarkStatistics,
-)
+
 
 def main():
     print("=== BETTER-LBNL Benchmarking Demo ===\n")
@@ -162,7 +157,7 @@ def main():
 
         if elec_result.baseload:
             bl = elec_result.baseload
-            print(f"  Baseload:")
+            print("  Baseload:")
             print(f"    Current: {bl.coefficient_value:.3f}")
             print(f"    Rating: {bl.rating}")
             print(f"    Percentile: {bl.percentile:.1f}%")
@@ -170,7 +165,7 @@ def main():
 
         if elec_result.cooling_change_point:
             ccp = elec_result.cooling_change_point
-            print(f"  Cooling Change Point:")
+            print("  Cooling Change Point:")
             print(f"    Current: {ccp.coefficient_value:.1f}°C")
             print(f"    Rating: {ccp.rating}")
             print(f"    Percentile: {ccp.percentile:.1f}%")
@@ -178,7 +173,7 @@ def main():
 
         if elec_result.cooling_slope:
             cs = elec_result.cooling_slope
-            print(f"  Cooling Slope:")
+            print("  Cooling Slope:")
             print(f"    Current: {cs.coefficient_value:.4f}")
             print(f"    Rating: {cs.rating}")
             print(f"    Percentile: {cs.percentile:.1f}%")
@@ -190,7 +185,7 @@ def main():
 
         if fossil_result.baseload:
             bl = fossil_result.baseload
-            print(f"  Baseload:")
+            print("  Baseload:")
             print(f"    Current: {bl.coefficient_value:.3f}")
             print(f"    Rating: {bl.rating}")
             print(f"    Percentile: {bl.percentile:.1f}%")
@@ -198,7 +193,7 @@ def main():
 
         if fossil_result.heating_change_point:
             hcp = fossil_result.heating_change_point
-            print(f"  Heating Change Point:")
+            print("  Heating Change Point:")
             print(f"    Current: {hcp.coefficient_value:.1f}°C")
             print(f"    Rating: {hcp.rating}")
             print(f"    Percentile: {hcp.percentile:.1f}%")
@@ -206,7 +201,7 @@ def main():
 
         if fossil_result.heating_slope:
             hs = fossil_result.heating_slope
-            print(f"  Heating Slope:")
+            print("  Heating Slope:")
             print(f"    Current: {hs.coefficient_value:.4f}")
             print(f"    Rating: {hs.rating}")
             print(f"    Percentile: {hs.percentile:.1f}%")

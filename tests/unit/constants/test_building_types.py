@@ -1,6 +1,7 @@
 """Unit tests for BuildingSpaceType enum and related functions."""
 
 import pytest
+
 from better_lbnl_os.constants.building_types import (
     BuildingSpaceType,
     space_type_to_benchmark_category,

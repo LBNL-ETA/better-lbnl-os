@@ -2,16 +2,15 @@
 
 import logging
 from datetime import date, datetime
-from typing import List, Optional, Dict, Any
+from typing import Any
 
 import pandas as pd
 import requests
 from requests.exceptions import RequestException
 
-from better_lbnl_os.utils.calculations import calculate_monthly_average
-from better_lbnl_os.models.weather import WeatherData, WeatherStation
 from better_lbnl_os.core.weather.interfaces import WeatherDataProvider
-
+from better_lbnl_os.models.weather import WeatherData, WeatherStation
+from better_lbnl_os.utils.calculations import calculate_monthly_average
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +18,7 @@ logger = logging.getLogger(__name__)
 class OpenMeteoProvider(WeatherDataProvider):
     """OpenMeteo weather data provider implementation."""
 
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self, api_key: str | None = None):
         self.api_key = api_key
         if api_key:
             self.base_url = "https://customer-archive-api.open-meteo.com/v1/archive"
@@ -28,7 +27,7 @@ class OpenMeteoProvider(WeatherDataProvider):
 
     def get_monthly_average(
         self, latitude: float, longitude: float, year: int, month: int
-    ) -> Optional[float]:
+    ) -> float | None:
         try:
             weather_data = self.get_weather_data(latitude, longitude, year, month)
             if weather_data:
@@ -40,7 +39,7 @@ class OpenMeteoProvider(WeatherDataProvider):
 
     def get_daily_temperatures(
         self, latitude: float, longitude: float, start_date: date, end_date: date
-    ) -> List[float]:
+    ) -> list[float]:
         try:
             params = {
                 "latitude": latitude,
@@ -64,7 +63,7 @@ class OpenMeteoProvider(WeatherDataProvider):
 
     def get_weather_data(
         self, latitude: float, longitude: float, year: int, month: int
-    ) -> Optional[WeatherData]:
+    ) -> WeatherData | None:
         try:
             if not self.validate_date_range(date(year, month, 1), date(year, month, 1)):
                 logger.warning(f"Invalid date range for OpenMeteo: {year}-{month}")
@@ -100,13 +99,12 @@ class OpenMeteoProvider(WeatherDataProvider):
                 logger.warning("No hourly data in OpenMeteo response")
                 return None
 
-            daily_temps = None
             min_temp = None
             max_temp = None
             if "daily" in data:
                 daily_data = data["daily"]
                 if "temperature_2m_mean" in daily_data:
-                    daily_temps = daily_data["temperature_2m_mean"]
+                    daily_data["temperature_2m_mean"]
                 if "temperature_2m_min" in daily_data:
                     mins = [t for t in daily_data["temperature_2m_min"] if t is not None]
                     min_temp = min(mins) if mins else None
@@ -137,7 +135,7 @@ class OpenMeteoProvider(WeatherDataProvider):
 
     def get_nearest_station(
         self, latitude: float, longitude: float, max_distance_km: float = 100.0
-    ) -> Optional[WeatherStation]:
+    ) -> WeatherStation | None:
         return WeatherStation(
             station_id=f"GRID_{latitude:.2f}_{longitude:.2f}",
             name=f"OpenMeteo Grid Point ({latitude:.2f}, {longitude:.2f})",
@@ -159,7 +157,7 @@ class OpenMeteoProvider(WeatherDataProvider):
             return False
         return True
 
-    def get_api_limits(self) -> Dict[str, Any]:
+    def get_api_limits(self) -> dict[str, Any]:
         if self.api_key:
             return {
                 "requests_per_hour": 10000,
@@ -185,9 +183,8 @@ class OpenMeteoProvider(WeatherDataProvider):
         start_month: int,
         end_year: int,
         end_month: int,
-    ) -> List[WeatherData]:
-        """
-        Fetch weather data for multiple months in a single API request.
+    ) -> list[WeatherData]:
+        """Fetch weather data for multiple months in a single API request.
 
         This is an optimized batch method that makes one HTTP request instead of
         N separate requests for N months of data.
@@ -266,7 +263,7 @@ class OpenMeteoProvider(WeatherDataProvider):
                     hourly_times.month == current_month
                 )
                 month_hourly_temps = [
-                    t for t, m in zip(hourly_temps, month_mask) if m and t is not None
+                    t for t, m in zip(hourly_temps, month_mask, strict=False) if m and t is not None
                 ]
 
                 if not month_hourly_temps:
@@ -288,10 +285,10 @@ class OpenMeteoProvider(WeatherDataProvider):
                         daily_times.month == current_month
                     )
                     month_mins = [
-                        t for t, m in zip(daily_mins, daily_month_mask) if m and t is not None
+                        t for t, m in zip(daily_mins, daily_month_mask, strict=False) if m and t is not None
                     ]
                     month_maxs = [
-                        t for t, m in zip(daily_maxs, daily_month_mask) if m and t is not None
+                        t for t, m in zip(daily_maxs, daily_month_mask, strict=False) if m and t is not None
                     ]
                     min_temp = min(month_mins) if month_mins else None
                     max_temp = max(month_maxs) if month_maxs else None

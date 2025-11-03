@@ -2,18 +2,21 @@
 
 from __future__ import annotations
 
-from typing import Dict, List, Sequence
+from collections.abc import Sequence
 
 import pandas as pd
 from pandas.tseries.offsets import MonthEnd
 
-from better_lbnl_os.constants import normalize_space_type, SQFT_TO_SQM
+from better_lbnl_os.constants import SQFT_TO_SQM, normalize_space_type
 from better_lbnl_os.constants.energy import normalize_fuel_type, normalize_fuel_unit
 from better_lbnl_os.constants.template_parsing import (
-    PM_META_HEADERS as M,
     PM_BILLS_HEADERS as B,
 )
+from better_lbnl_os.constants.template_parsing import (
+    PM_META_HEADERS as M,
+)
 from better_lbnl_os.models import BuildingData, UtilityBillData
+
 from .types import ParsedPortfolio, ParseMessage
 
 PM_SKIPROWS_DEFAULT = 5
@@ -79,7 +82,7 @@ def read_portfolio_manager(file_like) -> ParsedPortfolio:
     df_meta = df_meta[df_meta[M["PM_ID"]].notna()].copy()
 
     # Build BuildingData; convert floor area to SI if units are Sq. Ft.
-    buildings: Dict[str, BuildingData] = {}
+    buildings: dict[str, BuildingData] = {}
     for _, row in df_meta.iterrows():
         try:
             pmid = str(row[M["PM_ID"]]).strip()
@@ -133,7 +136,7 @@ def read_portfolio_manager(file_like) -> ParsedPortfolio:
         df_bills = df_bills.drop(columns=[B["DELIVERY"]])
 
     # Parse bills
-    bills_by_pm: Dict[str, List[UtilityBillData]] = {}
+    bills_by_pm: dict[str, list[UtilityBillData]] = {}
     for idx, row in df_bills.iterrows():
         try:
             pmid = str(row[B["PM_ID"]]).strip()

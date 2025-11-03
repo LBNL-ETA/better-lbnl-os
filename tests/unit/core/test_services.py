@@ -3,9 +3,9 @@ from types import SimpleNamespace
 
 import pytest
 
+from better_lbnl_os.core.savings import SavingsEstimate
 from better_lbnl_os.core.services import BuildingAnalyticsService, PortfolioBenchmarkService
 from better_lbnl_os.models import BuildingData, UtilityBillData, WeatherData
-from better_lbnl_os.core.savings import SavingsEstimate
 
 
 def _sample_building() -> BuildingData:

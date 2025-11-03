@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-from enum import Enum
-from typing import Dict, Mapping, Tuple
 import math
-import unicodedata
+from collections.abc import Mapping
+from enum import Enum
 
 
 class FuelType(str, Enum):
@@ -63,7 +62,7 @@ class FuelUnit(str, Enum):
 
 # --- Fuel conversion tables -------------------------------------------------
 
-ELECTRICITY_TO_KWH: Dict[FuelUnit, float] = {
+ELECTRICITY_TO_KWH: dict[FuelUnit, float] = {
     FuelUnit.KWH: 1.0,
     FuelUnit.GJ: 277.778,
     FuelUnit.KBTU: 0.293,
@@ -71,7 +70,7 @@ ELECTRICITY_TO_KWH: Dict[FuelUnit, float] = {
     FuelUnit.MWH: 1000.0,
 }
 
-NATURAL_GAS_TO_KWH: Dict[FuelUnit, float] = {
+NATURAL_GAS_TO_KWH: dict[FuelUnit, float] = {
     FuelUnit.KWH: 1.0,
     FuelUnit.MWH: 1000.0,
     FuelUnit.HUNDRED_CUBIC_FEET: 30.362,
@@ -86,7 +85,7 @@ NATURAL_GAS_TO_KWH: Dict[FuelUnit, float] = {
     FuelUnit.THERMS: 29.307,
 }
 
-COAL_ANTHRACITE_TO_KWH: Dict[FuelUnit, float] = {
+COAL_ANTHRACITE_TO_KWH: dict[FuelUnit, float] = {
     FuelUnit.KWH: 1.0,
     FuelUnit.MWH: 1000.0,
     FuelUnit.GJ: 277.778,
@@ -100,7 +99,7 @@ COAL_ANTHRACITE_TO_KWH: Dict[FuelUnit, float] = {
     FuelUnit.TONS: 7353.154,
 }
 
-COAL_BITUMINOUS_TO_KWH: Dict[FuelUnit, float] = {
+COAL_BITUMINOUS_TO_KWH: dict[FuelUnit, float] = {
     FuelUnit.KWH: 1.0,
     FuelUnit.MWH: 1000.0,
     FuelUnit.GJ: 277.778,
@@ -114,7 +113,7 @@ COAL_BITUMINOUS_TO_KWH: Dict[FuelUnit, float] = {
     FuelUnit.TONS: 7306.263,
 }
 
-COKE_TO_KWH: Dict[FuelUnit, float] = {
+COKE_TO_KWH: dict[FuelUnit, float] = {
     FuelUnit.KWH: 1.0,
     FuelUnit.MWH: 1000.0,
     FuelUnit.GJ: 277.778,
@@ -128,7 +127,7 @@ COKE_TO_KWH: Dict[FuelUnit, float] = {
     FuelUnit.TONS: 7268.163,
 }
 
-DIESEL_TO_KWH: Dict[FuelUnit, float] = {
+DIESEL_TO_KWH: dict[FuelUnit, float] = {
     FuelUnit.KWH: 1.0,
     FuelUnit.MWH: 1000.0,
     FuelUnit.GALLONS_UK: 48.570,
@@ -141,7 +140,7 @@ DIESEL_TO_KWH: Dict[FuelUnit, float] = {
     FuelUnit.MBTU: 293.071,
 }
 
-PROPANE_TO_KWH: Dict[FuelUnit, float] = {
+PROPANE_TO_KWH: dict[FuelUnit, float] = {
     FuelUnit.KWH: 1.0,
     FuelUnit.MWH: 1000.0,
     FuelUnit.HUNDRED_CUBIC_FEET: 73.737,
@@ -157,7 +156,7 @@ PROPANE_TO_KWH: Dict[FuelUnit, float] = {
     FuelUnit.DEKATHERM: 293.001,
 }
 
-WOOD_TO_KWH: Dict[FuelUnit, float] = {
+WOOD_TO_KWH: dict[FuelUnit, float] = {
     FuelUnit.KWH: 1.0,
     FuelUnit.MWH: 1000.0,
     FuelUnit.GJ: 277.778,
@@ -169,7 +168,7 @@ WOOD_TO_KWH: Dict[FuelUnit, float] = {
     FuelUnit.TONS: 5122.883,
 }
 
-FUEL_OIL_1_TO_KWH: Dict[FuelUnit, float] = {
+FUEL_OIL_1_TO_KWH: dict[FuelUnit, float] = {
     FuelUnit.KWH: 1.0,
     FuelUnit.MWH: 1000.0,
     FuelUnit.GALLONS_UK: 48.921,
@@ -182,7 +181,7 @@ FUEL_OIL_1_TO_KWH: Dict[FuelUnit, float] = {
     FuelUnit.MBTU: 293.071,
 }
 
-FUEL_OIL_2_TO_KWH: Dict[FuelUnit, float] = {
+FUEL_OIL_2_TO_KWH: dict[FuelUnit, float] = {
     FuelUnit.KWH: 1.0,
     FuelUnit.MWH: 1000.0,
     FuelUnit.GALLONS_UK: 48.570,
@@ -195,7 +194,7 @@ FUEL_OIL_2_TO_KWH: Dict[FuelUnit, float] = {
     FuelUnit.MBTU: 293.071,
 }
 
-FUEL_OIL_4_TO_KWH: Dict[FuelUnit, float] = {
+FUEL_OIL_4_TO_KWH: dict[FuelUnit, float] = {
     FuelUnit.KWH: 1.0,
     FuelUnit.MWH: 1000.0,
     FuelUnit.GALLONS_UK: 51.385,
@@ -208,7 +207,7 @@ FUEL_OIL_4_TO_KWH: Dict[FuelUnit, float] = {
     FuelUnit.MBTU: 293.071,
 }
 
-FUEL_OIL_5_6_TO_KWH: Dict[FuelUnit, float] = {
+FUEL_OIL_5_6_TO_KWH: dict[FuelUnit, float] = {
     FuelUnit.KWH: 1.0,
     FuelUnit.MWH: 1000.0,
     FuelUnit.GALLONS_UK: 52.793,
@@ -221,7 +220,7 @@ FUEL_OIL_5_6_TO_KWH: Dict[FuelUnit, float] = {
     FuelUnit.MBTU: 293.071,
 }
 
-KEROSENE_TO_KWH: Dict[FuelUnit, float] = {
+KEROSENE_TO_KWH: dict[FuelUnit, float] = {
     FuelUnit.KWH: 1.0,
     FuelUnit.MWH: 1000.0,
     FuelUnit.GALLONS_UK: 47.514,
@@ -237,7 +236,7 @@ DISTRICT_STEAM_SOURCE_TO_SITE = 1.2
 DISTRICT_HOT_WATER_SOURCE_TO_SITE = 1.2
 DISTRICT_CHILLED_WATER_SOURCE_TO_SITE = 1.09
 
-DISTRICT_STEAM_TO_KWH: Dict[FuelUnit, float] = {
+DISTRICT_STEAM_TO_KWH: dict[FuelUnit, float] = {
     FuelUnit.KWH: 1.0 * DISTRICT_STEAM_SOURCE_TO_SITE,
     FuelUnit.MWH: 1000.0 * DISTRICT_STEAM_SOURCE_TO_SITE,
     FuelUnit.DEKATHERM: 293.001 * DISTRICT_STEAM_SOURCE_TO_SITE,
@@ -251,7 +250,7 @@ DISTRICT_STEAM_TO_KWH: Dict[FuelUnit, float] = {
     FuelUnit.THERMS: 29.307 * DISTRICT_STEAM_SOURCE_TO_SITE,
 }
 
-DISTRICT_HOT_WATER_TO_KWH: Dict[FuelUnit, float] = {
+DISTRICT_HOT_WATER_TO_KWH: dict[FuelUnit, float] = {
     FuelUnit.KWH: 1.0 * DISTRICT_HOT_WATER_SOURCE_TO_SITE,
     FuelUnit.MWH: 1000.0 * DISTRICT_HOT_WATER_SOURCE_TO_SITE,
     FuelUnit.GJ: 277.778 * DISTRICT_HOT_WATER_SOURCE_TO_SITE,
@@ -261,7 +260,7 @@ DISTRICT_HOT_WATER_TO_KWH: Dict[FuelUnit, float] = {
     FuelUnit.THERMS: 29.307 * DISTRICT_HOT_WATER_SOURCE_TO_SITE,
 }
 
-DISTRICT_CHILLED_WATER_TO_KWH: Dict[FuelUnit, float] = {
+DISTRICT_CHILLED_WATER_TO_KWH: dict[FuelUnit, float] = {
     FuelUnit.KWH: 1.0 * DISTRICT_CHILLED_WATER_SOURCE_TO_SITE,
     FuelUnit.MWH: 1000.0 * DISTRICT_CHILLED_WATER_SOURCE_TO_SITE,
     FuelUnit.GJ: 277.778 * DISTRICT_CHILLED_WATER_SOURCE_TO_SITE,
@@ -272,7 +271,7 @@ DISTRICT_CHILLED_WATER_TO_KWH: Dict[FuelUnit, float] = {
     FuelUnit.TON_HOURS: 3.517 * DISTRICT_CHILLED_WATER_SOURCE_TO_SITE,
 }
 
-CONVERSION_TABLES: Dict[FuelType, Dict[FuelUnit, float]] = {
+CONVERSION_TABLES: dict[FuelType, dict[FuelUnit, float]] = {
     FuelType.ELECTRIC_GRID: ELECTRICITY_TO_KWH,
     FuelType.ELECTRIC_SOLAR: ELECTRICITY_TO_KWH,
     FuelType.ELECTRIC_WIND: ELECTRICITY_TO_KWH,
@@ -297,20 +296,20 @@ CONVERSION_TABLES: Dict[FuelType, Dict[FuelUnit, float]] = {
 }
 
 
-def _flatten_conversion_tables(tables: Mapping[FuelType, Mapping[FuelUnit, float]]) -> Dict[Tuple[str, str], float]:
-    output: Dict[Tuple[str, str], float] = {}
+def _flatten_conversion_tables(tables: Mapping[FuelType, Mapping[FuelUnit, float]]) -> dict[tuple[str, str], float]:
+    output: dict[tuple[str, str], float] = {}
     for fuel, unit_map in tables.items():
         for unit, factor in unit_map.items():
             output[(fuel.value, unit.value)] = float(factor)
     return output
 
 
-CONVERSION_TO_KWH: Dict[Tuple[str, str], float] = _flatten_conversion_tables(CONVERSION_TABLES)
+CONVERSION_TO_KWH: dict[tuple[str, str], float] = _flatten_conversion_tables(CONVERSION_TABLES)
 
 
 # --- Alias dictionaries -----------------------------------------------------
 
-_FUEL_TYPE_ALIAS_MAP: Dict[str, FuelType] = {
+_FUEL_TYPE_ALIAS_MAP: dict[str, FuelType] = {
     "electric": FuelType.ELECTRIC_GRID,
     "electricity": FuelType.ELECTRIC_GRID,
     "electric - grid": FuelType.ELECTRIC_GRID,
@@ -382,7 +381,7 @@ _FUEL_TYPE_ALIAS_MAP: Dict[str, FuelType] = {
 }
 
 
-_UNIT_ALIAS_MAP: Dict[str, FuelUnit] = {
+_UNIT_ALIAS_MAP: dict[str, FuelUnit] = {
     "kwh": FuelUnit.KWH,
     "kwh (thousand watt-hours)": FuelUnit.KWH,
     "mwh": FuelUnit.MWH,
@@ -435,7 +434,6 @@ _UNIT_ALIAS_MAP: Dict[str, FuelUnit] = {
 
 def normalize_fuel_type(value: str | None) -> str | None:
     """Return canonical FuelType token for free-form input strings."""
-
     if value is None:
         return None
     if isinstance(value, float) and math.isnan(value):
@@ -460,7 +458,6 @@ def normalize_fuel_type(value: str | None) -> str | None:
 
 def normalize_fuel_unit(value: str | None) -> str | None:
     """Return canonical FuelUnit token for free-form unit strings."""
-
     if value is None:
         return None
     if isinstance(value, float) and math.isnan(value):
@@ -485,7 +482,6 @@ def normalize_fuel_unit(value: str | None) -> str | None:
 
 def get_conversion_factor(fuel_type: str, unit: str) -> float | None:
     """Lookup the kWh conversion factor for a (fuel, unit) pair."""
-
     canonical_fuel = normalize_fuel_type(fuel_type)
     canonical_unit = normalize_fuel_unit(unit)
     if canonical_fuel is None or canonical_unit is None:
@@ -494,11 +490,11 @@ def get_conversion_factor(fuel_type: str, unit: str) -> float | None:
 
 
 __all__ = [
-    "FuelType",
-    "FuelUnit",
     "CONVERSION_TABLES",
     "CONVERSION_TO_KWH",
+    "FuelType",
+    "FuelUnit",
+    "get_conversion_factor",
     "normalize_fuel_type",
     "normalize_fuel_unit",
-    "get_conversion_factor",
 ]

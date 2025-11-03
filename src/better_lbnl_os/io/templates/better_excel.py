@@ -15,7 +15,7 @@ from better_lbnl_os.constants.template_parsing import (
 )
 from better_lbnl_os.models import BuildingData, UtilityBillData
 
-from .types import ParseMessage, ParsedPortfolio
+from .types import ParsedPortfolio, ParseMessage
 
 
 @dataclass
