@@ -71,7 +71,7 @@ jobs:
       - name: Run mypy
         run: |
           source .venv/bin/activate
-          mypy src
+          mypy --package better_lbnl_os
 
   test:
     name: Test Python ${{ matrix.python-version }} on ${{ matrix.os }}
