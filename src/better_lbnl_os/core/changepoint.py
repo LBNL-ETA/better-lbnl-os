@@ -4,6 +4,8 @@ Change-point model fitting algorithms for building energy analysis.
 This module contains pure change-point modeling functions for statistical
 analysis of energy consumption patterns with respect to temperature.
 """
+from __future__ import annotations
+
 import logging
 from math import isclose
 from typing import Dict, Optional, Tuple, Union

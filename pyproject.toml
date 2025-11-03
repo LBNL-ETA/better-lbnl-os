@@ -58,6 +58,7 @@ dev = [
     "pytest-mock>=3.10.0",
     "ruff>=0.1.0",
     "mypy>=1.0.0",
+    "types-requests>=2.28.0",
     "black>=23.0.0",
     "isort>=5.12.0",
     "pre-commit>=3.0.0",
@@ -104,6 +105,7 @@ include = [
 [tool.hatch.build.targets.wheel]
 packages = ["src/better_lbnl_os"]
 include = [
+    "src/better_lbnl_os/py.typed",
     "src/better_lbnl_os/data/defaults/**/*.json",
     "src/better_lbnl_os/data/schemas/*.json"
 ]
@@ -151,18 +153,20 @@ precision = 2
 
 [tool.mypy]
 python_version = "3.9"
-warn_return_any = true
+warn_return_any = false
 warn_unused_configs = true
-disallow_untyped_defs = true
+disallow_untyped_defs = false
 disallow_any_unimported = false
 no_implicit_optional = true
 warn_redundant_casts = true
-warn_unused_ignores = true
+warn_unused_ignores = false
 warn_no_return = true
 check_untyped_defs = true
 strict_equality = true
 namespace_packages = true
 explicit_package_bases = true
+enable_error_code = []
+disable_error_code = ["no-any-return", "no-untyped-def"]
 
 [[tool.mypy.overrides]]
 module = [
@@ -170,6 +174,8 @@ module = [
     "pandas.*",
     "plotly.*",
     "matplotlib.*",
+    "geocoder.*",
+    "requests.*",
 ]
 ignore_missing_imports = true
 

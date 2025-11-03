@@ -9,7 +9,8 @@ application.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Union
+from collections.abc import Iterable
+from typing import Any, Optional, Union
 
 from better_lbnl_os.constants import (
     BuildingSpaceType,
@@ -28,8 +29,8 @@ BETTER_MEASURES = TOP_LEVEL_EE_MEASURES
 
 
 def _benchmark_result_to_dict(
-    benchmark_input: Union[BenchmarkResult, Dict[str, Any]]
-) -> Dict[str, Dict[str, Dict[str, Optional[float]]]]:
+    benchmark_input: Union[BenchmarkResult, dict[str, Any]]
+) -> dict[str, dict[str, dict[str, Optional[float]]]]:
     """Normalise results to the legacy benchmarking dictionary structure."""
 
     if isinstance(benchmark_input, dict):
@@ -38,12 +39,12 @@ def _benchmark_result_to_dict(
     if not isinstance(benchmark_input, BenchmarkResult):
         raise TypeError("benchmark_input must be BenchmarkResult or benchmarking dict")
 
-    result: Dict[str, Dict[str, Dict[str, Optional[float]]]] = {}
+    result: dict[str, dict[str, dict[str, Optional[float]]]] = {}
     for energy_type in ("ELECTRICITY", "FOSSIL_FUEL"):
         et_result = getattr(benchmark_input, energy_type, None)
         if not et_result:
             continue
-        coeffs: Dict[str, Dict[str, Optional[float]]] = {}
+        coeffs: dict[str, dict[str, Optional[float]]] = {}
         for coeff in SYMPTOM_COEFFICIENTS:
             coeff_result = getattr(et_result, coeff, None)
             if not coeff_result:
@@ -96,8 +97,8 @@ def _first_trigger_gt(
 
 
 def detect_symptoms(
-    benchmark_input: Union[BenchmarkResult, Dict[str, Any]]
-) -> List[InefficiencySymptom]:
+    benchmark_input: Union[BenchmarkResult, dict[str, Any]]
+) -> list[InefficiencySymptom]:
     """Detect inefficiency symptoms using the legacy BETTER rules."""
 
     data = _benchmark_result_to_dict(benchmark_input)
@@ -105,7 +106,7 @@ def detect_symptoms(
     def _val(energy: str, coeff: str, key: str) -> Optional[float]:
         return data.get(energy, {}).get(coeff, {}).get(key)
 
-    symptoms: List[InefficiencySymptom] = []
+    symptoms: list[InefficiencySymptom] = []
 
     trigger = _first_trigger_lt(
         [
@@ -280,11 +281,11 @@ def detect_symptoms(
     return symptoms
 
 
-def map_symptoms_to_measures(symptoms: List[InefficiencySymptom]) -> List[EEMeasureRecommendation]:
+def map_symptoms_to_measures(symptoms: list[InefficiencySymptom]) -> list[EEMeasureRecommendation]:
     """Map detected symptoms to the top-level BETTER measures."""
 
     symptom_ids = {symptom.symptom_id for symptom in symptoms}
-    recommendations: Dict[str, EEMeasureRecommendation] = {}
+    recommendations: dict[str, EEMeasureRecommendation] = {}
 
     def _add_measure(
         measure_token: str,
@@ -375,10 +376,10 @@ def map_symptoms_to_measures(symptoms: List[InefficiencySymptom]) -> List[EEMeas
         "high_electricity_heating_sensitivity",
     }
     if len(envelope_group & symptom_ids) >= 2:
-        triggers = envelope_group & symptom_ids
-        _add_measure("DECREASE_INFILTRATION", triggers)
-        _add_measure("ADD_WALL_CEILING_ROOF_INSULATION", triggers)
-        _add_measure("UPGRADE_WINDOWS_TO_IMPROVE_THERMAL_EFFICIENCY", triggers)
+        triggers_set = envelope_group & symptom_ids
+        _add_measure("DECREASE_INFILTRATION", triggers_set)
+        _add_measure("ADD_WALL_CEILING_ROOF_INSULATION", triggers_set)
+        _add_measure("UPGRADE_WINDOWS_TO_IMPROVE_THERMAL_EFFICIENCY", triggers_set)
 
     if {
         "high_cooling_sensitivity",
@@ -395,7 +396,7 @@ def map_symptoms_to_measures(symptoms: List[InefficiencySymptom]) -> List[EEMeas
 
 
 def recommend_ee_measures(
-    benchmark_input: Union[BenchmarkResult, Dict[str, Any]],
+    benchmark_input: Union[BenchmarkResult, dict[str, Any]],
     *,
     building_type: Optional[BuildingSpaceType] = None,
 ) -> EERecommendationResult:

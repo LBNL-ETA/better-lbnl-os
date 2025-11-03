@@ -1,6 +1,11 @@
 """Building domain model."""
 
-from typing import List
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from better_lbnl_os.models.utility_bills import UtilityBillData
 from pydantic import BaseModel, Field, field_validator
 
 from better_lbnl_os.constants import BuildingSpaceType, normalize_space_type
@@ -22,7 +27,7 @@ class BuildingData(BaseModel):
         """Normalize and validate the space type against known choices."""
         return normalize_space_type(v)
 
-    def validate_bills(self, bills: List["UtilityBillData"]) -> List[str]:
+    def validate_bills(self, bills: list[UtilityBillData]) -> list[str]:
         """Validate utility bills for this building.
 
         Returns: list of validation error messages
