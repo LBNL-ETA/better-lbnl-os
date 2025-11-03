@@ -226,6 +226,12 @@ ignore = [
     "D213",  # Multi-line docstring summary should start at the second line
     "E501",  # Line too long (handled by black)
     "S101",  # Use of assert detected (needed for tests)
+    "N806",  # Allow non-lowercase variables (degC, degF are domain-specific)
+    "N815",  # Allow mixedCase in class scope (degC, degF in models)
+    "S110",  # Allow try-except-pass (acceptable for optional features)
+    "S112",  # Allow try-except-continue (acceptable for iterating with error handling)
+    "S113",  # Allow requests without timeout (will be added where critical)
+    "RUF002", # Allow ambiguous unicode (smart quotes in docstrings are readable)
 ]
 
 [tool.ruff.lint.per-file-ignores]

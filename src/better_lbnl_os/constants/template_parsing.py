@@ -1,6 +1,7 @@
 """Constants for template parsing."""
 
 from dataclasses import dataclass
+from typing import ClassVar
 
 # Area conversion
 SQFT_TO_SQM = 0.092903
@@ -11,13 +12,13 @@ class BETTERTemplateConfig:
     """Configuration for BETTER Excel template parsing."""
 
     # Property Information sheet
-    META_SKIP_ROWS = 3  # Skip instruction rows, headers are on row 3 (0-indexed row 2)
-    META_USE_COLS = "A:F"
+    META_SKIP_ROWS: ClassVar[int] = 3  # Skip instruction rows, headers are on row 3 (0-indexed row 2)
+    META_USE_COLS: ClassVar[str] = "A:F"
 
     # Utility Data sheet
-    BILLS_SKIP_ROWS = 2  # Skip instruction rows, headers are on row 3
-    BILLS_USE_COLS = "A:G"
-    BILLS_DATE_COLS = [1, 2]  # Start and End date columns
+    BILLS_SKIP_ROWS: ClassVar[int] = 2  # Skip instruction rows, headers are on row 3
+    BILLS_USE_COLS: ClassVar[str] = "A:G"
+    BILLS_DATE_COLS: ClassVar[list[int]] = [1, 2]  # Start and End date columns
 
 # Template column headers for BETTER Excel (EN/FR/ES)
 BETTER_META_HEADERS = {

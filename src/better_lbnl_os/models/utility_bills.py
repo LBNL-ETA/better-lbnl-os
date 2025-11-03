@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field, model_validator
 
 from better_lbnl_os.constants import CONVERSION_TO_KWH
 from better_lbnl_os.constants.energy import normalize_fuel_type, normalize_fuel_unit
+from better_lbnl_os.models.weather import WeatherSeries
 
 
 class UtilityBillData(BaseModel):
@@ -58,9 +59,6 @@ class UtilityBillData(BaseModel):
         if self.cost is not None and self.consumption > 0:
             return self.cost / self.consumption
         return None
-
-
-from .weather import WeatherSeries
 
 
 class TimeSeriesAggregation(BaseModel):
