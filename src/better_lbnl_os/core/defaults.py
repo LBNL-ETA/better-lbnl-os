@@ -101,6 +101,14 @@ def _load_fossil_factors() -> dict[str, dict[str, dict[str, float]]]:
 
 
 def normalize_state_code(value: str | None) -> str | None:
+    """Normalize state code to standard 2-letter abbreviation.
+
+    Args:
+        value: State name or abbreviation
+
+    Returns:
+        Normalized 2-letter state code, or None if invalid
+    """
     if not value:
         return None
     value = value.strip()
@@ -116,6 +124,14 @@ def normalize_state_code(value: str | None) -> str | None:
 
 
 def infer_state_from_address(address: str | None) -> str | None:
+    """Infer state code from address string.
+
+    Args:
+        address: Address string to parse
+
+    Returns:
+        Inferred 2-letter state code, or None if not found
+    """
     if not address:
         return None
     parts = [part.strip() for part in address.split(",") if part.strip()]
@@ -130,6 +146,16 @@ def infer_state_from_address(address: str | None) -> str | None:
 
 
 def get_default_fuel_price(energy_type: str, state: str | None, country_code: str | None) -> float | None:
+    """Get default fuel price for energy type and location.
+
+    Args:
+        energy_type: Type of energy (e.g., 'ELECTRICITY', 'NATURAL_GAS')
+        state: US state code
+        country_code: ISO country code
+
+    Returns:
+        Default fuel price, or None if not available
+    """
     column = ENERGY_TYPE_TO_PRICE_COLUMN.get(energy_type)
     if column is None:
         return None
@@ -147,6 +173,14 @@ def get_default_fuel_price(energy_type: str, state: str | None, country_code: st
 
 
 def lookup_egrid_subregion(zipcode: str | None) -> str | None:
+    """Look up eGRID subregion for a given ZIP code.
+
+    Args:
+        zipcode: US ZIP code
+
+    Returns:
+        eGRID subregion code, or None if not found
+    """
     if not zipcode:
         return None
     zip_clean = re.sub(r"[^0-9]", "", str(zipcode))
@@ -157,6 +191,15 @@ def lookup_egrid_subregion(zipcode: str | None) -> str | None:
 
 
 def get_electric_emission_factor(region: str | None, country_code: str | None) -> dict[str, float] | None:
+    """Get electric emission factors for a region.
+
+    Args:
+        region: eGRID subregion code
+        country_code: ISO country code
+
+    Returns:
+        Dictionary of emission factors, or None if not available
+    """
     factors = _load_egrid_factors()
     if region and region in factors:
         return factors[region]
@@ -169,6 +212,15 @@ def get_fossil_emission_factor(
     fuel_token: str,
     region_group: str = "OTHERS",
 ) -> dict[str, float] | None:
+    """Get fossil fuel emission factors for a region.
+
+    Args:
+        fuel_token: Fuel type identifier
+        region_group: Regional grouping code
+
+    Returns:
+        Dictionary of emission factors, or None if not available
+    """
     groups = _load_fossil_factors()
     group = groups.get(region_group) or groups.get("OTHERS")
     if not group:

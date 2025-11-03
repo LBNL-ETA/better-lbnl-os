@@ -233,6 +233,10 @@ ignore = [
 "docs/conf.py" = ["D"]
 "examples/*" = ["T201", "D103"]
 "src/better_lbnl_os/models/__init__.py" = ["I001"]  # Import order matters for circular imports
+"src/better_lbnl_os/core/geocoding/*.py" = ["D102"]  # Interface methods are self-documenting
+"src/better_lbnl_os/core/weather/interfaces.py" = ["D102"]  # Protocol methods
+"src/better_lbnl_os/core/weather/providers/*.py" = ["D102"]  # Provider implementations
+"src/better_lbnl_os/core/services.py" = ["D102"]  # Service methods documented by signatures
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"

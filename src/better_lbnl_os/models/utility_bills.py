@@ -20,6 +20,7 @@ class UtilityBillData(BaseModel):
 
     @model_validator(mode="after")
     def validate_dates(self):
+        """Validate that end date is after start date."""
         if self.end_date <= self.start_date:
             raise ValueError("End date must be after start date")
         return self
@@ -29,16 +30,31 @@ class UtilityBillData(BaseModel):
         return (self.end_date - self.start_date).days
 
     def to_kwh(self) -> float:
+        """Convert consumption to kWh using standard conversion factors.
+
+        Returns:
+            Energy consumption in kWh
+        """
         fuel = normalize_fuel_type(self.fuel_type)
         unit = normalize_fuel_unit(self.units)
         factor = CONVERSION_TO_KWH.get((fuel, unit), 1.0)
         return self.consumption * factor
 
     def calculate_daily_average(self) -> float:
+        """Calculate average daily consumption.
+
+        Returns:
+            Average daily consumption in original units
+        """
         days = self.get_days()
         return self.consumption / days if days > 0 else 0.0
 
     def calculate_cost_per_unit(self) -> float | None:
+        """Calculate cost per unit of consumption.
+
+        Returns:
+            Cost per unit, or None if cost is not available
+        """
         if self.cost is not None and self.consumption > 0:
             return self.cost / self.consumption
         return None
@@ -59,19 +75,30 @@ class TimeSeriesAggregation(BaseModel):
 
 
 class EnergyAggregation(TimeSeriesAggregation):
+    """Time series aggregation for total energy consumption."""
+
     pass
 
 
 class FuelAggregation(TimeSeriesAggregation):
+    """Time series aggregation broken down by fuel type."""
+
     pass
 
 
 class CalendarizedData(BaseModel):
+    """Calendarized energy data with weather and aggregations."""
+
     weather: WeatherSeries = Field(default_factory=WeatherSeries)
     aggregated: EnergyAggregation = Field(default_factory=EnergyAggregation)
     detailed: FuelAggregation = Field(default_factory=FuelAggregation)
 
     def to_legacy_dict(self) -> dict:
+        """Convert to legacy dictionary format for backward compatibility.
+
+        Returns:
+            Dictionary in legacy format
+        """
         def fmt_months(ms: list[date]) -> list[str]:
             return [m.strftime("%Y-%m-01") for m in ms]
 
@@ -105,6 +132,14 @@ class CalendarizedData(BaseModel):
 
     @classmethod
     def from_legacy_dict(cls, data: dict) -> "CalendarizedData":
+        """Create instance from legacy dictionary format.
+
+        Args:
+            data: Dictionary in legacy format
+
+        Returns:
+            CalendarizedData instance
+        """
         def parse_months(vx: list[str] | None) -> list[date]:
             out: list[date] = []
             for s in vx or []:

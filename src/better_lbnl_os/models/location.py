@@ -17,9 +17,22 @@ class LocationInfo(BaseModel):
     egrid_sub_region: str | None = Field(None, description="eGrid subregion for emissions")
 
     def is_valid_coordinates(self) -> bool:
+        """Check if coordinates are within valid latitude/longitude ranges.
+
+        Returns:
+            True if coordinates are valid, False otherwise
+        """
         return (-90 <= self.geo_lat <= 90) and (-180 <= self.geo_lng <= 180)
 
     def calculate_distance_to(self, other: "LocationInfo") -> float:
+        """Calculate distance to another location.
+
+        Args:
+            other: Another LocationInfo object
+
+        Returns:
+            Distance in kilometers
+        """
         from better_lbnl_os.utils.geography import haversine_distance
 
         return haversine_distance(self.geo_lat, self.geo_lng, other.geo_lat, other.geo_lng)

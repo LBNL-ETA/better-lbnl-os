@@ -186,7 +186,8 @@ def get_weather_for_bills(
     Args:
         bills: Utility bills to derive the date range
         address: Address string to geocode (if lat/lon not supplied)
-        latitude, longitude: Direct coordinates (reverse geocoding enriches metadata)
+        latitude: Latitude coordinate if known
+        longitude: Longitude coordinate if known
         google_maps_api_key: Google Maps API key for geocoding (required)
         openmeteo_api_key: Optional OpenMeteo API key (paid archive)
 
@@ -244,7 +245,8 @@ def fit_models_with_auto_weather(
         bills: List of utility bills
         floor_area: Building floor area in square meters (must be positive)
         address: Address string to geocode (if lat/lon not supplied)
-        latitude, longitude: Direct coordinates (reverse geocoding enriches metadata)
+        latitude: Latitude coordinate if known
+        longitude: Longitude coordinate if known
         google_maps_api_key: Google Maps API key for geocoding (required)
         openmeteo_api_key: Optional OpenMeteo API key (paid archive)
         min_r_squared: Minimum R² threshold for model acceptance

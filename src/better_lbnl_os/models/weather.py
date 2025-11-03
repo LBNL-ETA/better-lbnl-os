@@ -19,12 +19,14 @@ class WeatherData(BaseModel):
 
     @property
     def avg_temp_f(self) -> float:
+        """Get average temperature in Fahrenheit."""
         from better_lbnl_os.utils.calculations import celsius_to_fahrenheit
 
         return celsius_to_fahrenheit(self.avg_temp_c)
 
     @property
     def min_temp_f(self) -> float | None:
+        """Get minimum temperature in Fahrenheit."""
         if self.min_temp_c is not None:
             from better_lbnl_os.utils.calculations import celsius_to_fahrenheit
 
@@ -33,6 +35,7 @@ class WeatherData(BaseModel):
 
     @property
     def max_temp_f(self) -> float | None:
+        """Get maximum temperature in Fahrenheit."""
         if self.max_temp_c is not None:
             from better_lbnl_os.utils.calculations import celsius_to_fahrenheit
 
@@ -60,6 +63,15 @@ class WeatherStation(BaseModel):
     data_source: str = Field(default="NOAA", description="Data source")
 
     def distance_to(self, lat: float, lng: float) -> float:
+        """Calculate distance to a given latitude/longitude.
+
+        Args:
+            lat: Target latitude
+            lng: Target longitude
+
+        Returns:
+            Distance in kilometers
+        """
         from better_lbnl_os.utils.geography import haversine_distance
 
         return haversine_distance(self.latitude, self.longitude, lat, lng)

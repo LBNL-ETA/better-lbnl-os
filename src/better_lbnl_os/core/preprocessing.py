@@ -26,6 +26,8 @@ from better_lbnl_os.models.weather import WeatherSeries
 
 @dataclass
 class CalendarizationOptions:
+    """Options for calendarization processing."""
+
     energy_type_map: dict[str, str] | None = None
     conversion_to_kwh: dict[tuple[str, str], float] = field(default_factory=lambda: CONVERSION_TO_KWH)
     emission_factor_by_fuel: dict[str, float] | None = None  # kg CO2 per kWh

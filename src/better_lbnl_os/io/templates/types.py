@@ -10,6 +10,8 @@ from better_lbnl_os.models import BuildingData, UtilityBillData
 
 @dataclass
 class ParseMessage:
+    """Message from template parsing (error or warning)."""
+
     severity: str  # 'error' | 'warning'
     message: str
     sheet: str | None = None
@@ -21,6 +23,8 @@ class ParseMessage:
 
 @dataclass
 class ParsedPortfolio:
+    """Result of parsing a portfolio template."""
+
     buildings: list[BuildingData] = field(default_factory=list)
     bills_by_building: dict[str, list[UtilityBillData]] = field(default_factory=dict)
     errors: list[ParseMessage] = field(default_factory=list)
