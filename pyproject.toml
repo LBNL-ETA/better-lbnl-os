@@ -237,7 +237,7 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["S101", "D", "B017"]
 "docs/conf.py" = ["D"]
-"examples/*" = ["T201", "D103"]
+"examples/*" = ["T201", "D103", "I001"]  # Allow print statements, missing docstrings, and flexible imports
 "src/better_lbnl_os/models/__init__.py" = ["I001"]  # Import order matters for circular imports
 "src/better_lbnl_os/core/geocoding/*.py" = ["D102"]  # Interface methods are self-documenting
 "src/better_lbnl_os/core/weather/interfaces.py" = ["D102"]  # Protocol methods
@@ -255,6 +255,7 @@ include_trailing_comma = true
 force_grid_wrap = 0
 use_parentheses = true
 ensure_newline_before_comments = true
+skip_glob = ["src/better_lbnl_os/models/__init__.py"]  # Import order matters for circular imports
 
 [tool.black]
 line-length = 100

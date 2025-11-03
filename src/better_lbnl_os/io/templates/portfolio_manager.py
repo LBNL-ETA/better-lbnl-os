@@ -9,12 +9,8 @@ from pandas.tseries.offsets import MonthEnd
 
 from better_lbnl_os.constants import SQFT_TO_SQM, normalize_space_type
 from better_lbnl_os.constants.energy import normalize_fuel_type, normalize_fuel_unit
-from better_lbnl_os.constants.template_parsing import (
-    PM_BILLS_HEADERS as B,
-)
-from better_lbnl_os.constants.template_parsing import (
-    PM_META_HEADERS as M,
-)
+from better_lbnl_os.constants.template_parsing import PM_BILLS_HEADERS as B
+from better_lbnl_os.constants.template_parsing import PM_META_HEADERS as M
 from better_lbnl_os.models import BuildingData, UtilityBillData
 
 from .types import ParsedPortfolio, ParseMessage

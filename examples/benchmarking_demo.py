@@ -7,12 +7,11 @@ This script shows how to:
 4. Interpret the results
 """
 
-from better_lbnl_os.models.results import ChangePointModelResult
-
 from better_lbnl_os.core.benchmarking import (
     benchmark_building,
     create_statistics_from_models,
 )
+from better_lbnl_os.models.results import ChangePointModelResult
 
 
 def main():
