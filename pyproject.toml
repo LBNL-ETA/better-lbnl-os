@@ -232,6 +232,7 @@ ignore = [
 "tests/*" = ["S101", "D", "B017"]
 "docs/conf.py" = ["D"]
 "examples/*" = ["T201", "D103"]
+"src/better_lbnl_os/models/__init__.py" = ["I001"]  # Import order matters for circular imports
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
