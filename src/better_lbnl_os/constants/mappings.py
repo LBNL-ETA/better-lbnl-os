@@ -26,9 +26,7 @@ def normalize_space_type(value: str) -> str:
     for key, val in SPACE_TYPE_SYNONYMS.items():
         if candidate.lower() == key.lower():
             return val
-    raise ValueError(
-        f"Space type must be one of {[st.value for st in BuildingSpaceType]}"
-    )
+    raise ValueError(f"Space type must be one of {[st.value for st in BuildingSpaceType]}")
 
 
 def space_type_to_building_space_type(space_type_value: str) -> BuildingSpaceType:
@@ -38,4 +36,3 @@ def space_type_to_building_space_type(space_type_value: str) -> BuildingSpaceTyp
         if st.value == normalized:
             return st
     return BuildingSpaceType.OTHER
-

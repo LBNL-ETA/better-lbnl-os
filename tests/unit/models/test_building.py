@@ -16,7 +16,7 @@ class TestBuildingData:
             space_type="Office",
             location="Berkeley, CA",
             country_code="US",
-            climate_zone="3C"
+            climate_zone="3C",
         )
 
         assert building.name == "Test Office"
@@ -30,20 +30,14 @@ class TestBuildingData:
         """Test validation of space type."""
         with pytest.raises(ValueError, match="Space type must be one of"):
             BuildingData(
-                name="Test",
-                floor_area=1000,
-                space_type="InvalidType",
-                location="Berkeley, CA"
+                name="Test", floor_area=1000, space_type="InvalidType", location="Berkeley, CA"
             )
 
     # @pytest.mark.skip(reason="space_type_to_benchmark_category function not implemented")
     def test_get_benchmark_category(self):
         """Test benchmark category mapping."""
         building = BuildingData(
-            name="Test",
-            floor_area=1000,
-            space_type="Office",
-            location="Berkeley, CA"
+            name="Test", floor_area=1000, space_type="Office", location="Berkeley, CA"
         )
 
         # With one-to-one mapping, Office maps to OFFICE
@@ -52,19 +46,13 @@ class TestBuildingData:
     def test_get_space_type_code(self):
         """Test space type code retrieval."""
         building = BuildingData(
-            name="Test",
-            floor_area=1000,
-            space_type="Office",
-            location="Berkeley, CA"
+            name="Test", floor_area=1000, space_type="Office", location="Berkeley, CA"
         )
         assert building.get_space_type_code() == "OFFICE"
 
         # Test another space type
         building2 = BuildingData(
-            name="Test Hotel",
-            floor_area=2000,
-            space_type="Hotel",
-            location="San Francisco, CA"
+            name="Test Hotel", floor_area=2000, space_type="Hotel", location="San Francisco, CA"
         )
         assert building2.get_space_type_code() == "HOTEL"
 
@@ -72,10 +60,7 @@ class TestBuildingData:
         """Test validation with no bills."""
 
         building = BuildingData(
-            name="Test",
-            floor_area=1000,
-            space_type="Office",
-            location="Berkeley, CA"
+            name="Test", floor_area=1000, space_type="Office", location="Berkeley, CA"
         )
 
         errors = building.validate_bills([])
@@ -89,10 +74,7 @@ class TestBuildingData:
         from better_lbnl_os.models import UtilityBillData
 
         building = BuildingData(
-            name="Test",
-            floor_area=1000,
-            space_type="Office",
-            location="Berkeley, CA"
+            name="Test", floor_area=1000, space_type="Office", location="Berkeley, CA"
         )
 
         bills = [
@@ -101,15 +83,15 @@ class TestBuildingData:
                 start_date=date(2024, 1, 1),
                 end_date=date(2024, 1, 31),
                 consumption=1000,
-                units="kWh"
+                units="kWh",
             ),
             UtilityBillData(
                 fuel_type="ELECTRICITY",
                 start_date=date(2024, 2, 5),  # 5-day gap
                 end_date=date(2024, 2, 28),
                 consumption=1100,
-                units="kWh"
-            )
+                units="kWh",
+            ),
         ]
 
         errors = building.validate_bills(bills)
@@ -123,10 +105,7 @@ class TestBuildingData:
         from better_lbnl_os.models import UtilityBillData
 
         building = BuildingData(
-            name="Test",
-            floor_area=1000,
-            space_type="Office",
-            location="Berkeley, CA"
+            name="Test", floor_area=1000, space_type="Office", location="Berkeley, CA"
         )
 
         bills = [
@@ -135,7 +114,7 @@ class TestBuildingData:
                 start_date=date(2024, 1, 1),
                 end_date=date(2024, 1, 31),
                 consumption=0,  # Zero consumption
-                units="kWh"
+                units="kWh",
             )
         ]
 
@@ -150,10 +129,7 @@ class TestBuildingData:
         from better_lbnl_os.models import UtilityBillData
 
         building = BuildingData(
-            name="Test",
-            floor_area=1000,
-            space_type="Office",
-            location="Berkeley, CA"
+            name="Test", floor_area=1000, space_type="Office", location="Berkeley, CA"
         )
 
         bills = [
@@ -162,7 +138,7 @@ class TestBuildingData:
                 start_date=date(2024, 1, 1),
                 end_date=date(2024, 1, 31),
                 consumption=50000000,  # Extremely high consumption
-                units="kWh"
+                units="kWh",
             )
         ]
 
@@ -177,10 +153,7 @@ class TestBuildingData:
         from better_lbnl_os.models import UtilityBillData
 
         building = BuildingData(
-            name="Test",
-            floor_area=1000,
-            space_type="Office",
-            location="Berkeley, CA"
+            name="Test", floor_area=1000, space_type="Office", location="Berkeley, CA"
         )
 
         bills = [
@@ -189,15 +162,15 @@ class TestBuildingData:
                 start_date=date(2024, 1, 1),
                 end_date=date(2024, 1, 31),
                 consumption=1000,
-                units="kWh"
+                units="kWh",
             ),
             UtilityBillData(
                 fuel_type="ELECTRICITY",
                 start_date=date(2024, 1, 31),
                 end_date=date(2024, 2, 29),
                 consumption=1100,
-                units="kWh"
-            )
+                units="kWh",
+            ),
         ]
 
         errors = building.validate_bills(bills)

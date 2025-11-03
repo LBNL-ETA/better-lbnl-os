@@ -13,8 +13,7 @@ from better_lbnl_os.models import LocationInfo
 
 
 def get_weather_for_billing_periods(
-    location: LocationInfo,
-    billing_periods: list[tuple[date, date]]
+    location: LocationInfo, billing_periods: list[tuple[date, date]]
 ) -> list[dict]:
     """Get weather data aligned with utility billing periods.
 
@@ -35,11 +34,7 @@ def get_weather_for_billing_periods(
         # Handle billing periods that span multiple months
         current_date = start_date
         while current_date <= end_date:
-            weather = service.get_weather_data(
-                location,
-                current_date.year,
-                current_date.month
-            )
+            weather = service.get_weather_data(location, current_date.year, current_date.month)
             if weather:
                 weather_data.append(weather)
 
@@ -74,21 +69,25 @@ def get_weather_for_billing_periods(
 
                 # Degree days are additive
 
-            results.append({
-                'period': f"{start_date} to {end_date}",
-                'days': total_days,
-                'avg_temp_f': weighted_temp,
-                'total_hdd': None,
-                'total_cdd': None
-            })
+            results.append(
+                {
+                    "period": f"{start_date} to {end_date}",
+                    "days": total_days,
+                    "avg_temp_f": weighted_temp,
+                    "total_hdd": None,
+                    "total_cdd": None,
+                }
+            )
         else:
-            results.append({
-                'period': f"{start_date} to {end_date}",
-                'days': (end_date - start_date).days + 1,
-                'avg_temp_f': None,
-                'total_hdd': None,
-                'total_cdd': None
-            })
+            results.append(
+                {
+                    "period": f"{start_date} to {end_date}",
+                    "days": (end_date - start_date).days + 1,
+                    "avg_temp_f": None,
+                    "total_hdd": None,
+                    "total_cdd": None,
+                }
+            )
 
     return results
 
@@ -101,29 +100,29 @@ def analyze_energy_weather_correlation():
 
     # Building location
     location = LocationInfo(
-        geo_lat=38.5816,    # Sacramento, CA
+        geo_lat=38.5816,  # Sacramento, CA
         geo_lng=-121.4944,
         state="CA",
-        noaa_station_name="Sacramento, CA"
+        noaa_station_name="Sacramento, CA",
     )
 
     # Sample utility bill data (kWh and billing periods)
     utility_bills = [
-        {'period': (date(2023, 1, 15), date(2023, 2, 14)), 'kwh': 850},
-        {'period': (date(2023, 2, 15), date(2023, 3, 14)), 'kwh': 780},
-        {'period': (date(2023, 3, 15), date(2023, 4, 14)), 'kwh': 720},
-        {'period': (date(2023, 4, 15), date(2023, 5, 14)), 'kwh': 680},
-        {'period': (date(2023, 5, 15), date(2023, 6, 14)), 'kwh': 750},
-        {'period': (date(2023, 6, 15), date(2023, 7, 14)), 'kwh': 950},
-        {'period': (date(2023, 7, 15), date(2023, 8, 14)), 'kwh': 1100},
-        {'period': (date(2023, 8, 15), date(2023, 9, 14)), 'kwh': 1050},
+        {"period": (date(2023, 1, 15), date(2023, 2, 14)), "kwh": 850},
+        {"period": (date(2023, 2, 15), date(2023, 3, 14)), "kwh": 780},
+        {"period": (date(2023, 3, 15), date(2023, 4, 14)), "kwh": 720},
+        {"period": (date(2023, 4, 15), date(2023, 5, 14)), "kwh": 680},
+        {"period": (date(2023, 5, 15), date(2023, 6, 14)), "kwh": 750},
+        {"period": (date(2023, 6, 15), date(2023, 7, 14)), "kwh": 950},
+        {"period": (date(2023, 7, 15), date(2023, 8, 14)), "kwh": 1100},
+        {"period": (date(2023, 8, 15), date(2023, 9, 14)), "kwh": 1050},
     ]
 
     print("\nLocation: Sacramento, CA")
     print("Analysis Period: Jan 2023 - Sep 2023\n")
 
     # Get weather data for billing periods
-    billing_periods = [bill['period'] for bill in utility_bills]
+    billing_periods = [bill["period"] for bill in utility_bills]
     weather_summaries = get_weather_for_billing_periods(location, billing_periods)
 
     # Display results
@@ -134,12 +133,14 @@ def analyze_energy_weather_correlation():
     # Degree-day data intentionally omitted
 
     for bill, weather in zip(utility_bills, weather_summaries, strict=False):
-        if weather['avg_temp_f'] is not None:
-            energy_data.append(bill['kwh'])
+        if weather["avg_temp_f"] is not None:
+            energy_data.append(bill["kwh"])
 
-            start, end = bill['period']
-            print(f"{start} - {end} | {weather['days']:4} | {bill['kwh']:5} | "
-                  f"{weather['avg_temp_f']:5.1f}")
+            start, end = bill["period"]
+            print(
+                f"{start} - {end} | {weather['days']:4} | {bill['kwh']:5} | "
+                f"{weather['avg_temp_f']:5.1f}"
+            )
 
     # Calculate correlations
     if len(energy_data) > 2:
@@ -155,10 +156,10 @@ def calculate_weather_normalized_energy():
 
     # Building location
     location = LocationInfo(
-        geo_lat=41.8781,    # Chicago, IL
+        geo_lat=41.8781,  # Chicago, IL
         geo_lng=-87.6298,
         state="IL",
-        noaa_station_name="Chicago, IL"
+        noaa_station_name="Chicago, IL",
     )
 
     service = WeatherService(provider=OpenMeteoProvider())

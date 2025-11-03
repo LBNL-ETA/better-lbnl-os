@@ -1,6 +1,7 @@
 """
 Tests for geocoding algorithms.
 """
+
 from unittest.mock import Mock, patch
 
 import pytest
@@ -18,7 +19,7 @@ from better_lbnl_os.utils.geography import (
 class TestGeocoding:
     """Test suite for geocoding functionality."""
 
-    @patch('better_lbnl_os.utils.geography.geocoder')
+    @patch("better_lbnl_os.utils.geography.geocoder")
     def test_geocode_success(self, mock_geocoder):
         """Test successful address geocoding."""
         # Mock the geocoder response
@@ -45,7 +46,7 @@ class TestGeocoding:
         # Verify geocoder was called correctly
         mock_geocoder.google.assert_called_with(address, key=api_key)
 
-    @patch('better_lbnl_os.utils.geography.geocoder')
+    @patch("better_lbnl_os.utils.geography.geocoder")
     def test_geocode_api_denied(self, mock_geocoder):
         """Test geocoding when API request is denied."""
         # Mock the geocoder response with API denial
@@ -59,7 +60,7 @@ class TestGeocoding:
         with pytest.raises(Exception, match="Google Maps API denied"):
             geocode(address, api_key)
 
-    @patch('better_lbnl_os.utils.geography.geocoder')
+    @patch("better_lbnl_os.utils.geography.geocoder")
     def test_geocode_international(self, mock_geocoder):
         """Test geocoding for international address."""
         # Mock the geocoder response for non-US location
@@ -96,23 +97,23 @@ class TestWeatherStationFinder:
         # Mock weather stations data
         weather_stations = [
             {
-                'latitude': 37.7749,
-                'longitude': -122.4194,
-                'station_ID': 'SFO',
-                'station_name': 'San Francisco International Airport'
+                "latitude": 37.7749,
+                "longitude": -122.4194,
+                "station_ID": "SFO",
+                "station_name": "San Francisco International Airport",
             },
             {
-                'latitude': 37.6213,
-                'longitude': -122.3790,
-                'station_ID': 'SJC',
-                'station_name': 'San Jose Airport'
+                "latitude": 37.6213,
+                "longitude": -122.3790,
+                "station_ID": "SJC",
+                "station_name": "San Jose Airport",
             },
             {
-                'latitude': 38.5816,
-                'longitude': -121.4944,
-                'station_ID': 'SAC',
-                'station_name': 'Sacramento Airport'
-            }
+                "latitude": 38.5816,
+                "longitude": -121.4944,
+                "station_ID": "SAC",
+                "station_name": "Sacramento Airport",
+            },
         ]
 
         # Test coordinates closer to San Francisco
@@ -123,8 +124,8 @@ class TestWeatherStationFinder:
             latitude, longitude, weather_stations
         )
 
-        assert station_id == 'SFO'
-        assert station_name == 'San Francisco International Airport'
+        assert station_id == "SFO"
+        assert station_name == "San Francisco International Airport"
 
     def test_find_closest_weather_station_empty_list(self):
         """Test finding weather station with empty stations list."""
@@ -142,11 +143,7 @@ class TestEGridMapping:
     def test_find_egrid_subregion_valid_zip(self):
         """Test eGrid subregion lookup with valid zip code."""
         # Mock eGrid mapping data
-        egrid_mapping = {
-            94102: "CAMX",
-            10001: "NYUP",
-            60601: "RFCM"
-        }
+        egrid_mapping = {94102: "CAMX", 10001: "NYUP", 60601: "RFCM"}
 
         zipcode = "94102"
         result = find_egrid_subregion(zipcode, egrid_mapping)
@@ -197,8 +194,20 @@ class TestSpecialRegions:
 
     def test_check_special_regions_berkeley(self):
         """Test special region check for Berkeley zip codes."""
-        berkeley_zips = ["94701", "94702", "94703", "94704", "94705", "94706",
-                        "94707", "94708", "94709", "94710", "94712", "94720"]
+        berkeley_zips = [
+            "94701",
+            "94702",
+            "94703",
+            "94704",
+            "94705",
+            "94706",
+            "94707",
+            "94708",
+            "94709",
+            "94710",
+            "94712",
+            "94720",
+        ]
 
         for zipcode in berkeley_zips:
             result = _check_special_regions(zipcode)
@@ -234,37 +243,21 @@ class TestLocationInfo:
         """Test LocationInfo coordinate validation."""
         # Valid coordinates
         valid_location = LocationInfo(
-            geo_lat=37.7749,
-            geo_lng=-122.4194,
-            zipcode="94102",
-            country_code="US"
+            geo_lat=37.7749, geo_lng=-122.4194, zipcode="94102", country_code="US"
         )
         assert valid_location.is_valid_coordinates()
 
         # Invalid coordinates
         invalid_location = LocationInfo(
-            geo_lat=200.0,  # Invalid latitude
-            geo_lng=-122.4194,
-            zipcode="94102",
-            country_code="US"
+            geo_lat=200.0, geo_lng=-122.4194, zipcode="94102", country_code="US"  # Invalid latitude
         )
         assert not invalid_location.is_valid_coordinates()
 
     def test_location_distance_calculation(self):
         """Test distance calculation between locations."""
-        sf = LocationInfo(
-            geo_lat=37.7749,
-            geo_lng=-122.4194,
-            zipcode="94102",
-            country_code="US"
-        )
+        sf = LocationInfo(geo_lat=37.7749, geo_lng=-122.4194, zipcode="94102", country_code="US")
 
-        la = LocationInfo(
-            geo_lat=34.0522,
-            geo_lng=-118.2437,
-            zipcode="90210",
-            country_code="US"
-        )
+        la = LocationInfo(geo_lat=34.0522, geo_lng=-118.2437, zipcode="90210", country_code="US")
 
         distance = sf.calculate_distance_to(la)
 

@@ -49,10 +49,7 @@ def _read_pm_sheet(
             last_error = exc
             continue
 
-        df.columns = [
-            col.strip() if isinstance(col, str) else col
-            for col in df.columns
-        ]
+        df.columns = [col.strip() if isinstance(col, str) else col for col in df.columns]
         missing = [col for col in required_columns if col not in df.columns]
         if missing:
             last_error = ValueError(f"Missing columns: {missing}")
@@ -70,12 +67,14 @@ def read_portfolio_manager(file_like) -> ParsedPortfolio:
     # Properties sheet (try skipping instructional rows first, then fallback)
     df_meta, meta_error = _read_pm_sheet(file_like, "Properties", list(M.values()))
     if df_meta is None:
-        result.errors.append(ParseMessage(
-            severity="error",
-            sheet="Properties",
-            message="Failed to read sheet with expected headers"
-            + (f": {meta_error}" if meta_error else ""),
-        ))
+        result.errors.append(
+            ParseMessage(
+                severity="error",
+                sheet="Properties",
+                message="Failed to read sheet with expected headers"
+                + (f": {meta_error}" if meta_error else ""),
+            )
+        )
         return result
 
     # Filter rows with PM ID
@@ -100,17 +99,23 @@ def read_portfolio_manager(file_like) -> ParsedPortfolio:
             b = BuildingData(name=name, floor_area=gfa, space_type=space_type, location=loc)
             buildings[pmid] = b
         except Exception as e:
-            result.errors.append(ParseMessage(severity="error", sheet="Properties", message=f"Invalid building row: {e}"))
+            result.errors.append(
+                ParseMessage(
+                    severity="error", sheet="Properties", message=f"Invalid building row: {e}"
+                )
+            )
 
     # Meter Entries sheet (same skiprows handling)
     df_bills, bills_error = _read_pm_sheet(file_like, "Meter Entries", list(B.values()))
     if df_bills is None:
-        result.errors.append(ParseMessage(
-            severity="error",
-            sheet="Meter Entries",
-            message="Failed to read sheet with expected headers"
-            + (f": {bills_error}" if bills_error else ""),
-        ))
+        result.errors.append(
+            ParseMessage(
+                severity="error",
+                sheet="Meter Entries",
+                message="Failed to read sheet with expected headers"
+                + (f": {bills_error}" if bills_error else ""),
+            )
+        )
         return result
 
     # Keep only positive usage
@@ -131,7 +136,9 @@ def read_portfolio_manager(file_like) -> ParsedPortfolio:
     )
     if mask.any():
         df_bills.loc[mask, B["START"]] = df_bills.loc[mask, B["DELIVERY"]]
-        df_bills.loc[mask, B["END"]] = pd.to_datetime(df_bills.loc[mask, B["DELIVERY"]]) + MonthEnd(1)
+        df_bills.loc[mask, B["END"]] = pd.to_datetime(df_bills.loc[mask, B["DELIVERY"]]) + MonthEnd(
+            1
+        )
     if B["DELIVERY"] in df_bills.columns:
         df_bills = df_bills.drop(columns=[B["DELIVERY"]])
 
@@ -165,12 +172,15 @@ def read_portfolio_manager(file_like) -> ParsedPortfolio:
             )
             bills_by_pm.setdefault(pmid, []).append(ub)
         except Exception as e:
-            result.errors.append(ParseMessage(
-                severity="error", sheet="Meter Entries", row=int(idx) if isinstance(idx, (int, float)) else None,
-                message=f"Invalid bill row: {e}",
-            ))
+            result.errors.append(
+                ParseMessage(
+                    severity="error",
+                    sheet="Meter Entries",
+                    row=int(idx) if isinstance(idx, (int, float)) else None,
+                    message=f"Invalid bill row: {e}",
+                )
+            )
 
     result.buildings = list(buildings.values())
     result.bills_by_building = bills_by_pm
     return result
-

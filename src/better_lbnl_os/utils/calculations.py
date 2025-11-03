@@ -18,7 +18,7 @@ def celsius_to_fahrenheit(temp_c: float) -> float:
         Temperature in Fahrenheit, or NaN if input is invalid
     """
     if not isinstance(temp_c, (int, float)) or math.isnan(temp_c):
-        return float('nan')
+        return float("nan")
     return temp_c * 1.8 + 32
 
 
@@ -32,11 +32,11 @@ def fahrenheit_to_celsius(temp_f: float) -> float:
         Temperature in Celsius, or NaN if input is invalid
     """
     if not isinstance(temp_f, (int, float)) or math.isnan(temp_f):
-        return float('nan')
+        return float("nan")
     return (temp_f - 32) / 1.8
 
 
-def convert_temperature(temp: float, from_unit: str = 'C', to_unit: str = 'F') -> float:
+def convert_temperature(temp: float, from_unit: str = "C", to_unit: str = "F") -> float:
     """Convert temperature between Celsius and Fahrenheit.
 
     Args:
@@ -52,15 +52,17 @@ def convert_temperature(temp: float, from_unit: str = 'C', to_unit: str = 'F') -
     """
     if from_unit == to_unit:
         return temp
-    if from_unit.upper() == 'C' and to_unit.upper() == 'F':
+    if from_unit.upper() == "C" and to_unit.upper() == "F":
         return celsius_to_fahrenheit(temp)
-    elif from_unit.upper() == 'F' and to_unit.upper() == 'C':
+    elif from_unit.upper() == "F" and to_unit.upper() == "C":
         return fahrenheit_to_celsius(temp)
     else:
         raise ValueError(f"Invalid temperature units: from {from_unit} to {to_unit}")
 
 
-def convert_temperature_list(temps: list[float], from_unit: str = 'C', to_unit: str = 'F') -> list[float]:
+def convert_temperature_list(
+    temps: list[float], from_unit: str = "C", to_unit: str = "F"
+) -> list[float]:
     """Convert a list of temperatures between Celsius and Fahrenheit.
 
     Args:
@@ -86,16 +88,18 @@ def calculate_monthly_average(hourly_temps: np.ndarray | list[float]) -> float:
         Monthly average temperature, or NaN if no valid data
     """
     if not hourly_temps:
-        return float('nan')
+        return float("nan")
     if not isinstance(hourly_temps, np.ndarray):
         hourly_temps = np.array(hourly_temps)
     valid_temps = hourly_temps[~np.isnan(hourly_temps)]
     if len(valid_temps) == 0:
-        return float('nan')
+        return float("nan")
     return float(np.mean(valid_temps))
 
 
-def validate_temperature_range(temp_c: float, min_temp_c: float = -60.0, max_temp_c: float = 60.0) -> bool:
+def validate_temperature_range(
+    temp_c: float, min_temp_c: float = -60.0, max_temp_c: float = 60.0
+) -> bool:
     """Validate that temperature is within acceptable range.
 
     Args:

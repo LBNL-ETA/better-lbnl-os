@@ -1,6 +1,5 @@
 """Data models for reference benchmark statistics."""
 
-
 from pydantic import BaseModel, Field
 
 from better_lbnl_os.constants.building_types import BuildingSpaceType
@@ -13,7 +12,9 @@ class ReferenceDataEntry(BaseModel):
     country_code: str = Field(..., description="ISO 3166-1 alpha-2 country code")
     building_type: BuildingSpaceType = Field(..., description="Building type category")
     statistics: BenchmarkStatistics = Field(..., description="Benchmark statistics for this entry")
-    metadata: dict | None = Field(default=None, description="Additional metadata (source, sample size, etc.)")
+    metadata: dict | None = Field(
+        default=None, description="Additional metadata (source, sample size, etc.)"
+    )
 
 
 class ReferenceDataManifest(BaseModel):
@@ -24,9 +25,7 @@ class ReferenceDataManifest(BaseModel):
     entries: list[ReferenceDataEntry] = Field(..., description="List of reference data entries")
 
     def find_entry(
-        self,
-        country_code: str,
-        building_type: BuildingSpaceType
+        self, country_code: str, building_type: BuildingSpaceType
     ) -> ReferenceDataEntry | None:
         """Find entry by country and building type."""
         for entry in self.entries:

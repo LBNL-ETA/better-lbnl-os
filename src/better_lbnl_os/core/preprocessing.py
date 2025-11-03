@@ -29,7 +29,9 @@ class CalendarizationOptions:
     """Options for calendarization processing."""
 
     energy_type_map: dict[str, str] | None = None
-    conversion_to_kwh: dict[tuple[str, str], float] = field(default_factory=lambda: CONVERSION_TO_KWH)
+    conversion_to_kwh: dict[tuple[str, str], float] = field(
+        default_factory=lambda: CONVERSION_TO_KWH
+    )
     emission_factor_by_fuel: dict[str, float] | None = None  # kg CO2 per kWh
     fill_strategy: str = "mean"  # for unit_price/unit_emission; currently only 'mean' supported
 
@@ -77,20 +79,24 @@ def calendarize_utility_bills(
     # ------------------ Prepare daily utility bill data ------------------
     rows = []
     for b in bills:
-        rows.append({
-            "bill_start_date": b.start_date,
-            "bill_end_date": b.end_date,
-            "consumption": float(b.consumption),
-            "Fuel_Type": b.fuel_type,
-            "unit": b.units,
-            "cost": float(b.cost) if b.cost is not None else None,
-        })
+        rows.append(
+            {
+                "bill_start_date": b.start_date,
+                "bill_end_date": b.end_date,
+                "consumption": float(b.consumption),
+                "Fuel_Type": b.fuel_type,
+                "unit": b.units,
+                "cost": float(b.cost) if b.cost is not None else None,
+            }
+        )
     df_bills = pd.DataFrame(rows)
 
     # Energy type mapping with heuristic fallback
     if opts.energy_type_map:
-        df_bills["Energy_Type"] = df_bills["Fuel_Type"].map(opts.energy_type_map).fillna(
-            df_bills["Fuel_Type"].map(_infer_energy_type)
+        df_bills["Energy_Type"] = (
+            df_bills["Fuel_Type"]
+            .map(opts.energy_type_map)
+            .fillna(df_bills["Fuel_Type"].map(_infer_energy_type))
         )
     else:
         df_bills["Energy_Type"] = df_bills["Fuel_Type"].map(_infer_energy_type)
@@ -158,7 +164,11 @@ def calendarize_utility_bills(
     def _monthly_normalized(df: pd.DataFrame, floor: float, var: str) -> pd.DataFrame:
         # daily_standard_eui = kWh / floor_area / unique_days_in_month_group
         grp = df.groupby(["Year-Month", var])
-        daily_eui = (grp["standard_consumption"].sum() / float(floor) / grp["date"].nunique()) if floor > 0 else None
+        daily_eui = (
+            (grp["standard_consumption"].sum() / float(floor) / grp["date"].nunique())
+            if floor > 0
+            else None
+        )
 
         blocks = []
         if daily_eui is not None:
@@ -191,7 +201,9 @@ def calendarize_utility_bills(
             return pd.DataFrame(index=pd.Index([], name="Year-Month"))
 
         df_monthly = df_monthly.pivot_table(index="Year-Month", columns=var, values=pivot_values)
-        df_monthly.columns = [f"{var} - {' - '.join(col[::-1]).strip()}" for col in df_monthly.columns.values]
+        df_monthly.columns = [
+            f"{var} - {' - '.join(col[::-1]).strip()}" for col in df_monthly.columns.values
+        ]
         return df_monthly
 
     df_norm_by_fuel = _monthly_normalized(df_daily, floor_area, var="Fuel_Type")
@@ -201,29 +213,41 @@ def calendarize_utility_bills(
     # Aggregated totals by energy/fuel type
     grouped_energy = df_daily.groupby(["Year-Month", "Energy_Type"])  # sums
     df_agg_energy = grouped_energy[["standard_consumption"]].sum().unstack().fillna(0)
-    df_agg_energy.columns = [f"Energy_Type - {col[1]} - standard_consumption" for col in df_agg_energy.columns.values]
+    df_agg_energy.columns = [
+        f"Energy_Type - {col[1]} - standard_consumption" for col in df_agg_energy.columns.values
+    ]
 
     grouped_fuel = df_daily.groupby(["Year-Month", "Fuel_Type"])  # sums
     df_agg_fuel = grouped_fuel[["standard_consumption"]].sum().unstack().fillna(0)
-    df_agg_fuel.columns = [f"Fuel_Type - {col[1]} - standard_consumption" for col in df_agg_fuel.columns.values]
+    df_agg_fuel.columns = [
+        f"Fuel_Type - {col[1]} - standard_consumption" for col in df_agg_fuel.columns.values
+    ]
 
     # Add optional totals for emissions and costs
     if "standard_emission" in df_daily.columns:
         df_e_ghg = grouped_energy[["standard_emission"]].sum().unstack().fillna(0)
-        df_e_ghg.columns = [f"Energy_Type - {c[1]} - standard_emission" for c in df_e_ghg.columns.values]
+        df_e_ghg.columns = [
+            f"Energy_Type - {c[1]} - standard_emission" for c in df_e_ghg.columns.values
+        ]
         df_agg_energy = pd.concat([df_agg_energy, df_e_ghg], axis=1)
 
         df_f_ghg = grouped_fuel[["standard_emission"]].sum().unstack().fillna(0)
-        df_f_ghg.columns = [f"Fuel_Type - {c[1]} - standard_emission" for c in df_f_ghg.columns.values]
+        df_f_ghg.columns = [
+            f"Fuel_Type - {c[1]} - standard_emission" for c in df_f_ghg.columns.values
+        ]
         df_agg_fuel = pd.concat([df_agg_fuel, df_f_ghg], axis=1)
 
     if "standard_cost" in df_daily.columns:
         df_e_cost = grouped_energy[["standard_cost"]].sum().unstack().fillna(0)
-        df_e_cost.columns = [f"Energy_Type - {c[1]} - standard_cost" for c in df_e_cost.columns.values]
+        df_e_cost.columns = [
+            f"Energy_Type - {c[1]} - standard_cost" for c in df_e_cost.columns.values
+        ]
         df_agg_energy = pd.concat([df_agg_energy, df_e_cost], axis=1)
 
         df_f_cost = grouped_fuel[["standard_cost"]].sum().unstack().fillna(0)
-        df_f_cost.columns = [f"Fuel_Type - {c[1]} - standard_cost" for c in df_f_cost.columns.values]
+        df_f_cost.columns = [
+            f"Fuel_Type - {c[1]} - standard_cost" for c in df_f_cost.columns.values
+        ]
         df_agg_fuel = pd.concat([df_agg_fuel, df_f_cost], axis=1)
 
     # Merge normalized and aggregated frames
@@ -247,10 +271,14 @@ def calendarize_utility_bills(
             seen.add(key)
             uniq.append(w)
 
-        df_w = pd.DataFrame([{ "year": w.year, "month": w.month, "avg_value_c": w.avg_temp_c } for w in uniq])
+        df_w = pd.DataFrame(
+            [{"year": w.year, "month": w.month, "avg_value_c": w.avg_temp_c} for w in uniq]
+        )
         if not df_w.empty:
             df_w["avg_value_f"] = df_w["avg_value_c"].apply(lambda x: x * 1.8 + 32)
-            df_w["Year-Month"] = pd.to_datetime(df_w[["year", "month"]].assign(day=1)).dt.strftime("%Y-%m")
+            df_w["Year-Month"] = pd.to_datetime(df_w[["year", "month"]].assign(day=1)).dt.strftime(
+                "%Y-%m"
+            )
             df_w = df_w.drop(columns=["year", "month"])
             df_monthly = df_monthly.merge(df_w, on="Year-Month", how="left")
         else:
@@ -383,12 +411,14 @@ def get_consecutive_months(
         if not periods or energy_type not in eui_map:
             return {}
 
-    df = pd.DataFrame({
-        "month": pd.to_datetime(pd.Series(periods)),
-        "eui": pd.Series(eui_map[energy_type]).astype(float),
-        "degC": pd.Series(degC).astype(float),
-        "days": pd.Series(days).astype(int),
-    })
+    df = pd.DataFrame(
+        {
+            "month": pd.to_datetime(pd.Series(periods)),
+            "eui": pd.Series(eui_map[energy_type]).astype(float),
+            "degC": pd.Series(degC).astype(float),
+            "days": pd.Series(days).astype(int),
+        }
+    )
 
     # Keep positive EUI months and sort
     df = df[df["eui"] > 0].sort_values("month").reset_index(drop=True)
@@ -399,7 +429,7 @@ def get_consecutive_months(
     p = df["month"].dt.to_period("M")
     # For periods, diff() returns number of periods as difference
     # Convert to integer representation to check consecutiveness
-    period_ints = p.astype('int64')
+    period_ints = p.astype("int64")
     int_diff = period_ints.diff()
     # Consecutive months have a difference of 1
     is_consec = (int_diff == 1) | int_diff.isna()
@@ -462,11 +492,12 @@ def get_consecutive_bills(
         Dict with keys: ls_months, ls_n_days, ls_eui, ls_degC, period
     """
     import warnings
+
     warnings.warn(
         "get_consecutive_bills() is deprecated. Use get_consecutive_months() instead, "
         "which returns modern key names (months, days, eui, degC).",
         DeprecationWarning,
-        stacklevel=2
+        stacklevel=2,
     )
 
     if hasattr(calendarized, "to_legacy_dict"):

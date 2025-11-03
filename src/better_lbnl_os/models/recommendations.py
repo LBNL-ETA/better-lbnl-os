@@ -1,6 +1,5 @@
 """Data models for EE recommendations."""
 
-
 from pydantic import BaseModel, Field
 
 
@@ -20,7 +19,9 @@ class EEMeasureRecommendation(BaseModel):
 
     measure_id: str = Field(description="Unique identifier matching Django Measure.measure_id")
     name: str = Field(description="Short name of the measure")
-    triggered_by: list[str] = Field(description="List of symptom_ids that triggered this recommendation")
+    triggered_by: list[str] = Field(
+        description="List of symptom_ids that triggered this recommendation"
+    )
     priority: str | None = Field(None, description="Priority level: high, medium, low")
 
 

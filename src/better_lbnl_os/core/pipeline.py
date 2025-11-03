@@ -30,6 +30,7 @@ logger = logging.getLogger(__name__)
 
 class ModelData(TypedDict):
     """Type definition for model-ready data."""
+
     temperature: list[float]
     eui: list[float]
     months: list[str]
@@ -62,7 +63,9 @@ def prepare_model_data(
             continue
         eui_trim, degc_trim = trim_series(block["eui"], block["degC"])
         if len(eui_trim) < window or len(degc_trim) < window:
-            logger.debug(f"Skipping {et}: insufficient data after trimming ({len(eui_trim)} months)")
+            logger.debug(
+                f"Skipping {et}: insufficient data after trimming ({len(eui_trim)} months)"
+            )
             continue
         # Align months/days with trimmed indices
         # Find start index in original block
@@ -85,7 +88,6 @@ def prepare_model_data(
     return out
 
 
-
 def resolve_location(
     *,
     address: str | None = None,
@@ -106,6 +108,7 @@ def resolve_location(
         raise ValueError("Either coordinates or address must be provided for geocoding")
 
     return provider.geocode(address)
+
 
 def fit_calendarized_models(
     calendarized: dict | CalendarizedData,
@@ -132,11 +135,17 @@ def fit_calendarized_models(
 
         # Check if we have temperature variation
         if len(np.unique(x)) < 2:
-            logger.warning(f"Skipping {et}: insufficient temperature variation (likely missing weather data)")
+            logger.warning(
+                f"Skipping {et}: insufficient temperature variation (likely missing weather data)"
+            )
             continue
         try:
-            results[et] = fit_changepoint_model(x, y, min_r_squared=min_r_squared, max_cv_rmse=max_cv_rmse)
-            logger.info(f"Successfully fit {results[et].model_type} model for {et} (R²={results[et].r_squared:.3f})")
+            results[et] = fit_changepoint_model(
+                x, y, min_r_squared=min_r_squared, max_cv_rmse=max_cv_rmse
+            )
+            logger.info(
+                f"Successfully fit {results[et].model_type} model for {et} (R²={results[et].r_squared:.3f})"
+            )
         except Exception as e:
             logger.debug(f"Failed to fit model for {et}: {e}")
             continue
@@ -170,7 +179,9 @@ def fit_models_from_inputs(
         raise ValueError(f"floor_area must be positive, got {floor_area}")
 
     calendarized = calendarize_utility_bills(bills=bills, floor_area=floor_area, weather=weather)
-    return fit_calendarized_models(calendarized, min_r_squared=min_r_squared, max_cv_rmse=max_cv_rmse)
+    return fit_calendarized_models(
+        calendarized, min_r_squared=min_r_squared, max_cv_rmse=max_cv_rmse
+    )
 
 
 def get_weather_for_bills(

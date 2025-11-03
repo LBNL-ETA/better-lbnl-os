@@ -29,8 +29,7 @@ logger = logging.getLogger(__name__)
 
 
 def create_statistics_from_models(
-    change_point_models: list[ChangePointModelResult],
-    building_ids: list[str] | None = None
+    change_point_models: list[ChangePointModelResult], building_ids: list[str] | None = None
 ) -> BenchmarkStatistics:
     """Create benchmark statistics from a collection of change-point models.
 
@@ -49,19 +48,19 @@ def create_statistics_from_models(
 
     # Collect coefficient values by energy type
     electricity_coeffs = {
-        'heating_slope': [],
-        'heating_change_point': [],
-        'baseload': [],
-        'cooling_change_point': [],
-        'cooling_slope': []
+        "heating_slope": [],
+        "heating_change_point": [],
+        "baseload": [],
+        "cooling_change_point": [],
+        "cooling_slope": [],
     }
 
     fossil_fuel_coeffs = {
-        'heating_slope': [],
-        'heating_change_point': [],
-        'baseload': [],
-        'cooling_change_point': [],
-        'cooling_slope': []
+        "heating_slope": [],
+        "heating_change_point": [],
+        "baseload": [],
+        "cooling_change_point": [],
+        "cooling_slope": [],
     }
 
     # Extract coefficients from each model
@@ -74,41 +73,46 @@ def create_statistics_from_models(
 
         if model.cooling_slope is not None and model.cooling_slope > 0:
             # Treat as electricity model
-            electricity_coeffs['heating_slope'].append(model.heating_slope)
-            electricity_coeffs['heating_change_point'].append(model.heating_change_point)
-            electricity_coeffs['baseload'].append(model.baseload)
-            electricity_coeffs['cooling_change_point'].append(model.cooling_change_point)
-            electricity_coeffs['cooling_slope'].append(model.cooling_slope)
+            electricity_coeffs["heating_slope"].append(model.heating_slope)
+            electricity_coeffs["heating_change_point"].append(model.heating_change_point)
+            electricity_coeffs["baseload"].append(model.baseload)
+            electricity_coeffs["cooling_change_point"].append(model.cooling_change_point)
+            electricity_coeffs["cooling_slope"].append(model.cooling_slope)
 
         if model.heating_slope is not None and model.heating_slope < 0:
             # Treat as fossil fuel model
-            fossil_fuel_coeffs['heating_slope'].append(model.heating_slope)
-            fossil_fuel_coeffs['heating_change_point'].append(model.heating_change_point)
-            fossil_fuel_coeffs['baseload'].append(model.baseload)
-            fossil_fuel_coeffs['cooling_change_point'].append(model.cooling_change_point)
-            fossil_fuel_coeffs['cooling_slope'].append(model.cooling_slope)
+            fossil_fuel_coeffs["heating_slope"].append(model.heating_slope)
+            fossil_fuel_coeffs["heating_change_point"].append(model.heating_change_point)
+            fossil_fuel_coeffs["baseload"].append(model.baseload)
+            fossil_fuel_coeffs["cooling_change_point"].append(model.cooling_change_point)
+            fossil_fuel_coeffs["cooling_slope"].append(model.cooling_slope)
 
     # Create statistics for each energy type
     electricity_stats = EnergyTypeBenchmarkStatistics(
-        heating_slope=calculate_coefficient_statistics(electricity_coeffs['heating_slope']),
-        heating_change_point=calculate_coefficient_statistics(electricity_coeffs['heating_change_point']),
-        baseload=calculate_coefficient_statistics(electricity_coeffs['baseload']),
-        cooling_change_point=calculate_coefficient_statistics(electricity_coeffs['cooling_change_point']),
-        cooling_slope=calculate_coefficient_statistics(electricity_coeffs['cooling_slope'])
+        heating_slope=calculate_coefficient_statistics(electricity_coeffs["heating_slope"]),
+        heating_change_point=calculate_coefficient_statistics(
+            electricity_coeffs["heating_change_point"]
+        ),
+        baseload=calculate_coefficient_statistics(electricity_coeffs["baseload"]),
+        cooling_change_point=calculate_coefficient_statistics(
+            electricity_coeffs["cooling_change_point"]
+        ),
+        cooling_slope=calculate_coefficient_statistics(electricity_coeffs["cooling_slope"]),
     )
 
     fossil_fuel_stats = EnergyTypeBenchmarkStatistics(
-        heating_slope=calculate_coefficient_statistics(fossil_fuel_coeffs['heating_slope']),
-        heating_change_point=calculate_coefficient_statistics(fossil_fuel_coeffs['heating_change_point']),
-        baseload=calculate_coefficient_statistics(fossil_fuel_coeffs['baseload']),
-        cooling_change_point=calculate_coefficient_statistics(fossil_fuel_coeffs['cooling_change_point']),
-        cooling_slope=calculate_coefficient_statistics(fossil_fuel_coeffs['cooling_slope'])
+        heating_slope=calculate_coefficient_statistics(fossil_fuel_coeffs["heating_slope"]),
+        heating_change_point=calculate_coefficient_statistics(
+            fossil_fuel_coeffs["heating_change_point"]
+        ),
+        baseload=calculate_coefficient_statistics(fossil_fuel_coeffs["baseload"]),
+        cooling_change_point=calculate_coefficient_statistics(
+            fossil_fuel_coeffs["cooling_change_point"]
+        ),
+        cooling_slope=calculate_coefficient_statistics(fossil_fuel_coeffs["cooling_slope"]),
     )
 
-    return BenchmarkStatistics(
-        ELECTRICITY=electricity_stats,
-        FOSSIL_FUEL=fossil_fuel_stats
-    )
+    return BenchmarkStatistics(ELECTRICITY=electricity_stats, FOSSIL_FUEL=fossil_fuel_stats)
 
 
 def get_target_coefficient_value(
@@ -116,7 +120,7 @@ def get_target_coefficient_value(
     current_value: float,
     median: float,
     stdev: float,
-    savings_target: str = "NOMINAL"
+    savings_target: str = "NOMINAL",
 ) -> float:
     """Calculate target coefficient value based on savings target level.
 
@@ -131,7 +135,7 @@ def get_target_coefficient_value(
         Target coefficient value
     """
     # For coefficients where larger values are better
-    if coefficient_name in ['cooling_change_point', 'heating_slope']:
+    if coefficient_name in ["cooling_change_point", "heating_slope"]:
         if savings_target == "CONSERVATIVE":
             target = median - stdev
         elif savings_target == "NOMINAL":
@@ -159,7 +163,7 @@ def benchmark_coefficient(
     median: float | None,
     stdev: float | None,
     savings_target: str,
-    floor_area: float
+    floor_area: float,
 ) -> CoefficientBenchmarkResult:
     """Benchmark a single coefficient against reference statistics.
 
@@ -174,14 +178,16 @@ def benchmark_coefficient(
     Returns:
         CoefficientBenchmarkResult with comparison metrics
     """
-    logger.debug(f"Benchmarking {coefficient_name}: value={coefficient_value}, "
-                f"median={median}, stdev={stdev}")
+    logger.debug(
+        f"Benchmarking {coefficient_name}: value={coefficient_value}, "
+        f"median={median}, stdev={stdev}"
+    )
 
     result = CoefficientBenchmarkResult(
         coefficient_value=coefficient_value,
         coefficient_value_with_area=coefficient_value * floor_area if coefficient_value else None,
         sample_median=median,
-        sample_standard_deviation=stdev
+        sample_standard_deviation=stdev,
     )
 
     # Return early if we don't have enough data
@@ -193,7 +199,7 @@ def benchmark_coefficient(
 
     # For coefficients where larger values are better (cooling_change_point, heating_slope)
     # reverse the z-score for percentile calculation
-    if coefficient_name in ['cooling_change_point', 'heating_slope']:
+    if coefficient_name in ["cooling_change_point", "heating_slope"]:
         percentile = calculate_percentile_from_z_score(z_score)
         # For rating, use negative z-score (higher values = better performance = negative z-score for rating)
         rating_z_score = -z_score
@@ -236,7 +242,7 @@ def benchmark_building(
     benchmark_statistics: BenchmarkStatistics,
     floor_area: float,
     savings_target: str = "NOMINAL",
-    building_id: str | None = None
+    building_id: str | None = None,
 ) -> BenchmarkResult:
     """Benchmark a building's change-point models against reference statistics.
 
@@ -265,9 +271,7 @@ def benchmark_building(
     logger.info(f"Benchmarking building {building_id or 'unknown'}")
 
     result = BenchmarkResult(
-        building_id=building_id,
-        floor_area=floor_area,
-        savings_target=savings_target
+        building_id=building_id, floor_area=floor_area, savings_target=savings_target
     )
 
     # Benchmark each energy type
@@ -287,11 +291,11 @@ def benchmark_building(
 
         # Benchmark each coefficient
         coefficients = {
-            'heating_slope': cp_result.heating_slope,
-            'heating_change_point': cp_result.heating_change_point,
-            'baseload': cp_result.baseload,
-            'cooling_change_point': cp_result.cooling_change_point,
-            'cooling_slope': cp_result.cooling_slope
+            "heating_slope": cp_result.heating_slope,
+            "heating_change_point": cp_result.heating_change_point,
+            "baseload": cp_result.baseload,
+            "cooling_change_point": cp_result.cooling_change_point,
+            "cooling_slope": cp_result.cooling_slope,
         }
 
         for coeff_name, coeff_value in coefficients.items():
@@ -307,7 +311,7 @@ def benchmark_building(
                 median=coeff_stats.median,
                 stdev=coeff_stats.stdev,
                 savings_target=savings_target,
-                floor_area=floor_area
+                floor_area=floor_area,
             )
 
             # Store result
@@ -319,9 +323,7 @@ def benchmark_building(
     return result
 
 
-def calculate_portfolio_statistics(
-    building_results: list[BenchmarkResult]
-) -> dict[str, float]:
+def calculate_portfolio_statistics(building_results: list[BenchmarkResult]) -> dict[str, float]:
     """Calculate portfolio-level statistics from individual building results.
 
     Args:
@@ -334,12 +336,12 @@ def calculate_portfolio_statistics(
         return {}
 
     stats = {
-        'total_buildings': len(building_results),
-        'total_floor_area': sum(r.floor_area for r in building_results if r.floor_area),
+        "total_buildings": len(building_results),
+        "total_floor_area": sum(r.floor_area for r in building_results if r.floor_area),
     }
 
     # Calculate performance distribution
-    for energy_type in ['ELECTRICITY', 'FOSSIL_FUEL']:
+    for energy_type in ["ELECTRICITY", "FOSSIL_FUEL"]:
         ratings = []
         percentiles = []
 
@@ -353,14 +355,14 @@ def calculate_portfolio_statistics(
                 percentiles.append(avg_percentile)
 
         if ratings:
-            stats[f'{energy_type.lower()}_ratings'] = {
-                'Good': ratings.count('Good'),
-                'Typical': ratings.count('Typical'),
-                'Poor': ratings.count('Poor')
+            stats[f"{energy_type.lower()}_ratings"] = {
+                "Good": ratings.count("Good"),
+                "Typical": ratings.count("Typical"),
+                "Poor": ratings.count("Poor"),
             }
 
         if percentiles:
-            stats[f'{energy_type.lower()}_avg_percentile'] = np.mean(percentiles)
+            stats[f"{energy_type.lower()}_avg_percentile"] = np.mean(percentiles)
 
     return stats
 
@@ -370,9 +372,7 @@ _default_loader = None
 
 
 def get_reference_statistics(
-    country_code: str,
-    building_type: str | BuildingSpaceType,
-    custom_data_path: str | None = None
+    country_code: str, building_type: str | BuildingSpaceType, custom_data_path: str | None = None
 ) -> BenchmarkStatistics | None:
     """Get reference statistics for benchmarking.
 
@@ -411,7 +411,7 @@ def benchmark_with_reference(
     building_type: str | BuildingSpaceType,
     custom_statistics_path: str | None = None,
     savings_target: str = "NOMINAL",
-    building_id: str | None = None
+    building_id: str | None = None,
 ) -> BenchmarkResult:
     """Benchmark building using reference statistics.
 
@@ -432,25 +432,17 @@ def benchmark_with_reference(
     Raises:
         ValueError: If no reference statistics are available or inputs are invalid
     """
-    statistics = get_reference_statistics(
-        country_code,
-        building_type,
-        custom_statistics_path
-    )
+    statistics = get_reference_statistics(country_code, building_type, custom_statistics_path)
     if not statistics:
         raise ValueError(f"No reference statistics available for {country_code}/{building_type}")
 
     return benchmark_building(
-        change_point_results,
-        statistics,
-        floor_area,
-        savings_target,
-        building_id
+        change_point_results, statistics, floor_area, savings_target, building_id
     )
 
 
 def list_available_reference_statistics(
-    custom_data_path: str | None = None
+    custom_data_path: str | None = None,
 ) -> list[tuple[str, BuildingSpaceType]]:
     """List all available reference statistics.
 

@@ -267,9 +267,7 @@ class OpenMeteoProvider(WeatherDataProvider):
                 ]
 
                 if not month_hourly_temps:
-                    logger.warning(
-                        f"No hourly data for {current_year}-{current_month:02d}"
-                    )
+                    logger.warning(f"No hourly data for {current_year}-{current_month:02d}")
                     current_month += 1
                     if current_month > 12:
                         current_month = 1
@@ -285,10 +283,14 @@ class OpenMeteoProvider(WeatherDataProvider):
                         daily_times.month == current_month
                     )
                     month_mins = [
-                        t for t, m in zip(daily_mins, daily_month_mask, strict=False) if m and t is not None
+                        t
+                        for t, m in zip(daily_mins, daily_month_mask, strict=False)
+                        if m and t is not None
                     ]
                     month_maxs = [
-                        t for t, m in zip(daily_maxs, daily_month_mask, strict=False) if m and t is not None
+                        t
+                        for t, m in zip(daily_maxs, daily_month_mask, strict=False)
+                        if m and t is not None
                     ]
                     min_temp = min(month_mins) if month_mins else None
                     max_temp = max(month_maxs) if month_maxs else None
@@ -320,9 +322,7 @@ class OpenMeteoProvider(WeatherDataProvider):
                     current_month = 1
                     current_year += 1
 
-            logger.info(
-                f"Successfully fetched {len(weather_list)} months in single batch request"
-            )
+            logger.info(f"Successfully fetched {len(weather_list)} months in single batch request")
             return weather_list
 
         except RequestException as e:

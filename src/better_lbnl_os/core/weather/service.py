@@ -22,14 +22,11 @@ class WeatherService:
             provider: Weather data provider to use (defaults to OpenMeteo)
         """
         self.provider = provider or OpenMeteoProvider()
-        logger.info(f"Weather service initialized with {self.provider.get_provider_name()} provider")
+        logger.info(
+            f"Weather service initialized with {self.provider.get_provider_name()} provider"
+        )
 
-    def get_weather_data(
-        self,
-        location: LocationInfo,
-        year: int,
-        month: int
-    ) -> WeatherData | None:
+    def get_weather_data(self, location: LocationInfo, year: int, month: int) -> WeatherData | None:
         """Get weather data for a location and time period.
 
         Args:
@@ -48,10 +45,7 @@ class WeatherService:
 
             # Get weather data from provider
             weather = self.provider.get_weather_data(
-                location.geo_lat,
-                location.geo_lng,
-                year,
-                month
+                location.geo_lat, location.geo_lng, year, month
             )
 
             if weather:
@@ -75,7 +69,7 @@ class WeatherService:
         start_year: int,
         start_month: int,
         end_year: int,
-        end_month: int
+        end_month: int,
     ) -> list[WeatherData]:
         """Get weather data for a date range.
 
@@ -100,12 +94,7 @@ class WeatherService:
 
         # Try batch fetching first (optimization for providers that support it)
         batch_data = self.provider.get_weather_data_batch(
-            location.geo_lat,
-            location.geo_lng,
-            start_year,
-            start_month,
-            end_year,
-            end_month
+            location.geo_lat, location.geo_lng, start_year, start_month, end_year, end_month
         )
 
         # If batch fetching succeeded, use the results
@@ -125,7 +114,9 @@ class WeatherService:
         current_year = start_year
         current_month = start_month
 
-        while (current_year < end_year) or (current_year == end_year and current_month <= end_month):
+        while (current_year < end_year) or (
+            current_year == end_year and current_month <= end_month
+        ):
             weather = self.get_weather_data(location, current_year, current_month)
             if weather:
                 weather_data.append(weather)
@@ -146,7 +137,7 @@ class WeatherService:
         start_month: int,
         end_year: int,
         end_month: int,
-        existing_data: list[WeatherData] | None = None
+        existing_data: list[WeatherData] | None = None,
     ) -> list[WeatherData]:
         """Fill missing weather data for a date range.
 
@@ -173,14 +164,18 @@ class WeatherService:
         current_year = start_year
         current_month = start_month
 
-        while (current_year < end_year) or (current_year == end_year and current_month <= end_month):
+        while (current_year < end_year) or (
+            current_year == end_year and current_month <= end_month
+        ):
             # Check if we already have data for this period
             if (current_year, current_month) not in existing_periods:
                 # Fetch missing data
                 weather = self.get_weather_data(location, current_year, current_month)
                 if weather:
                     filled_data.append(weather)
-                    logger.info(f"Filled missing weather data for {current_year}-{current_month:02d}")
+                    logger.info(
+                        f"Filled missing weather data for {current_year}-{current_month:02d}"
+                    )
 
             # Move to next month
             current_month += 1
@@ -199,10 +194,7 @@ class WeatherService:
         return filled_data
 
     def find_nearest_station(
-        self,
-        latitude: float,
-        longitude: float,
-        max_distance_km: float = 100.0
+        self, latitude: float, longitude: float, max_distance_km: float = 100.0
     ) -> WeatherStation | None:
         """Find the nearest weather station.
 
@@ -214,17 +206,9 @@ class WeatherService:
         Returns:
             WeatherStation object or None
         """
-        return self.provider.get_nearest_station(
-            latitude,
-            longitude,
-            max_distance_km
-        )
+        return self.provider.get_nearest_station(latitude, longitude, max_distance_km)
 
-    def validate_data_availability(
-        self,
-        start_date: date,
-        end_date: date | None = None
-    ) -> bool:
+    def validate_data_availability(self, start_date: date, end_date: date | None = None) -> bool:
         """Check if weather data is available for date range.
 
         Args:
@@ -245,7 +229,4 @@ class WeatherService:
         Returns:
             Dictionary with provider information
         """
-        return {
-            'name': self.provider.get_provider_name(),
-            'limits': self.provider.get_api_limits()
-        }
+        return {"name": self.provider.get_provider_name(), "limits": self.provider.get_api_limits()}

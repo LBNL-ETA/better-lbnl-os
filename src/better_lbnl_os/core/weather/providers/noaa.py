@@ -44,4 +44,3 @@ class NOAAProvider(WeatherDataProvider):
         min_date = date(1900, 1, 1)
         max_date = datetime.now().date()
         return start_date >= min_date and end_date <= max_date
-

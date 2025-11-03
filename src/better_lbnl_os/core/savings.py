@@ -153,7 +153,13 @@ def _ensure_benchmark_dict(benchmark: BenchmarkResult | dict[str, Any]) -> dict[
             if not et:
                 continue
             coeffs: dict[str, dict[str, float | None]] = {}
-            for coeff in ("baseload", "heating_slope", "heating_change_point", "cooling_change_point", "cooling_slope"):
+            for coeff in (
+                "baseload",
+                "heating_slope",
+                "heating_change_point",
+                "cooling_change_point",
+                "cooling_slope",
+            ):
                 coeff_result = getattr(et, coeff, None)
                 if coeff_result is None:
                     continue
@@ -208,7 +214,9 @@ def _build_location_context(
     )
 
 
-def _extract_series(legacy: dict[str, Any], energy_type: str, months: list[str]) -> tuple[list[int], list[float], list[float]]:
+def _extract_series(
+    legacy: dict[str, Any], energy_type: str, months: list[str]
+) -> tuple[list[int], list[float], list[float]]:
     aggregated = legacy.get("aggregated", {})
     # Support both modern and legacy keys for dict input
     periods = aggregated.get("periods", aggregated.get("v_x", []))
@@ -255,12 +263,18 @@ def _compute_usage_arrays(
     baseload_eui = np.full_like(total_eui, base)
 
     heating_eui = np.zeros_like(total_eui)
-    if coefficients.get("heating_slope") is not None and coefficients.get("heating_change_point") is not None:
+    if (
+        coefficients.get("heating_slope") is not None
+        and coefficients.get("heating_change_point") is not None
+    ):
         mask = arr_temp <= float(coefficients["heating_change_point"])
         heating_eui[mask] = np.maximum(total_eui[mask] - baseload_eui[mask], 0)
 
     cooling_eui = np.zeros_like(total_eui)
-    if coefficients.get("cooling_slope") is not None and coefficients.get("cooling_change_point") is not None:
+    if (
+        coefficients.get("cooling_slope") is not None
+        and coefficients.get("cooling_change_point") is not None
+    ):
         mask = arr_temp >= float(coefficients["cooling_change_point"])
         cooling_eui[mask] = np.maximum(total_eui[mask] - baseload_eui[mask], 0)
 
@@ -459,7 +473,13 @@ def estimate_savings_for_fuel(
     period_label = consecutive["period"]
 
     coeff_block = benchmark_data[energy_type]
-    coeff_keys = ["baseload", "heating_slope", "heating_change_point", "cooling_change_point", "cooling_slope"]
+    coeff_keys = [
+        "baseload",
+        "heating_slope",
+        "heating_change_point",
+        "cooling_change_point",
+        "cooling_slope",
+    ]
 
     def select(step: str) -> dict[str, float | None]:
         return {key: coeff_block.get(key, {}).get(step) for key in coeff_keys}
@@ -480,9 +500,15 @@ def estimate_savings_for_fuel(
     if ghg_source:
         metadata["emission_factor_source"] = ghg_source
 
-    current_arrays = _compute_usage_arrays(temperatures, current_coeffs, floor_area, days, filled_prices, filled_ghg)
-    target_arrays = _compute_usage_arrays(temperatures, target_coeffs, floor_area, days, filled_prices, filled_ghg)
-    typical_arrays = _compute_usage_arrays(temperatures, typical_coeffs, floor_area, days, filled_prices, filled_ghg)
+    current_arrays = _compute_usage_arrays(
+        temperatures, current_coeffs, floor_area, days, filled_prices, filled_ghg
+    )
+    target_arrays = _compute_usage_arrays(
+        temperatures, target_coeffs, floor_area, days, filled_prices, filled_ghg
+    )
+    typical_arrays = _compute_usage_arrays(
+        temperatures, typical_coeffs, floor_area, days, filled_prices, filled_ghg
+    )
 
     usage_current = _assemble_usage_details(months, current_arrays)
     usage_target = _assemble_usage_details(months, target_arrays)
@@ -496,9 +522,15 @@ def estimate_savings_for_fuel(
     cost_savings = current_totals.cost_usd - target_totals.cost_usd
     ghg_savings = current_totals.ghg_kg_co2 - target_totals.ghg_kg_co2
 
-    energy_savings_pct = (energy_savings / current_totals.energy_kwh * 100) if current_totals.energy_kwh else 0.0
-    cost_savings_pct = (cost_savings / current_totals.cost_usd * 100) if current_totals.cost_usd else 0.0
-    ghg_savings_pct = (ghg_savings / current_totals.ghg_kg_co2 * 100) if current_totals.ghg_kg_co2 else 0.0
+    energy_savings_pct = (
+        (energy_savings / current_totals.energy_kwh * 100) if current_totals.energy_kwh else 0.0
+    )
+    cost_savings_pct = (
+        (cost_savings / current_totals.cost_usd * 100) if current_totals.cost_usd else 0.0
+    )
+    ghg_savings_pct = (
+        (ghg_savings / current_totals.ghg_kg_co2 * 100) if current_totals.ghg_kg_co2 else 0.0
+    )
 
     eui_savings = None
     if current_totals.eui_kwh_per_m2 is not None and target_totals.eui_kwh_per_m2 is not None:
@@ -540,7 +572,9 @@ def estimate_savings_for_fuel(
     )
 
 
-def _combine_usage_totals(results: dict[str, FuelSavingsResult], floor_area: float) -> CombinedSavingsSummary:
+def _combine_usage_totals(
+    results: dict[str, FuelSavingsResult], floor_area: float
+) -> CombinedSavingsSummary:
     if not results:
         empty_totals = UsageTotals()
         empty_components = ComponentSavings()
@@ -600,9 +634,15 @@ def _combine_usage_totals(results: dict[str, FuelSavingsResult], floor_area: flo
     cost_savings = current_totals.cost_usd - target_totals.cost_usd
     ghg_savings = current_totals.ghg_kg_co2 - target_totals.ghg_kg_co2
 
-    energy_savings_pct = (energy_savings / current_totals.energy_kwh * 100) if current_totals.energy_kwh else 0.0
-    cost_savings_pct = (cost_savings / current_totals.cost_usd * 100) if current_totals.cost_usd else 0.0
-    ghg_savings_pct = (ghg_savings / current_totals.ghg_kg_co2 * 100) if current_totals.ghg_kg_co2 else 0.0
+    energy_savings_pct = (
+        (energy_savings / current_totals.energy_kwh * 100) if current_totals.energy_kwh else 0.0
+    )
+    cost_savings_pct = (
+        (cost_savings / current_totals.cost_usd * 100) if current_totals.cost_usd else 0.0
+    )
+    ghg_savings_pct = (
+        (ghg_savings / current_totals.ghg_kg_co2 * 100) if current_totals.ghg_kg_co2 else 0.0
+    )
 
     eui_savings = None
     if current_totals.eui_kwh_per_m2 is not None and target_totals.eui_kwh_per_m2 is not None:
@@ -656,7 +696,9 @@ def estimate_savings(
     if location_info is None:
         if latitude is not None and longitude is not None:
             if google_maps_api_key is None or not str(google_maps_api_key).strip():
-                raise ValueError("google_maps_api_key is required when latitude/longitude are provided without a LocationInfo")
+                raise ValueError(
+                    "google_maps_api_key is required when latitude/longitude are provided without a LocationInfo"
+                )
             try:
                 location_info = resolve_location(
                     latitude=latitude,
@@ -667,7 +709,9 @@ def estimate_savings(
                 location_info = None
         elif address:
             if google_maps_api_key is None or not str(google_maps_api_key).strip():
-                raise ValueError("google_maps_api_key is required when address is provided without a LocationInfo")
+                raise ValueError(
+                    "google_maps_api_key is required when address is provided without a LocationInfo"
+                )
             try:
                 location_info = resolve_location(
                     address=address,

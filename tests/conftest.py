@@ -20,7 +20,7 @@ def sample_building():
         space_type="Office",
         location="Berkeley, CA",
         country_code="US",
-        climate_zone="3C"
+        climate_zone="3C",
     )
 
 
@@ -33,7 +33,7 @@ def sample_electricity_bill():
         end_date=date(2024, 1, 31),
         consumption=10000,
         units="kWh",
-        cost=1500.0
+        cost=1500.0,
     )
 
 
@@ -46,7 +46,7 @@ def sample_gas_bill():
         end_date=date(2024, 1, 31),
         consumption=500,
         units="therms",
-        cost=600.0
+        cost=600.0,
     )
 
 
@@ -60,7 +60,7 @@ def sample_location():
         state="CA",
         country_code="US",
         noaa_station_id="TEST001",
-        noaa_station_name="Berkeley Test Station"
+        noaa_station_name="Berkeley Test Station",
     )
 
 
@@ -75,7 +75,7 @@ def sample_weather_data():
         avg_temp_c=12.5,
         min_temp_c=8.0,
         max_temp_c=17.0,
-        data_source="Test"
+        data_source="Test",
     )
 
 
@@ -88,7 +88,9 @@ def sample_monthly_temps():
 # Markers for test categorization
 def pytest_configure(config):
     """Register custom pytest markers."""
-    config.addinivalue_line("markers", "slow: marks tests as slow (deselect with '-m \"not slow\"')")
+    config.addinivalue_line(
+        "markers", "slow: marks tests as slow (deselect with '-m \"not slow\"')"
+    )
     config.addinivalue_line("markers", "integration: marks tests as integration tests")
     config.addinivalue_line("markers", "unit: marks tests as unit tests")
     config.addinivalue_line("markers", "network: marks tests that require network access")

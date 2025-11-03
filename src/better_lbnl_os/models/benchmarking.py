@@ -14,12 +14,14 @@ class CoefficientBenchmarkStatistics(BaseModel):
     Used to represent the median and standard deviation of a coefficient
     across a reference dataset of buildings.
     """
+
     median: float | None = Field(None, description="Median value of coefficient")
     stdev: float | None = Field(None, description="Standard deviation of coefficient")
 
 
 class EnergyTypeBenchmarkStatistics(BaseModel):
     """Benchmark statistics for all coefficients of one energy type."""
+
     heating_slope: CoefficientBenchmarkStatistics | None = None
     heating_change_point: CoefficientBenchmarkStatistics | None = None
     baseload: CoefficientBenchmarkStatistics | None = None
@@ -33,6 +35,7 @@ class BenchmarkStatistics(BaseModel):
     This represents the statistical data derived from a reference dataset
     of buildings, used to benchmark individual buildings against.
     """
+
     ELECTRICITY: EnergyTypeBenchmarkStatistics | None = None
     FOSSIL_FUEL: EnergyTypeBenchmarkStatistics | None = None
 
@@ -43,12 +46,17 @@ class CoefficientBenchmarkResult(BaseModel):
     Contains the comparison of a building's coefficient value against
     reference statistics, including percentile ranking and performance rating.
     """
+
     coefficient_value: float | None = Field(None, description="Original coefficient value")
-    coefficient_value_with_area: float | None = Field(None, description="Coefficient value scaled by floor area")
+    coefficient_value_with_area: float | None = Field(
+        None, description="Coefficient value scaled by floor area"
+    )
     rating: str | None = Field(None, description="Performance rating (Good/Typical/Poor)")
     percentile: float | None = Field(None, ge=0, le=100, description="Percentile ranking (0-100)")
     sample_median: float | None = Field(None, description="Reference dataset median")
-    sample_standard_deviation: float | None = Field(None, description="Reference dataset standard deviation")
+    sample_standard_deviation: float | None = Field(
+        None, description="Reference dataset standard deviation"
+    )
     conservative_level: float | None = Field(None, description="Conservative target level")
     nominal_level: float | None = Field(None, description="Nominal target level")
     aggressive_level: float | None = Field(None, description="Aggressive target level")
@@ -57,6 +65,7 @@ class CoefficientBenchmarkResult(BaseModel):
 
 class EnergyTypeBenchmarkResult(BaseModel):
     """Benchmark results for all coefficients of one energy type."""
+
     heating_slope: CoefficientBenchmarkResult | None = None
     heating_change_point: CoefficientBenchmarkResult | None = None
     baseload: CoefficientBenchmarkResult | None = None
@@ -70,6 +79,7 @@ class BenchmarkResult(BaseModel):
     This represents the comparison of a single building's change-point model
     coefficients against reference statistics for all energy types.
     """
+
     building_id: str | None = Field(None, description="Building identifier")
     floor_area: float | None = Field(None, gt=0, description="Building floor area")
     savings_target: str | None = Field(None, description="Savings target level used")
@@ -91,7 +101,7 @@ class BenchmarkResult(BaseModel):
 
         # Get ratings from all coefficients
         ratings = []
-        for coeff in ['baseload', 'heating_slope', 'cooling_slope']:
+        for coeff in ["baseload", "heating_slope", "cooling_slope"]:
             coeff_result = getattr(energy_result, coeff, None)
             if coeff_result and coeff_result.rating:
                 ratings.append(coeff_result.rating)
@@ -117,7 +127,7 @@ class BenchmarkResult(BaseModel):
             return None
 
         percentiles = []
-        for coeff in ['baseload', 'heating_slope', 'cooling_slope']:
+        for coeff in ["baseload", "heating_slope", "cooling_slope"]:
             coeff_result = getattr(energy_result, coeff, None)
             if coeff_result and coeff_result.percentile is not None:
                 percentiles.append(coeff_result.percentile)

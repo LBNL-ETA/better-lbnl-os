@@ -1,6 +1,5 @@
 """Location info domain model."""
 
-
 from pydantic import BaseModel, Field
 
 
@@ -38,8 +37,6 @@ class LocationInfo(BaseModel):
         return haversine_distance(self.geo_lat, self.geo_lng, other.geo_lat, other.geo_lng)
 
 
-
-
 class LocationSummary(BaseModel):
     """Normalized location metadata for pricing/emission lookups."""
 
@@ -51,5 +48,6 @@ class LocationSummary(BaseModel):
     def to_metadata(self) -> dict[str, str | None]:
         """Return a dict view excluding unset fields."""
         return self.model_dump(exclude_none=True)
+
 
 __all__ = ["LocationInfo", "LocationSummary"]

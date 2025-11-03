@@ -11,10 +11,7 @@ from better_lbnl_os.models import LocationInfo
 def main():
     # 1. Define your location
     location = LocationInfo(
-        geo_lat=37.8716,    # Berkeley, CA
-        geo_lng=-122.2727,
-        zipcode="94709",
-        state="CA"
+        geo_lat=37.8716, geo_lng=-122.2727, zipcode="94709", state="CA"  # Berkeley, CA
     )
 
     # 2. Create weather service

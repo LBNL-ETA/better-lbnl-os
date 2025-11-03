@@ -38,4 +38,3 @@ def read_portfolio(file_like, template_type: str = "auto") -> ParsedPortfolio:
     if ttype == "portfolio_manager":
         return read_portfolio_manager(file_like)
     return read_better_excel(file_like)
-

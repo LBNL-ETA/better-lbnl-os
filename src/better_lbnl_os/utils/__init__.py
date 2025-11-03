@@ -15,5 +15,5 @@ __all__ = [
     "find_egrid_subregion",
     "geocode",
     "haversine_distance",
-    "is_valid_coordinates"
+    "is_valid_coordinates",
 ]

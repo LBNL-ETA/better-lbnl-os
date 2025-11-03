@@ -40,7 +40,7 @@ class MockWeatherProvider(WeatherDataProvider):
         return "Mock"
 
     def get_api_limits(self):
-        return {'requests_per_day': 1000}
+        return {"requests_per_day": 1000}
 
 
 class TestWeatherService(unittest.TestCase):
@@ -58,7 +58,7 @@ class TestWeatherService(unittest.TestCase):
             state="CA",
             country_code="US",
             noaa_station_id="TEST001",
-            noaa_station_name="Test Station"
+            noaa_station_name="Test Station",
         )
 
     def test_service_initialization(self):
@@ -74,16 +74,13 @@ class TestWeatherService(unittest.TestCase):
         """Test getting provider information."""
         info = self.service.get_provider_info()
 
-        self.assertEqual(info['name'], 'Mock')
-        self.assertEqual(info['limits']['requests_per_day'], 1000)
+        self.assertEqual(info["name"], "Mock")
+        self.assertEqual(info["limits"]["requests_per_day"], 1000)
 
     def test_validate_data_availability(self):
         """Test data availability validation."""
         # Test with end date
-        result = self.service.validate_data_availability(
-            date(2023, 1, 1),
-            date(2023, 12, 31)
-        )
+        result = self.service.validate_data_availability(date(2023, 1, 1), date(2023, 12, 31))
         self.assertTrue(result)
         self.mock_provider._validate_date_range.assert_called_once()
 
@@ -100,16 +97,14 @@ class TestWeatherService(unittest.TestCase):
             name="Mock Station",
             latitude=37.8,
             longitude=-122.3,
-            distance_km=5.0
+            distance_km=5.0,
         )
         self.mock_provider._get_nearest_station.return_value = mock_station
 
         station = self.service.find_nearest_station(37.8716, -122.2727)
 
         self.assertEqual(station, mock_station)
-        self.mock_provider._get_nearest_station.assert_called_once_with(
-            37.8716, -122.2727, 100.0
-        )
+        self.mock_provider._get_nearest_station.assert_called_once_with(37.8716, -122.2727, 100.0)
 
     def test_get_weather_data_success(self):
         """Test successful weather data retrieval."""
@@ -120,7 +115,7 @@ class TestWeatherService(unittest.TestCase):
             year=2023,
             month=1,
             avg_temp_c=10.5,
-            data_source="Mock"
+            data_source="Mock",
         )
         self.mock_provider.get_weather_data.return_value = mock_weather
 
@@ -133,18 +128,13 @@ class TestWeatherService(unittest.TestCase):
         self.assertEqual(weather.station_id, "TEST001")  # Should be set from location
 
         # Verify provider was called
-        self.mock_provider.get_weather_data.assert_called_once_with(
-            37.8716, -122.2727, 2023, 1
-        )
+        self.mock_provider.get_weather_data.assert_called_once_with(37.8716, -122.2727, 2023, 1)
 
     def test_get_weather_data_invalid_location(self):
         """Test weather data retrieval with invalid location."""
         # Invalid location
         invalid_location = LocationInfo(
-            geo_lat=200,  # Invalid latitude
-            geo_lng=-122.2727,
-            zipcode="00000",
-            state="XX"
+            geo_lat=200, geo_lng=-122.2727, zipcode="00000", state="XX"  # Invalid latitude
         )
 
         weather = self.service.get_weather_data(invalid_location, 2023, 1)
@@ -163,7 +153,7 @@ class TestWeatherService(unittest.TestCase):
                 year=2023,
                 month=month,
                 avg_temp_c=10.0 + month,
-                data_source="Mock"
+                data_source="Mock",
             )
             for month in range(1, 4)
         ]
@@ -190,7 +180,7 @@ class TestWeatherService(unittest.TestCase):
                 year=2023,
                 month=1,
                 avg_temp_c=10.0,
-                data_source="Existing"
+                data_source="Existing",
             ),
             WeatherData(
                 latitude=37.8716,
@@ -198,8 +188,8 @@ class TestWeatherService(unittest.TestCase):
                 year=2023,
                 month=3,
                 avg_temp_c=14.0,
-                data_source="Existing"
-            )
+                data_source="Existing",
+            ),
         ]
 
         # Mock provider to return data for month 2
@@ -209,7 +199,7 @@ class TestWeatherService(unittest.TestCase):
             year=2023,
             month=2,
             avg_temp_c=12.0,
-            data_source="Mock"
+            data_source="Mock",
         )
         self.mock_provider.get_weather_data.return_value = mock_weather
 
@@ -225,11 +215,8 @@ class TestWeatherService(unittest.TestCase):
         self.assertEqual(filled[2].month, 3)
 
         # Verify only month 2 was fetched
-        self.mock_provider.get_weather_data.assert_called_once_with(
-            37.8716, -122.2727, 2023, 2
-        )
+        self.mock_provider.get_weather_data.assert_called_once_with(37.8716, -122.2727, 2023, 2)
 
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

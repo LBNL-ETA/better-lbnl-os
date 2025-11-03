@@ -29,7 +29,7 @@ BETTER_MEASURES = TOP_LEVEL_EE_MEASURES
 
 
 def _benchmark_result_to_dict(
-    benchmark_input: BenchmarkResult | dict[str, Any]
+    benchmark_input: BenchmarkResult | dict[str, Any],
 ) -> dict[str, dict[str, dict[str, float | None]]]:
     """Normalise results to the legacy benchmarking dictionary structure."""
     if isinstance(benchmark_input, dict):
@@ -78,7 +78,7 @@ def _severity_gt(value: float | None, target: float | None) -> float | None:
 
 
 def _first_trigger_lt(
-    pairs: Iterable[tuple[float | None, float | None]]
+    pairs: Iterable[tuple[float | None, float | None]],
 ) -> tuple[float | None, float | None, float | None] | None:
     for value, target in pairs:
         if _lt(value, target):
@@ -87,7 +87,7 @@ def _first_trigger_lt(
 
 
 def _first_trigger_gt(
-    pairs: Iterable[tuple[float | None, float | None]]
+    pairs: Iterable[tuple[float | None, float | None]],
 ) -> tuple[float | None, float | None, float | None] | None:
     for value, target in pairs:
         if _gt(value, target):
@@ -95,9 +95,7 @@ def _first_trigger_gt(
     return None
 
 
-def detect_symptoms(
-    benchmark_input: BenchmarkResult | dict[str, Any]
-) -> list[InefficiencySymptom]:
+def detect_symptoms(benchmark_input: BenchmarkResult | dict[str, Any]) -> list[InefficiencySymptom]:
     """Detect inefficiency symptoms using the legacy BETTER rules."""
     data = _benchmark_result_to_dict(benchmark_input)
 
@@ -319,10 +317,14 @@ def map_symptoms_to_measures(symptoms: list[InefficiencySymptom]) -> list[EEMeas
     if "high_heating_change_point" in symptom_ids:
         _add_measure("DECREASE_HEATING_SETPOINTS", "high_heating_change_point")
 
-    if "high_electricity_baseload" in symptom_ids or {
-        "low_cooling_change_point",
-        "high_heating_change_point",
-    } & symptom_ids:
+    if (
+        "high_electricity_baseload" in symptom_ids
+        or {
+            "low_cooling_change_point",
+            "high_heating_change_point",
+        }
+        & symptom_ids
+    ):
         triggers = [
             sid
             for sid in (

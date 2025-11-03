@@ -22,7 +22,7 @@ class TestNormalizeSpaceType:
             normalize_space_type(None)
 
         with pytest.raises(ValueError, match="Space type must be a string"):
-            normalize_space_type(['Office'])
+            normalize_space_type(["Office"])
 
     def test_enum_member_name(self):
         """Test normalization with enum member names."""
@@ -44,7 +44,9 @@ class TestNormalizeSpaceType:
         """Test normalization with exact synonym match."""
         assert normalize_space_type("Retail") == BuildingSpaceType.RETAIL_STORE.value
         assert normalize_space_type("School") == BuildingSpaceType.K12.value
-        assert normalize_space_type("Warehouse") == BuildingSpaceType.NON_REFRIGERATED_WAREHOUSE.value
+        assert (
+            normalize_space_type("Warehouse") == BuildingSpaceType.NON_REFRIGERATED_WAREHOUSE.value
+        )
         assert normalize_space_type("Library") == BuildingSpaceType.PUBLIC_LIBRARY.value
 
     def test_synonym_case_insensitive(self):
@@ -53,7 +55,9 @@ class TestNormalizeSpaceType:
         assert normalize_space_type("RETAIL") == BuildingSpaceType.RETAIL_STORE.value
         assert normalize_space_type("school") == BuildingSpaceType.K12.value
         assert normalize_space_type("SCHOOL") == BuildingSpaceType.K12.value
-        assert normalize_space_type("warehouse") == BuildingSpaceType.NON_REFRIGERATED_WAREHOUSE.value
+        assert (
+            normalize_space_type("warehouse") == BuildingSpaceType.NON_REFRIGERATED_WAREHOUSE.value
+        )
         assert normalize_space_type("library") == BuildingSpaceType.PUBLIC_LIBRARY.value
 
     def test_whitespace_trimming(self):
@@ -101,7 +105,10 @@ class TestSpaceTypeToBuildingSpaceType:
         """Test that synonyms return the correct enum."""
         assert space_type_to_building_space_type("Retail") == BuildingSpaceType.RETAIL_STORE
         assert space_type_to_building_space_type("School") == BuildingSpaceType.K12
-        assert space_type_to_building_space_type("Warehouse") == BuildingSpaceType.NON_REFRIGERATED_WAREHOUSE
+        assert (
+            space_type_to_building_space_type("Warehouse")
+            == BuildingSpaceType.NON_REFRIGERATED_WAREHOUSE
+        )
         assert space_type_to_building_space_type("Library") == BuildingSpaceType.PUBLIC_LIBRARY
 
     def test_fallback_to_other(self):

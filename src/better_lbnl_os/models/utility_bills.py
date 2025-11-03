@@ -97,6 +97,7 @@ class CalendarizedData(BaseModel):
         Returns:
             Dictionary in legacy format
         """
+
         def fmt_months(ms: list[date]) -> list[str]:
             return [m.strftime("%Y-%m-01") for m in ms]
 
@@ -118,7 +119,9 @@ class CalendarizedData(BaseModel):
                 "periods": fmt_months(self.aggregated.months),  # Modern key
                 "v_x": fmt_months(self.aggregated.months),  # Legacy alias for Django compatibility
                 "days_in_period": list(self.aggregated.days_in_period),  # Modern key
-                "ls_n_days": list(self.aggregated.days_in_period),  # Legacy alias for Django compatibility
+                "ls_n_days": list(
+                    self.aggregated.days_in_period
+                ),  # Legacy alias for Django compatibility
                 "dict_v_energy": self.aggregated.energy_kwh,
                 "dict_v_costs": self.aggregated.cost,
                 "dict_v_ghg": self.aggregated.ghg_kg,
@@ -138,6 +141,7 @@ class CalendarizedData(BaseModel):
         Returns:
             CalendarizedData instance
         """
+
         def parse_months(vx: list[str] | None) -> list[date]:
             out: list[date] = []
             for s in vx or []:
@@ -164,7 +168,9 @@ class CalendarizedData(BaseModel):
 
         detailed = FuelAggregation(
             months=parse_months(detailed_d.get("v_x")),
-            days_in_period=list(aggregated_d.get("ls_n_days", [])),  # No separate days at fuel-level
+            days_in_period=list(
+                aggregated_d.get("ls_n_days", [])
+            ),  # No separate days at fuel-level
             energy_kwh=dict(detailed_d.get("dict_v_energy", {})),
             cost=dict(detailed_d.get("dict_v_costs", {})),
             ghg_kg=dict(detailed_d.get("dict_v_ghg", {})),

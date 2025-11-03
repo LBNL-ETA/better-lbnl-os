@@ -61,11 +61,13 @@ def _map_columns(
     for key, candidates in spec.items():
         col = _find_column(df, candidates)
         if col is None and key not in optional:
-            errors.append(ParseMessage(
-                severity="error",
-                sheet=sheet,
-                message=f"Missing required column for {key}: one of {candidates}",
-            ))
+            errors.append(
+                ParseMessage(
+                    severity="error",
+                    sheet=sheet,
+                    message=f"Missing required column for {key}: one of {candidates}",
+                )
+            )
         elif col is not None:
             mapping[key] = col
     return mapping
@@ -90,7 +92,9 @@ def read_better_excel(file_like, lang: str | None = None) -> ParsedPortfolio:
             usecols=config.META_USE_COLS,
         )
     except Exception as e:
-        result.errors.append(ParseMessage(severity="error", sheet=sn.meta, message=f"Failed to read sheet: {e}"))
+        result.errors.append(
+            ParseMessage(severity="error", sheet=sn.meta, message=f"Failed to read sheet: {e}")
+        )
         return result
 
     try:
@@ -102,7 +106,9 @@ def read_better_excel(file_like, lang: str | None = None) -> ParsedPortfolio:
             parse_dates=config.BILLS_DATE_COLS,
         )
     except Exception as e:
-        result.errors.append(ParseMessage(severity="error", sheet=sn.bills, message=f"Failed to read sheet: {e}"))
+        result.errors.append(
+            ParseMessage(severity="error", sheet=sn.bills, message=f"Failed to read sheet: {e}")
+        )
         return result
 
     # Map columns (no need for retry logic with deterministic skiprows)
@@ -141,9 +147,13 @@ def read_better_excel(file_like, lang: str | None = None) -> ParsedPortfolio:
             )
             buildings[bldg_id] = b
         except Exception as e:
-            result.errors.append(ParseMessage(
-                severity="error", sheet=sn.meta, message=f"Invalid building row: {e}",
-            ))
+            result.errors.append(
+                ParseMessage(
+                    severity="error",
+                    sheet=sn.meta,
+                    message=f"Invalid building row: {e}",
+                )
+            )
 
     # Filter bills: positive consumption and known building IDs
     df_bills = df_bills.copy()
@@ -164,8 +174,8 @@ def read_better_excel(file_like, lang: str | None = None) -> ParsedPortfolio:
             bid = str(row[bills_map["BLDG_ID"]]).strip()
             start_dt = pd.to_datetime(row[bills_map["START"]])
             end_dt = pd.to_datetime(row[bills_map["END"]])
-            start = start_dt.date() if hasattr(start_dt, 'date') else pd.Timestamp(start_dt).date()
-            end = end_dt.date() if hasattr(end_dt, 'date') else pd.Timestamp(end_dt).date()
+            start = start_dt.date() if hasattr(start_dt, "date") else pd.Timestamp(start_dt).date()
+            end = end_dt.date() if hasattr(end_dt, "date") else pd.Timestamp(end_dt).date()
             if end <= start:
                 raise ValueError("End date must be after start date")
             fuel = str(row[bills_map["FUEL"]]).strip()
@@ -175,7 +185,11 @@ def read_better_excel(file_like, lang: str | None = None) -> ParsedPortfolio:
             # Try mapping PM-like names if present; otherwise preserve
             cons = float(row[bills_map["CONSUMPTION"]])
             cost = None
-            if bills_map.get("COST") and bills_map["COST"] in df_bills.columns and pd.notna(row[bills_map["COST"]]):
+            if (
+                bills_map.get("COST")
+                and bills_map["COST"] in df_bills.columns
+                and pd.notna(row[bills_map["COST"]])
+            ):
                 try:
                     cost = float(row[bills_map["COST"]])
                 except Exception:
@@ -190,12 +204,14 @@ def read_better_excel(file_like, lang: str | None = None) -> ParsedPortfolio:
             )
             bills_by_building.setdefault(bid, []).append(ub)
         except Exception as e:
-            result.errors.append(ParseMessage(
-                severity="error",
-                sheet=sn.bills,
-                row=int(idx) if isinstance(idx, (int, float)) else None,
-                message=f"Invalid bill row: {e}",
-            ))
+            result.errors.append(
+                ParseMessage(
+                    severity="error",
+                    sheet=sn.bills,
+                    row=int(idx) if isinstance(idx, (int, float)) else None,
+                    message=f"Invalid bill row: {e}",
+                )
+            )
 
     result.buildings = list(buildings.values())
     result.bills_by_building = bills_by_building

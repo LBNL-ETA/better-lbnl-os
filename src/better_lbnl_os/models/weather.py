@@ -1,6 +1,5 @@
 """Weather domain models."""
 
-
 from pydantic import BaseModel, Field
 
 
@@ -46,7 +45,9 @@ class WeatherData(BaseModel):
 class WeatherSeries(BaseModel):
     """Monthly weather time series aligned to calendar months."""
 
-    months: list[__import__('datetime').date] = Field(default_factory=list, description="List of YYYY-MM-01 dates")
+    months: list[__import__("datetime").date] = Field(
+        default_factory=list, description="List of YYYY-MM-01 dates"
+    )
     degC: list[float] = Field(default_factory=list, description="Monthly average temperature in °C")
     degF: list[float] = Field(default_factory=list, description="Monthly average temperature in °F")
 

@@ -74,7 +74,11 @@ FOSSIL_DEFAULT_FUEL = {
 
 @lru_cache
 def _load_fuel_price_table() -> pd.DataFrame:
-    with resources.files("better_lbnl_os.data.defaults").joinpath("US_fuel_price_2024.csv").open("rb") as fp:
+    with (
+        resources.files("better_lbnl_os.data.defaults")
+        .joinpath("US_fuel_price_2024.csv")
+        .open("rb") as fp
+    ):
         df = pd.read_csv(fp)
     df["States"] = df["States"].str.upper()
     return df.set_index("States")
@@ -82,7 +86,11 @@ def _load_fuel_price_table() -> pd.DataFrame:
 
 @lru_cache
 def _load_zip_region_map() -> dict[str, str]:
-    with resources.files("better_lbnl_os.data.defaults").joinpath("zip_region_map.csv").open("rb") as fp:
+    with (
+        resources.files("better_lbnl_os.data.defaults")
+        .joinpath("zip_region_map.csv")
+        .open("rb") as fp
+    ):
         df = pd.read_csv(fp, dtype={"str_ZIP": str})
     df["zipcode"] = df["str_ZIP"].str.zfill(5)
     return dict(zip(df["zipcode"], df["eGRID_Subregion_1"], strict=False))
@@ -90,13 +98,21 @@ def _load_zip_region_map() -> dict[str, str]:
 
 @lru_cache
 def _load_egrid_factors() -> dict[str, dict[str, float]]:
-    with resources.files("better_lbnl_os.data.defaults").joinpath("egrid_emission_factors_2024.json").open("r", encoding="utf-8") as fp:
+    with (
+        resources.files("better_lbnl_os.data.defaults")
+        .joinpath("egrid_emission_factors_2024.json")
+        .open("r", encoding="utf-8") as fp
+    ):
         return json.load(fp)
 
 
 @lru_cache
 def _load_fossil_factors() -> dict[str, dict[str, dict[str, float]]]:
-    with resources.files("better_lbnl_os.data.defaults").joinpath("fossil_emission_factors_2024.json").open("r", encoding="utf-8") as fp:
+    with (
+        resources.files("better_lbnl_os.data.defaults")
+        .joinpath("fossil_emission_factors_2024.json")
+        .open("r", encoding="utf-8") as fp
+    ):
         return json.load(fp)
 
 
@@ -145,7 +161,9 @@ def infer_state_from_address(address: str | None) -> str | None:
     return None
 
 
-def get_default_fuel_price(energy_type: str, state: str | None, country_code: str | None) -> float | None:
+def get_default_fuel_price(
+    energy_type: str, state: str | None, country_code: str | None
+) -> float | None:
     """Get default fuel price for energy type and location.
 
     Args:
@@ -190,7 +208,9 @@ def lookup_egrid_subregion(zipcode: str | None) -> str | None:
     return None
 
 
-def get_electric_emission_factor(region: str | None, country_code: str | None) -> dict[str, float] | None:
+def get_electric_emission_factor(
+    region: str | None, country_code: str | None
+) -> dict[str, float] | None:
     """Get electric emission factors for a region.
 
     Args:
@@ -226,4 +246,3 @@ def get_fossil_emission_factor(
     if not group:
         return None
     return group.get(fuel_token)
-

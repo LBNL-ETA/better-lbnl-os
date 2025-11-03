@@ -54,4 +54,3 @@ __all__ = [
     "space_type_to_benchmark_category",
     "space_type_to_building_space_type",
 ]
-

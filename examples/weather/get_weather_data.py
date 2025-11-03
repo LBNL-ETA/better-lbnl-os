@@ -23,7 +23,7 @@ def get_monthly_weather():
         zipcode="94709",
         state="CA",
         country_code="US",
-        noaa_station_name="Berkeley, CA"
+        noaa_station_name="Berkeley, CA",
     )
 
     # Create weather service with OpenMeteo provider
@@ -57,7 +57,7 @@ def get_annual_weather():
         zipcode="85001",
         state="AZ",
         country_code="US",
-        noaa_station_name="Phoenix, AZ"
+        noaa_station_name="Phoenix, AZ",
     )
 
     # Create weather service
@@ -79,7 +79,7 @@ def get_annual_weather():
         print("-" * 36)
 
         for weather in weather_data:
-            month_name = date(weather.year, weather.month, 1).strftime('%b')
+            month_name = date(weather.year, weather.month, 1).strftime("%b")
             print(f"{month_name:6} | {weather.avg_temp_c:13.1f} | {weather.avg_temp_f:13.1f}")
     else:
         print("Failed to retrieve weather data")
@@ -95,20 +95,20 @@ def compare_locations():
     locations = [
         {
             "name": "San Francisco, CA",
-            "location": LocationInfo(geo_lat=37.7749, geo_lng=-122.4194, state="CA")
+            "location": LocationInfo(geo_lat=37.7749, geo_lng=-122.4194, state="CA"),
         },
         {
             "name": "Chicago, IL",
-            "location": LocationInfo(geo_lat=41.8781, geo_lng=-87.6298, state="IL")
+            "location": LocationInfo(geo_lat=41.8781, geo_lng=-87.6298, state="IL"),
         },
         {
             "name": "Miami, FL",
-            "location": LocationInfo(geo_lat=25.7617, geo_lng=-80.1918, state="FL")
+            "location": LocationInfo(geo_lat=25.7617, geo_lng=-80.1918, state="FL"),
         },
         {
             "name": "Denver, CO",
-            "location": LocationInfo(geo_lat=39.7392, geo_lng=-104.9903, state="CO")
-        }
+            "location": LocationInfo(geo_lat=39.7392, geo_lng=-104.9903, state="CO"),
+        },
     ]
 
     # Create weather service

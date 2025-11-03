@@ -296,7 +296,9 @@ CONVERSION_TABLES: dict[FuelType, dict[FuelUnit, float]] = {
 }
 
 
-def _flatten_conversion_tables(tables: Mapping[FuelType, Mapping[FuelUnit, float]]) -> dict[tuple[str, str], float]:
+def _flatten_conversion_tables(
+    tables: Mapping[FuelType, Mapping[FuelUnit, float]],
+) -> dict[tuple[str, str], float]:
     output: dict[tuple[str, str], float] = {}
     for fuel, unit_map in tables.items():
         for unit, factor in unit_map.items():
@@ -429,7 +431,6 @@ _UNIT_ALIAS_MAP: dict[str, FuelUnit] = {
     "gal (us)": FuelUnit.GALLONS_US,
     "gal (uk)": FuelUnit.GALLONS_UK,
 }
-
 
 
 def normalize_fuel_type(value: str | None) -> str | None:

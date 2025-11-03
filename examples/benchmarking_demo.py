@@ -30,7 +30,7 @@ def main():
             cooling_slope=0.025,
             r_squared=0.85,
             cvrmse=0.18,
-            model_type='5P'
+            model_type="5P",
         ),
         ChangePointModelResult(
             heating_slope=-0.012,
@@ -40,7 +40,7 @@ def main():
             cooling_slope=0.030,
             r_squared=0.78,
             cvrmse=0.22,
-            model_type='5P'
+            model_type="5P",
         ),
         ChangePointModelResult(
             heating_slope=-0.018,
@@ -50,7 +50,7 @@ def main():
             cooling_slope=0.020,
             r_squared=0.82,
             cvrmse=0.19,
-            model_type='5P'
+            model_type="5P",
         ),
         ChangePointModelResult(
             heating_slope=-0.014,
@@ -60,7 +60,7 @@ def main():
             cooling_slope=0.028,
             r_squared=0.80,
             cvrmse=0.20,
-            model_type='5P'
+            model_type="5P",
         ),
     ]
 
@@ -78,27 +78,37 @@ def main():
         if elec.baseload:
             print(f"  Baseload: median={elec.baseload.median:.3f}, stdev={elec.baseload.stdev:.3f}")
         if elec.cooling_change_point:
-            print(f"  Cooling CP: median={elec.cooling_change_point.median:.1f}°C, stdev={elec.cooling_change_point.stdev:.1f}")
+            print(
+                f"  Cooling CP: median={elec.cooling_change_point.median:.1f}°C, stdev={elec.cooling_change_point.stdev:.1f}"
+            )
         if elec.cooling_slope:
-            print(f"  Cooling Slope: median={elec.cooling_slope.median:.4f}, stdev={elec.cooling_slope.stdev:.4f}")
+            print(
+                f"  Cooling Slope: median={elec.cooling_slope.median:.4f}, stdev={elec.cooling_slope.stdev:.4f}"
+            )
 
     print("\nFossil Fuel Benchmarks:")
     if benchmark_stats.FOSSIL_FUEL:
         fossil = benchmark_stats.FOSSIL_FUEL
         if fossil.baseload:
-            print(f"  Baseload: median={fossil.baseload.median:.3f}, stdev={fossil.baseload.stdev:.3f}")
+            print(
+                f"  Baseload: median={fossil.baseload.median:.3f}, stdev={fossil.baseload.stdev:.3f}"
+            )
         if fossil.heating_change_point:
-            print(f"  Heating CP: median={fossil.heating_change_point.median:.1f}°C, stdev={fossil.heating_change_point.stdev:.1f}")
+            print(
+                f"  Heating CP: median={fossil.heating_change_point.median:.1f}°C, stdev={fossil.heating_change_point.stdev:.1f}"
+            )
         if fossil.heating_slope:
-            print(f"  Heating Slope: median={fossil.heating_slope.median:.4f}, stdev={fossil.heating_slope.stdev:.4f}")
+            print(
+                f"  Heating Slope: median={fossil.heating_slope.median:.4f}, stdev={fossil.heating_slope.stdev:.4f}"
+            )
 
-    print("\n" + "="*60 + "\n")
+    print("\n" + "=" * 60 + "\n")
 
     # 3. Create a test building to benchmark
     print("3. Creating test building to benchmark...")
 
     test_building_models = {
-        'ELECTRICITY': ChangePointModelResult(
+        "ELECTRICITY": ChangePointModelResult(
             heating_slope=None,
             heating_change_point=None,
             baseload=2.5,  # Higher than median (worse performance)
@@ -106,9 +116,9 @@ def main():
             cooling_slope=0.035,  # Higher than median (worse performance)
             r_squared=0.75,
             cvrmse=0.25,
-            model_type='3P-C'
+            model_type="3P-C",
         ),
-        'FOSSIL_FUEL': ChangePointModelResult(
+        "FOSSIL_FUEL": ChangePointModelResult(
             heating_slope=-0.010,  # Less negative than median (worse performance)
             heating_change_point=18.0,  # Higher than median (worse performance)
             baseload=2.3,  # Higher than median (worse performance)
@@ -116,8 +126,8 @@ def main():
             cooling_slope=None,
             r_squared=0.77,
             cvrmse=0.23,
-            model_type='3P-H'
-        )
+            model_type="3P-H",
+        ),
     }
 
     print("Test building characteristics:")
@@ -131,7 +141,7 @@ def main():
     print(f"    Heating CP: {test_building_models['FOSSIL_FUEL'].heating_change_point}°C")
     print(f"    Heating Slope: {test_building_models['FOSSIL_FUEL'].heating_slope}")
 
-    print("\n" + "="*60 + "\n")
+    print("\n" + "=" * 60 + "\n")
 
     # 4. Benchmark the test building
     print("4. Benchmarking test building...")
@@ -140,8 +150,8 @@ def main():
         change_point_results=test_building_models,
         benchmark_statistics=benchmark_stats,
         floor_area=5000.0,  # 5000 sq ft building
-        savings_target='NOMINAL',
-        building_id='test_building_001'
+        savings_target="NOMINAL",
+        building_id="test_building_001",
     )
 
     # 5. Display results
@@ -208,14 +218,14 @@ def main():
             print(f"    Target: {hs.target_value:.4f}")
 
     # 6. Overall assessment
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("6. Overall Assessment:")
 
-    elec_rating = benchmark_result.get_overall_rating('ELECTRICITY')
-    fossil_rating = benchmark_result.get_overall_rating('FOSSIL_FUEL')
+    elec_rating = benchmark_result.get_overall_rating("ELECTRICITY")
+    fossil_rating = benchmark_result.get_overall_rating("FOSSIL_FUEL")
 
-    elec_percentile = benchmark_result.get_average_percentile('ELECTRICITY')
-    fossil_percentile = benchmark_result.get_average_percentile('FOSSIL_FUEL')
+    elec_percentile = benchmark_result.get_average_percentile("ELECTRICITY")
+    fossil_percentile = benchmark_result.get_average_percentile("FOSSIL_FUEL")
 
     print(f"\nElectricity Overall Rating: {elec_rating}")
     if elec_percentile:

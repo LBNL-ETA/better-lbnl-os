@@ -6,6 +6,7 @@ This module provides comprehensive geographic functionality including:
 - Location data enrichment (weather stations, eGrid regions)
 - Geographic utility functions
 """
+
 import logging
 import math
 
@@ -26,6 +27,7 @@ EARTH_RADIUS_KM = 6371.0
 # =============================================================================
 # BASIC GEOGRAPHIC CALCULATIONS
 # =============================================================================
+
 
 def haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     """Calculate the haversine distance between two coordinate points.
@@ -52,8 +54,7 @@ def haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> fl
     dlat = lat2_rad - lat1_rad
     dlon = lon2_rad - lon1_rad
 
-    a = (math.sin(dlat / 2) ** 2 +
-         math.cos(lat1_rad) * math.cos(lat2_rad) * math.sin(dlon / 2) ** 2)
+    a = math.sin(dlat / 2) ** 2 + math.cos(lat1_rad) * math.cos(lat2_rad) * math.sin(dlon / 2) ** 2
 
     c = 2 * math.asin(math.sqrt(a))
 
@@ -87,6 +88,7 @@ def radians_to_degrees(radians: float) -> float:
 # GEOCODING SERVICES
 # =============================================================================
 
+
 def geocode(address: str, api_key: str, weather_stations: list | None = None) -> LocationInfo:
     """Main geocoding function that provides complete location information.
 
@@ -107,11 +109,12 @@ def geocode(address: str, api_key: str, weather_stations: list | None = None) ->
         ValueError: If address is invalid format
         Exception: If geocoding fails or API request is denied
     """
-    logger.debug(f'Geocoding address: {address}')
+    logger.debug(f"Geocoding address: {address}")
 
     if not isinstance(address, (str, int)):
-        raise ValueError(f"Invalid address: {address}. "
-                        f"Value must be a string or integer (zip code).")
+        raise ValueError(
+            f"Invalid address: {address}. " f"Value must be a string or integer (zip code)."
+        )
 
     try:
         # Use Google Maps geocoding
@@ -133,10 +136,10 @@ def geocode(address: str, api_key: str, weather_stations: list | None = None) ->
         country_code = g.country
 
         # Extract state for US addresses
-        if country_code == 'US':
+        if country_code == "US":
             state = g.state
         else:
-            state = 'INT'
+            state = "INT"
 
     except Exception as e:
         # If it's an API denial, re-raise without wrapping
@@ -144,8 +147,10 @@ def geocode(address: str, api_key: str, weather_stations: list | None = None) ->
             raise
         # Otherwise wrap with helpful message
         logger.exception(f"Could not geocode location: {e}")
-        raise Exception(f'Cannot geocode location: {address}. '
-                       f'Please check your building address and provide more details.') from e
+        raise Exception(
+            f"Cannot geocode location: {address}. "
+            f"Please check your building address and provide more details."
+        ) from e
 
     # Find closest weather station
     noaa_station_id = None
@@ -160,7 +165,7 @@ def geocode(address: str, api_key: str, weather_stations: list | None = None) ->
 
     # Look for eGrid region
     egrid_sub_region = None
-    if country_code == 'US':
+    if country_code == "US":
         if zipcode:
             try:
                 # Create a basic eGrid mapping - in production this would be comprehensive
@@ -182,14 +187,12 @@ def geocode(address: str, api_key: str, weather_stations: list | None = None) ->
         country_code=country_code,
         noaa_station_id=noaa_station_id,
         noaa_station_name=noaa_station_name,
-        egrid_sub_region=egrid_sub_region
+        egrid_sub_region=egrid_sub_region,
     )
 
 
 def find_closest_weather_station(
-    latitude: float,
-    longitude: float,
-    weather_stations: list
+    latitude: float, longitude: float, weather_stations: list
 ) -> tuple[str, str]:
     """Find the closest weather station to given coordinates.
 
@@ -205,20 +208,19 @@ def find_closest_weather_station(
     if not weather_stations:
         raise ValueError("Weather stations list cannot be empty")
 
-    min_distance = float('inf')
+    min_distance = float("inf")
     closest_station_id = None
     closest_station_name = None
 
     for station in weather_stations:
         distance = haversine_distance(
-            latitude, longitude,
-            station['latitude'], station['longitude']
+            latitude, longitude, station["latitude"], station["longitude"]
         )
 
         if distance < min_distance:
             min_distance = distance
-            closest_station_id = station['station_ID']
-            closest_station_name = station['station_name']
+            closest_station_id = station["station_ID"]
+            closest_station_name = station["station_name"]
 
     return closest_station_id, closest_station_name
 
@@ -226,6 +228,7 @@ def find_closest_weather_station(
 # =============================================================================
 # EGRID REGION UTILITIES
 # =============================================================================
+
 
 def find_egrid_subregion(zipcode: str, egrid_mapping: dict) -> str:
     """Find the eGrid emission subregion for a US zip code.
@@ -250,13 +253,12 @@ def find_egrid_subregion(zipcode: str, egrid_mapping: dict) -> str:
     try:
         zipcode_int = int(zipcode)
     except (ValueError, TypeError):
-        logger.info(f"Could not transform zipcode to int: {zipcode}. "
-                   f"Returning 'OTHERS'...")
+        logger.info(f"Could not transform zipcode to int: {zipcode}. " f"Returning 'OTHERS'...")
         return "OTHERS"
 
     # Check for special region codes first (e.g., Berkeley, CA)
     special_region = _check_special_regions(zipcode)
-    if special_region != 'OTHERS':
+    if special_region != "OTHERS":
         return special_region
 
     # Look up in eGrid mapping
@@ -274,19 +276,30 @@ def _check_special_regions(zipcode: str) -> str:
     """
     # Berkeley, CA special zipcodes
     berkeley_zipcodes = [
-        '94701', '94702', '94703', '94704', '94705', '94706',
-        '94707', '94708', '94709', '94710', '94712', '94720'
+        "94701",
+        "94702",
+        "94703",
+        "94704",
+        "94705",
+        "94706",
+        "94707",
+        "94708",
+        "94709",
+        "94710",
+        "94712",
+        "94720",
     ]
 
     if zipcode and str(zipcode) in berkeley_zipcodes:
-        return 'SPECIAL_BERKELEY'
+        return "SPECIAL_BERKELEY"
 
-    return 'OTHERS'
+    return "OTHERS"
 
 
 # =============================================================================
 # UTILITY FUNCTIONS
 # =============================================================================
+
 
 def create_dummy_location_info() -> LocationInfo:
     """Create dummy location info for testing/fallback purposes.
@@ -302,5 +315,5 @@ def create_dummy_location_info() -> LocationInfo:
         country_code="US",
         noaa_station_id="724940-23234",
         noaa_station_name="SAN FRANCISCO INTERNATIONAL AIRPORT",
-        egrid_sub_region="CAMX"
+        egrid_sub_region="CAMX",
     )

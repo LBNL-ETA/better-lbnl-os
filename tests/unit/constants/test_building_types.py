@@ -33,7 +33,10 @@ class TestBuildingSpaceType:
         assert BuildingSpaceType.from_benchmark_id("OFFICE") == BuildingSpaceType.OFFICE
         assert BuildingSpaceType.from_benchmark_id("HOTEL") == BuildingSpaceType.HOTEL
         assert BuildingSpaceType.from_benchmark_id("K12") == BuildingSpaceType.K12
-        assert BuildingSpaceType.from_benchmark_id("MULTIFAMILY_HOUSING") == BuildingSpaceType.MULTIFAMILY_HOUSING
+        assert (
+            BuildingSpaceType.from_benchmark_id("MULTIFAMILY_HOUSING")
+            == BuildingSpaceType.MULTIFAMILY_HOUSING
+        )
         assert BuildingSpaceType.from_benchmark_id("HOSPITAL") == BuildingSpaceType.HOSPITAL
         assert BuildingSpaceType.from_benchmark_id("MUSEUM") == BuildingSpaceType.MUSEUM
         assert BuildingSpaceType.from_benchmark_id("BANK_BRANCH") == BuildingSpaceType.BANK_BRANCH
@@ -73,8 +76,14 @@ class TestSpaceTypeToBenchmarkCategory:
         assert space_type_to_benchmark_category("Office") == BuildingSpaceType.OFFICE
         assert space_type_to_benchmark_category("Hotel") == BuildingSpaceType.HOTEL
         assert space_type_to_benchmark_category("K-12 School") == BuildingSpaceType.K12
-        assert space_type_to_benchmark_category("Multifamily Housing") == BuildingSpaceType.MULTIFAMILY_HOUSING
-        assert space_type_to_benchmark_category("Hospital (General Medical & Surgical)") == BuildingSpaceType.HOSPITAL
+        assert (
+            space_type_to_benchmark_category("Multifamily Housing")
+            == BuildingSpaceType.MULTIFAMILY_HOUSING
+        )
+        assert (
+            space_type_to_benchmark_category("Hospital (General Medical & Surgical)")
+            == BuildingSpaceType.HOSPITAL
+        )
         assert space_type_to_benchmark_category("Retail Store") == BuildingSpaceType.RETAIL_STORE
         assert space_type_to_benchmark_category("Other") == BuildingSpaceType.OTHER
 
@@ -83,7 +92,10 @@ class TestSpaceTypeToBenchmarkCategory:
         assert space_type_to_benchmark_category("OFFICE") == BuildingSpaceType.OFFICE
         assert space_type_to_benchmark_category("HOTEL") == BuildingSpaceType.HOTEL
         assert space_type_to_benchmark_category("K12") == BuildingSpaceType.K12
-        assert space_type_to_benchmark_category("MULTIFAMILY_HOUSING") == BuildingSpaceType.MULTIFAMILY_HOUSING
+        assert (
+            space_type_to_benchmark_category("MULTIFAMILY_HOUSING")
+            == BuildingSpaceType.MULTIFAMILY_HOUSING
+        )
         assert space_type_to_benchmark_category("RETAIL_STORE") == BuildingSpaceType.RETAIL_STORE
 
     def test_benchmark_id_matching(self):

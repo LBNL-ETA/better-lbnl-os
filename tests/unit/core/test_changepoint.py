@@ -1,6 +1,7 @@
 """
 Tests for change-point modeling algorithms.
 """
+
 import numpy as np
 import pytest
 
@@ -70,9 +71,7 @@ class TestPiecewiseLinearFunction:
         heating_changepoint = 18.0
         baseload = 80.0
 
-        result = piecewise_linear_5p(
-            x, heating_slope, heating_changepoint, baseload, None, None
-        )
+        result = piecewise_linear_5p(x, heating_slope, heating_changepoint, baseload, None, None)
 
         # Check specific points
         # Below heating changepoint (10°C): should follow heating slope
@@ -88,9 +87,7 @@ class TestPiecewiseLinearFunction:
         cooling_changepoint = 22.0
         baseload = 80.0
 
-        result = piecewise_linear_5p(
-            x, None, None, baseload, cooling_changepoint, cooling_slope
-        )
+        result = piecewise_linear_5p(x, None, None, baseload, cooling_changepoint, cooling_slope)
 
         # Below cooling changepoint (20°C): should be baseload
         assert result[2] == baseload
@@ -108,8 +105,7 @@ class TestPiecewiseLinearFunction:
         cooling_slope = 3.0
 
         result = piecewise_linear_5p(
-            x, heating_slope, heating_changepoint, baseload,
-            cooling_changepoint, cooling_slope
+            x, heating_slope, heating_changepoint, baseload, cooling_changepoint, cooling_slope
         )
 
         # Check each regime
@@ -210,7 +206,7 @@ class TestChangePointModelIntegration:
         energy_use = np.where(
             temperature < heating_changepoint,
             heating_slope * temperature + baseload - heating_slope * heating_changepoint,
-            baseload
+            baseload,
         )
 
         # Add small amount of noise to make it realistic
@@ -248,7 +244,7 @@ class TestChangePointModelResult:
             cooling_change_point=None,
             cooling_slope=None,
             r_squared=0.85,
-            cvrmse=0.15
+            cvrmse=0.15,
         )
 
         assert result.is_valid()
@@ -264,7 +260,7 @@ class TestChangePointModelResult:
             cooling_change_point=None,
             cooling_slope=None,
             r_squared=0.3,  # Poor R²
-            cvrmse=0.8      # High CV-RMSE
+            cvrmse=0.8,  # High CV-RMSE
         )
 
         assert not result.is_valid()
@@ -279,11 +275,11 @@ class TestChangePointModelResult:
             cooling_change_point=24.0,
             cooling_slope=3.0,
             r_squared=0.85,
-            cvrmse=0.15
+            cvrmse=0.15,
         )
 
         annual_hdd = 1000  # Heating degree days
-        annual_cdd = 500   # Cooling degree days
+        annual_cdd = 500  # Cooling degree days
 
         annual_consumption = result.estimate_annual_consumption(annual_hdd, annual_cdd)
 

@@ -14,14 +14,10 @@ class TestBatchWeatherFetching(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures."""
         self.location = LocationInfo(
-            geo_lat=37.8716,
-            geo_lng=-122.2727,
-            zipcode="94709",
-            state="CA",
-            country_code="US"
+            geo_lat=37.8716, geo_lng=-122.2727, zipcode="94709", state="CA", country_code="US"
         )
 
-    @patch('better_lbnl_os.core.weather.providers.open_meteo.requests.get')
+    @patch("better_lbnl_os.core.weather.providers.open_meteo.requests.get")
     def test_openmeteo_batch_fetching(self, mock_get):
         """Test that OpenMeteo provider can fetch multiple months in one request."""
         # Mock the API response for a batch request
@@ -39,18 +35,16 @@ class TestBatchWeatherFetching(unittest.TestCase):
                     for month in range(1, 4)
                     for day in range(1, 29)
                     for hour in range(24)
-                ]
+                ],
             },
             "daily": {
                 "time": [
-                    f"2024-0{month}-{day:02d}"
-                    for month in range(1, 4)
-                    for day in range(1, 29)
+                    f"2024-0{month}-{day:02d}" for month in range(1, 4) for day in range(1, 29)
                 ],
                 "temperature_2m_min": [5.0 + month for month in range(1, 4) for _ in range(28)],
                 "temperature_2m_max": [15.0 + month for month in range(1, 4) for _ in range(28)],
-                "temperature_2m_mean": [10.0 + month for month in range(1, 4) for _ in range(28)]
-            }
+                "temperature_2m_mean": [10.0 + month for month in range(1, 4) for _ in range(28)],
+            },
         }
         mock_response.raise_for_status = Mock()
         mock_get.return_value = mock_response
@@ -63,7 +57,7 @@ class TestBatchWeatherFetching(unittest.TestCase):
             start_year=2024,
             start_month=1,
             end_year=2024,
-            end_month=3
+            end_month=3,
         )
 
         # Verify results
@@ -77,26 +71,28 @@ class TestBatchWeatherFetching(unittest.TestCase):
 
         # Verify the API call parameters
         call_args = mock_get.call_args
-        params = call_args[1]['params']
-        self.assertEqual(params['start_date'], '2024-01-01')
-        self.assertEqual(params['end_date'], '2024-03-31')
+        params = call_args[1]["params"]
+        self.assertEqual(params["start_date"], "2024-01-01")
+        self.assertEqual(params["end_date"], "2024-03-31")
 
-    @patch('better_lbnl_os.core.weather.providers.open_meteo.requests.get')
+    @patch("better_lbnl_os.core.weather.providers.open_meteo.requests.get")
     def test_service_uses_batch_when_available(self, mock_get):
         """Test that WeatherService uses batch method when provider supports it."""
         # Mock batch response
         mock_response = MagicMock()
         mock_response.json.return_value = {
             "hourly": {
-                "time": [f"2024-01-{day:02d}T{hour:02d}:00" for day in range(1, 29) for hour in range(24)],
-                "temperature_2m": [10.0 for _ in range(28 * 24)]
+                "time": [
+                    f"2024-01-{day:02d}T{hour:02d}:00" for day in range(1, 29) for hour in range(24)
+                ],
+                "temperature_2m": [10.0 for _ in range(28 * 24)],
             },
             "daily": {
                 "time": [f"2024-01-{day:02d}" for day in range(1, 29)],
                 "temperature_2m_min": [5.0 for _ in range(28)],
                 "temperature_2m_max": [15.0 for _ in range(28)],
-                "temperature_2m_mean": [10.0 for _ in range(28)]
-            }
+                "temperature_2m_mean": [10.0 for _ in range(28)],
+            },
         }
         mock_response.raise_for_status = Mock()
         mock_get.return_value = mock_response
@@ -107,11 +103,7 @@ class TestBatchWeatherFetching(unittest.TestCase):
 
         # Get weather range
         weather_data = service.get_weather_range(
-            self.location,
-            start_year=2024,
-            start_month=1,
-            end_year=2024,
-            end_month=1
+            self.location, start_year=2024, start_month=1, end_year=2024, end_month=1
         )
 
         # Verify batch was used (only 1 API call)
@@ -131,7 +123,7 @@ class TestBatchWeatherFetching(unittest.TestCase):
             year=2024,
             month=1,
             avg_temp_c=10.5,
-            data_source="Mock"
+            data_source="Mock",
         )
         mock_provider.get_weather_data.return_value = mock_weather
 
@@ -139,11 +131,7 @@ class TestBatchWeatherFetching(unittest.TestCase):
 
         # Get weather range
         weather_data = service.get_weather_range(
-            self.location,
-            start_year=2024,
-            start_month=1,
-            end_year=2024,
-            end_month=2
+            self.location, start_year=2024, start_month=1, end_year=2024, end_month=2
         )
 
         # Verify it fell back to month-by-month (2 calls)
@@ -151,5 +139,5 @@ class TestBatchWeatherFetching(unittest.TestCase):
         self.assertEqual(mock_provider.get_weather_data.call_count, 2)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

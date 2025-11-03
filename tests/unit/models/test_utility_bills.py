@@ -18,7 +18,7 @@ class TestUtilityBillData:
             end_date=date(2024, 1, 31),
             consumption=1000,
             units="kWh",
-            cost=150.0
+            cost=150.0,
         )
 
         assert bill.fuel_type == "ELECTRICITY"
@@ -33,7 +33,7 @@ class TestUtilityBillData:
             start_date=date(2024, 1, 1),
             end_date=date(2024, 1, 31),
             consumption=1000,
-            units="kWh"
+            units="kWh",
         )
         assert bill_elec.to_kwh() == 1000
 
@@ -43,7 +43,7 @@ class TestUtilityBillData:
             start_date=date(2024, 1, 1),
             end_date=date(2024, 1, 31),
             consumption=100,
-            units="therms"
+            units="therms",
         )
         assert abs(bill_gas.to_kwh() - 2930.7) < 0.1  # 100 therms * 29.307 kWh/therm
 
@@ -54,7 +54,7 @@ class TestUtilityBillData:
             start_date=date(2024, 1, 1),
             end_date=date(2024, 1, 31),
             consumption=1000,
-            units="kWh"
+            units="kWh",
         )
 
         assert bill.get_days() == 30
@@ -67,7 +67,7 @@ class TestUtilityBillData:
                 start_date=date(2024, 1, 31),
                 end_date=date(2024, 1, 1),
                 consumption=1000,
-                units="kWh"
+                units="kWh",
             )
 
     def test_calculate_cost_per_unit_with_cost(self):
@@ -78,7 +78,7 @@ class TestUtilityBillData:
             end_date=date(2024, 1, 31),
             consumption=1000,
             units="kWh",
-            cost=150.0
+            cost=150.0,
         )
 
         cost_per_unit = bill.calculate_cost_per_unit()
@@ -92,7 +92,7 @@ class TestUtilityBillData:
             start_date=date(2024, 1, 1),
             end_date=date(2024, 1, 31),
             consumption=1000,
-            units="kWh"
+            units="kWh",
         )
 
         assert bill.calculate_cost_per_unit() is None
@@ -105,7 +105,7 @@ class TestUtilityBillData:
             end_date=date(2024, 1, 31),
             consumption=0,
             units="kWh",
-            cost=150.0
+            cost=150.0,
         )
 
         assert bill.calculate_cost_per_unit() is None
@@ -117,7 +117,7 @@ class TestUtilityBillData:
             start_date=date(2024, 1, 1),
             end_date=date(2024, 1, 31),
             consumption=900,
-            units="kWh"
+            units="kWh",
         )
 
         daily_avg = bill.calculate_daily_average()
@@ -147,11 +147,7 @@ class TestCalendarizedData:
 
         # Create CalendarizedData with sample data
         months = [date(2024, 1, 1), date(2024, 2, 1)]
-        weather = WeatherSeries(
-            months=months,
-            degC=[15.0, 16.0],
-            degF=[59.0, 60.8]
-        )
+        weather = WeatherSeries(months=months, degC=[15.0, 16.0], degF=[59.0, 60.8])
         aggregated = EnergyAggregation(
             months=months,
             days_in_period=[31, 29],
@@ -199,10 +195,7 @@ class TestCalendarizedData:
         from better_lbnl_os.models.utility_bills import CalendarizedData
 
         legacy_dict = {
-            "weather": {
-                "degC": [15.0, 16.0],
-                "degF": [59.0, 60.8]
-            },
+            "weather": {"degC": [15.0, 16.0], "degF": [59.0, 60.8]},
             "detailed": {
                 "v_x": ["2024-01-01", "2024-02-01"],
                 "dict_v_energy": {"ELECTRICITY": [1000.0, 1100.0]},
@@ -221,7 +214,7 @@ class TestCalendarizedData:
                 "dict_v_eui": {"ELECTRICITY": [0.5, 0.55]},
                 "dict_v_unit_prices": {"ELECTRICITY": [0.15, 0.15]},
                 "dict_v_ghg_factors": {"ELECTRICITY": [0.5, 0.5]},
-            }
+            },
         }
 
         data = CalendarizedData.from_legacy_dict(legacy_dict)
@@ -265,7 +258,7 @@ class TestCalendarizedData:
                 "dict_v_eui": {},
                 "dict_v_unit_prices": {},
                 "dict_v_ghg_factors": {},
-            }
+            },
         }
 
         data = CalendarizedData.from_legacy_dict(legacy_dict)
@@ -296,7 +289,7 @@ class TestCalendarizedData:
                 "dict_v_eui": {},
                 "dict_v_unit_prices": {},
                 "dict_v_ghg_factors": {},
-            }
+            },
         }
 
         data = CalendarizedData.from_legacy_dict(legacy_dict)

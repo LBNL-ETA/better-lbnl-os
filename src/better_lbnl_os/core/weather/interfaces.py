@@ -101,4 +101,3 @@ class WeatherDataProvider(ABC):
         # Default implementation: not supported, return empty list
         # Services should fall back to month-by-month fetching
         return []
-

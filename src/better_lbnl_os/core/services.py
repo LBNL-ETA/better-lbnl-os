@@ -1,6 +1,5 @@
 """Core services for orchestrating building energy analytics workflows (moved)."""
 
-
 from better_lbnl_os.core.changepoint import ChangePointModelResult
 from better_lbnl_os.core.recommendations import EEMeasureRecommendation
 from better_lbnl_os.core.savings import SavingsEstimate
@@ -112,4 +111,3 @@ class PortfolioBenchmarkService:
             "improvement_targets": targets,
             "report_date": "2025-01-21",
         }
-

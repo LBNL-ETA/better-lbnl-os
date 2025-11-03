@@ -23,7 +23,7 @@ class TestWeatherDataModel(unittest.TestCase):
             avg_temp_c=10.5,
             min_temp_c=5.0,
             max_temp_c=15.0,
-            data_source="Test"
+            data_source="Test",
         )
 
     def test_temperature_properties(self):
@@ -45,7 +45,7 @@ class TestWeatherDataModel(unittest.TestCase):
             year=2024,
             month=1,
             avg_temp_c=10.5,
-            data_source="Test"
+            data_source="Test",
         )
 
         self.assertAlmostEqual(weather.avg_temp_f, 50.9, places=1)
@@ -66,7 +66,7 @@ class TestWeatherDataModel(unittest.TestCase):
             year=2024,
             month=7,  # July
             avg_temp_c=25.0,  # 77°F
-            data_source="Test"
+            data_source="Test",
         )
 
         calendar.monthrange(summer_weather.year, summer_weather.month)[1]
@@ -85,7 +85,7 @@ class TestWeatherDataModel(unittest.TestCase):
             year=2024,
             month=7,
             avg_temp_c=25.0,
-            data_source="Test"
+            data_source="Test",
         )
         self.assertTrue(summer_weather.avg_temp_f > 0)
 
@@ -101,7 +101,7 @@ class TestWeatherDataModel(unittest.TestCase):
             year=2024,
             month=1,
             avg_temp_c=70.0,  # Unreasonably hot
-            data_source="Test"
+            data_source="Test",
         )
         self.assertFalse(validate_temperature_range(hot_weather.avg_temp_c))
 
@@ -112,7 +112,7 @@ class TestWeatherDataModel(unittest.TestCase):
             year=2024,
             month=1,
             avg_temp_c=-70.0,  # Unreasonably cold
-            data_source="Test"
+            data_source="Test",
         )
         self.assertFalse(validate_temperature_range(cold_weather.avg_temp_c))
 
@@ -126,7 +126,7 @@ class TestWeatherDataModel(unittest.TestCase):
                 year=2024,
                 month=month,
                 avg_temp_c=10.0,
-                data_source="Test"
+                data_source="Test",
             )
             self.assertEqual(weather.month, month)
 
@@ -138,7 +138,7 @@ class TestWeatherDataModel(unittest.TestCase):
                 year=2024,
                 month=0,  # Invalid
                 avg_temp_c=10.0,
-                data_source="Test"
+                data_source="Test",
             )
 
         with self.assertRaises(Exception):
@@ -148,7 +148,7 @@ class TestWeatherDataModel(unittest.TestCase):
                 year=2024,
                 month=13,  # Invalid
                 avg_temp_c=10.0,
-                data_source="Test"
+                data_source="Test",
             )
 
 
@@ -163,7 +163,7 @@ class TestWeatherStationModel(unittest.TestCase):
             latitude=38.5125,
             longitude=-121.5006,
             elevation=17.0,
-            data_source="NOAA"
+            data_source="NOAA",
         )
 
     def test_station_creation(self):
@@ -189,73 +189,47 @@ class TestWeatherStationModel(unittest.TestCase):
 
     def test_distance_to_same_location(self):
         """Test distance to same location is zero."""
-        distance = self.station.distance_to(
-            self.station.latitude,
-            self.station.longitude
-        )
+        distance = self.station.distance_to(self.station.latitude, self.station.longitude)
         self.assertAlmostEqual(distance, 0, places=2)
 
     def test_coordinate_validation(self):
         """Test coordinate range validation."""
         # Valid coordinates
         valid_station = WeatherStation(
-            station_id="TEST",
-            name="Test Station",
-            latitude=45.0,
-            longitude=-120.0
+            station_id="TEST", name="Test Station", latitude=45.0, longitude=-120.0
         )
         self.assertEqual(valid_station.latitude, 45.0)
         self.assertEqual(valid_station.longitude, -120.0)
 
         # Edge cases - poles and date line
         north_pole = WeatherStation(
-            station_id="NP",
-            name="North Pole",
-            latitude=90.0,
-            longitude=0.0
+            station_id="NP", name="North Pole", latitude=90.0, longitude=0.0
         )
         self.assertEqual(north_pole.latitude, 90.0)
 
         south_pole = WeatherStation(
-            station_id="SP",
-            name="South Pole",
-            latitude=-90.0,
-            longitude=0.0
+            station_id="SP", name="South Pole", latitude=-90.0, longitude=0.0
         )
         self.assertEqual(south_pole.latitude, -90.0)
 
-        date_line = WeatherStation(
-            station_id="DL",
-            name="Date Line",
-            latitude=0.0,
-            longitude=180.0
-        )
+        date_line = WeatherStation(station_id="DL", name="Date Line", latitude=0.0, longitude=180.0)
         self.assertEqual(date_line.longitude, 180.0)
 
         # Invalid coordinates should raise validation error
         with self.assertRaises(Exception):
             WeatherStation(
-                station_id="TEST",
-                name="Invalid",
-                latitude=91.0,  # Invalid
-                longitude=0.0
+                station_id="TEST", name="Invalid", latitude=91.0, longitude=0.0  # Invalid
             )
 
         with self.assertRaises(Exception):
             WeatherStation(
-                station_id="TEST",
-                name="Invalid",
-                latitude=0.0,
-                longitude=181.0  # Invalid
+                station_id="TEST", name="Invalid", latitude=0.0, longitude=181.0  # Invalid
             )
 
     def test_optional_fields(self):
         """Test optional fields can be None."""
         minimal_station = WeatherStation(
-            station_id="MIN001",
-            name="Minimal Station",
-            latitude=40.0,
-            longitude=-100.0
+            station_id="MIN001", name="Minimal Station", latitude=40.0, longitude=-100.0
         )
 
         self.assertIsNone(minimal_station.elevation)
@@ -263,5 +237,5 @@ class TestWeatherStationModel(unittest.TestCase):
         self.assertEqual(minimal_station.data_source, "NOAA")  # Default value
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

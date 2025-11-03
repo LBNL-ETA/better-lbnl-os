@@ -141,10 +141,7 @@ class TestCompleteWorkflow:
     def calendarized_data(self, building_config):
         """Load calendarized data for the configured building."""
         fixture_path = (
-            Path(__file__).parent.parent
-            / "fixtures"
-            / "utility_bills"
-            / building_config["fixture"]
+            Path(__file__).parent.parent / "fixtures" / "utility_bills" / building_config["fixture"]
         )
 
         with open(fixture_path) as f:
@@ -274,10 +271,7 @@ class TestCompleteWorkflow:
                 ff_expected["heating_slope_percentile"], abs=2.0
             )
 
-            assert (
-                fossil.heating_change_point.rating
-                == ff_expected["heating_change_point_rating"]
-            )
+            assert fossil.heating_change_point.rating == ff_expected["heating_change_point_rating"]
             assert fossil.heating_change_point.percentile == pytest.approx(
                 ff_expected["heating_change_point_percentile"], abs=2.0
             )
@@ -348,9 +342,7 @@ class TestCompleteWorkflow:
             )
 
             heating_cost = fossil_savings.component_savings.cost_usd.heating_sensitive
-            assert heating_cost == pytest.approx(
-                ff_expected["heating_cost_savings"], rel=0.05
-            )
+            assert heating_cost == pytest.approx(ff_expected["heating_cost_savings"], rel=0.05)
 
         # Combined savings
         combined_expected = building_config["expected"]["combined"]

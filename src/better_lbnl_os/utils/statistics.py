@@ -39,11 +39,11 @@ def calculate_cvrmse(y_true: np.ndarray, y_pred: np.ndarray) -> float:
         CV(RMSE) value
     """
     if len(y_true) == 0:
-        return float('inf')
+        return float("inf")
 
     mean_true = np.mean(y_true)
     if mean_true == 0:
-        return float('inf')
+        return float("inf")
 
     rmse = np.sqrt(np.mean((y_true - y_pred) ** 2))
     cvrmse = rmse / mean_true
@@ -110,7 +110,9 @@ def calculate_percentile_from_z_score(z_score: float) -> float:
     return round(stats.norm.cdf(z_score) * 100, 1)
 
 
-def calculate_coefficient_statistics(coefficient_values: list[float]) -> CoefficientBenchmarkStatistics:
+def calculate_coefficient_statistics(
+    coefficient_values: list[float],
+) -> CoefficientBenchmarkStatistics:
     """Calculate median and robust standard deviation for a coefficient.
 
     Uses median absolute deviation (MAD) scaled to approximate standard deviation
@@ -185,8 +187,8 @@ def assign_performance_rating(z_score: float) -> str:
         Performance rating string
     """
     if z_score < -1:
-        return 'Good'
+        return "Good"
     elif -1 <= z_score <= 1:
-        return 'Typical'
+        return "Typical"
     else:
-        return 'Poor'
+        return "Poor"

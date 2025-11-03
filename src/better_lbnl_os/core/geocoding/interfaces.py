@@ -17,4 +17,3 @@ class GeocodingProvider(ABC):
 
     def get_provider_name(self) -> str:
         return self.__class__.__name__
-

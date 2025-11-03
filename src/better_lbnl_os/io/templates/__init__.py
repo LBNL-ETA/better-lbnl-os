@@ -16,4 +16,3 @@ __all__ = [
     "read_portfolio",
     "read_portfolio_manager",
 ]
-

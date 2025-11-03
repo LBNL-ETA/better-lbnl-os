@@ -32,8 +32,8 @@ class TestTemperatureConversions(unittest.TestCase):
 
     def test_invalid_temperature_conversion(self):
         """Test conversion with invalid inputs."""
-        self.assertTrue(math.isnan(celsius_to_fahrenheit(float('nan'))))
-        self.assertTrue(math.isnan(fahrenheit_to_celsius(float('nan'))))
+        self.assertTrue(math.isnan(celsius_to_fahrenheit(float("nan"))))
+        self.assertTrue(math.isnan(fahrenheit_to_celsius(float("nan"))))
 
     def test_non_numeric_temperature_conversion(self):
         """Test conversion with non-numeric inputs."""
@@ -44,30 +44,30 @@ class TestTemperatureConversions(unittest.TestCase):
     def test_convert_temperature(self):
         """Test generic temperature conversion."""
         # Same unit
-        self.assertEqual(convert_temperature(20, 'C', 'C'), 20)
-        self.assertEqual(convert_temperature(68, 'F', 'F'), 68)
+        self.assertEqual(convert_temperature(20, "C", "C"), 20)
+        self.assertEqual(convert_temperature(68, "F", "F"), 68)
 
         # C to F
-        self.assertAlmostEqual(convert_temperature(0, 'C', 'F'), 32, places=2)
+        self.assertAlmostEqual(convert_temperature(0, "C", "F"), 32, places=2)
 
         # F to C
-        self.assertAlmostEqual(convert_temperature(32, 'F', 'C'), 0, places=2)
+        self.assertAlmostEqual(convert_temperature(32, "F", "C"), 0, places=2)
 
         # Invalid units
         with self.assertRaises(ValueError):
-            convert_temperature(20, 'K', 'F')
+            convert_temperature(20, "K", "F")
 
     def test_convert_temperature_list(self):
         """Test list temperature conversion."""
         temps_c = [0, 20, 100]
-        temps_f = convert_temperature_list(temps_c, 'C', 'F')
+        temps_f = convert_temperature_list(temps_c, "C", "F")
 
         self.assertAlmostEqual(temps_f[0], 32, places=2)
         self.assertAlmostEqual(temps_f[1], 68, places=2)
         self.assertAlmostEqual(temps_f[2], 212, places=2)
 
         # Empty list
-        self.assertEqual(convert_temperature_list([], 'C', 'F'), [])
+        self.assertEqual(convert_temperature_list([], "C", "F"), [])
 
 
 class TestMonthlyCalculations(unittest.TestCase):
@@ -86,7 +86,7 @@ class TestMonthlyCalculations(unittest.TestCase):
         self.assertAlmostEqual(avg, 11.5, places=2)
 
         # With NaN values
-        temps = [20, float('nan'), 30, 40]
+        temps = [20, float("nan"), 30, 40]
         avg = calculate_monthly_average(temps)
         self.assertAlmostEqual(avg, 30.0, places=2)  # (20+30+40)/3
 
@@ -94,7 +94,7 @@ class TestMonthlyCalculations(unittest.TestCase):
         self.assertTrue(math.isnan(calculate_monthly_average([])))
 
         # All NaN
-        temps = [float('nan')] * 10
+        temps = [float("nan")] * 10
         self.assertTrue(math.isnan(calculate_monthly_average(temps)))
 
     def test_calculate_monthly_average_numpy_array(self):
@@ -117,7 +117,6 @@ class TestMonthlyCalculations(unittest.TestCase):
         self.assertAlmostEqual(avg2, 15.0, places=2)
 
 
-
 class TestTemperatureValidation(unittest.TestCase):
     """Test temperature validation functions."""
 
@@ -134,9 +133,9 @@ class TestTemperatureValidation(unittest.TestCase):
         # Invalid temperatures
         self.assertFalse(validate_temperature_range(-100))
         self.assertFalse(validate_temperature_range(100))
-        self.assertFalse(validate_temperature_range(float('nan')))
-        self.assertFalse(validate_temperature_range(float('inf')))
-        self.assertFalse(validate_temperature_range(float('-inf')))
+        self.assertFalse(validate_temperature_range(float("nan")))
+        self.assertFalse(validate_temperature_range(float("inf")))
+        self.assertFalse(validate_temperature_range(float("-inf")))
 
     def test_validate_custom_range(self):
         """Test validation with custom range."""
@@ -146,5 +145,5 @@ class TestTemperatureValidation(unittest.TestCase):
         self.assertFalse(validate_temperature_range(15, min_temp_c=0, max_temp_c=10))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

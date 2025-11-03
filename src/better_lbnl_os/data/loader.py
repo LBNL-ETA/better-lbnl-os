@@ -40,7 +40,9 @@ class ReferenceStatisticsLoader:
         else:
             # Load from built-in package data
             try:
-                with importlib.resources.open_text("better_lbnl_os.data.defaults", "manifest.json") as f:
+                with importlib.resources.open_text(
+                    "better_lbnl_os.data.defaults", "manifest.json"
+                ) as f:
                     manifest_data = json.load(f)
             except (FileNotFoundError, ImportError):
                 manifest_data = {}
@@ -50,20 +52,14 @@ class ReferenceStatisticsLoader:
             if ref_meta and isinstance(ref_meta, dict):
                 ref_file = ref_meta.get("file", "reference_statistics.json")
                 try:
-                    with importlib.resources.open_text("better_lbnl_os.data.defaults", ref_file) as ref_fp:
+                    with importlib.resources.open_text(
+                        "better_lbnl_os.data.defaults", ref_file
+                    ) as ref_fp:
                         manifest_data = json.load(ref_fp)
                 except FileNotFoundError:
-                    manifest_data = {
-                        "version": "1.0.0",
-                        "created": None,
-                        "entries": []
-                    }
+                    manifest_data = {"version": "1.0.0", "created": None, "entries": []}
             else:
-                manifest_data = {
-                    "version": "1.0.0",
-                    "created": None,
-                    "entries": []
-                }
+                manifest_data = {"version": "1.0.0", "created": None, "entries": []}
 
         # Convert benchmark_id format to BuildingSpaceType enums
         processed_data = manifest_data.copy()
@@ -71,7 +67,9 @@ class ReferenceStatisticsLoader:
             if "building_type" in entry and isinstance(entry["building_type"], str):
                 try:
                     # Convert from benchmark_id to enum
-                    entry["building_type"] = BuildingSpaceType.from_benchmark_id(entry["building_type"])
+                    entry["building_type"] = BuildingSpaceType.from_benchmark_id(
+                        entry["building_type"]
+                    )
                 except ValueError:
                     # If conversion fails, skip this entry
                     continue
@@ -80,9 +78,7 @@ class ReferenceStatisticsLoader:
         return self._manifest
 
     def get_statistics(
-        self,
-        country_code: str,
-        building_type: BuildingSpaceType
+        self, country_code: str, building_type: BuildingSpaceType
     ) -> BenchmarkStatistics | None:
         """Load statistics for given country and building type.
 
