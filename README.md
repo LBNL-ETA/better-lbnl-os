@@ -134,7 +134,6 @@ If you use BETTER-LBNL-OS in your research, please cite:
 - **Author**: Han Li (hanli@lbl.gov)
 - **Project Manager**: Carolyn Szum (cszum@lbl.gov)
 - **Organization**: Lawrence Berkeley National Laboratory
-- **BETTER Web Application**: [https://better.lbl.gov](https://better.lbl.gov)
 
 ## Acknowledgments
 
