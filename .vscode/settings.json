@@ -1,8 +1,7 @@
 {
     // Python configuration
-    "python.defaultInterpreterPath": "${workspaceFolder}/.venv/Scripts/python.exe",
+    "python.defaultInterpreterPath": "${workspaceFolder}/.venv",
     "python.terminal.activateEnvironment": true,
-    
     // Testing configuration
     "python.testing.pytestEnabled": true,
     "python.testing.unittestEnabled": false,
@@ -12,28 +11,71 @@
     ],
     "python.testing.cwd": "${workspaceFolder}",
     "python.testing.autoTestDiscoverOnSaveEnabled": true,
-    
     // Path configuration
     "python.analysis.extraPaths": [
         "./src"
     ],
-    
     // Coverage and debugging
     "python.testing.debugPort": 3000,
-    
     // File associations
     "files.associations": {
         "*.py": "python"
     },
-    
     // Editor configuration for Python
     "python.linting.enabled": true,
     "python.linting.pylintEnabled": false,
     "python.linting.flake8Enabled": true,
     "python.formatting.provider": "black",
-    
     // Terminal configuration
     "terminal.integrated.env.windows": {
         "PYTHONPATH": "${workspaceFolder}/src"
+    },
+    "terminal.integrated.env.osx": {
+        "PYTHONPATH": "${workspaceFolder}/src"
+    },
+    "terminal.integrated.env.linux": {
+        "PYTHONPATH": "${workspaceFolder}/src"
+    },
+    "windowColor.mainColor": "#c2ee11",
+    "window.title": "better-lbnl-os",
+    "workbench.colorCustomizations": {
+        "statusBarItem.warningBackground": "#3c7aec",
+        "statusBarItem.warningForeground": "#ffffff",
+        "statusBarItem.warningHoverBackground": "#3c7aec",
+        "statusBarItem.warningHoverForeground": "#ffffff90",
+        "statusBarItem.remoteBackground": "#4987f9",
+        "statusBarItem.remoteForeground": "#ffffff",
+        "statusBarItem.remoteHoverBackground": "#5694ff",
+        "statusBarItem.remoteHoverForeground": "#ffffff90",
+        "statusBar.background": "#3c7aec",
+        "statusBar.foreground": "#ffffff",
+        "statusBar.border": "#3c7aec",
+        "statusBar.debuggingBackground": "#3c7aec",
+        "statusBar.debuggingForeground": "#ffffff",
+        "statusBar.debuggingBorder": "#3c7aec",
+        "statusBar.noFolderBackground": "#3c7aec",
+        "statusBar.noFolderForeground": "#ffffff",
+        "statusBar.noFolderBorder": "#3c7aec",
+        "statusBar.prominentBackground": "#3c7aec",
+        "statusBar.prominentForeground": "#ffffff",
+        "statusBar.prominentHoverBackground": "#3c7aec",
+        "statusBar.prominentHoverForeground": "#ffffff90",
+        "focusBorder": "#3c7aec99",
+        "progressBar.background": "#3c7aec",
+        "textLink.foreground": "#7cbaff",
+        "textLink.activeForeground": "#89c7ff",
+        "selection.background": "#2f6ddf",
+        "list.highlightForeground": "#3c7aec",
+        "list.focusAndSelectionOutline": "#3c7aec99",
+        "button.background": "#3c7aec",
+        "button.foreground": "#ffffff",
+        "button.hoverBackground": "#4987f9",
+        "tab.activeBorderTop": "#4987f9",
+        "pickerGroup.foreground": "#4987f9",
+        "list.activeSelectionBackground": "#3c7aec4d",
+        "panelTitle.activeBorder": "#4987f9",
+        "activityBar.activeBorder": "#3c7aec",
+        "activityBarBadge.foreground": "#ffffff",
+        "activityBarBadge.background": "#3c7aec"
     }
 }
