@@ -117,7 +117,7 @@ This project is licensed under a modified BSD license with additional DOE govern
 
 ## Citation
 
-If you use BETTER-LBNL in your research, please cite:
+If you use BETTER-LBNL-OS in your research, please cite:
 
 ```bibtex
 @software{better_lbnl_os,
@@ -134,15 +134,14 @@ If you use BETTER-LBNL in your research, please cite:
 - **Author**: Han Li (hanli@lbl.gov)
 - **Project Manager**: Carolyn Szum (cszum@lbl.gov)
 - **Organization**: Lawrence Berkeley National Laboratory
-- **Project**: [BETTER](https://better.lbl.gov)
+- **BETTER Web Application**: [https://better.lbl.gov](https://better.lbl.gov)
 
 ## Acknowledgments
 
-This work was supported by the U.S. Department of Energy's Building Technologies Office.
+This work was supported by the U.S. Department of Energy's Building Technologies Office. BETTER is part of the [DOE Building Data Tools](https://buildingdata.energy.gov/) ecosystem.
 
 - **DOE Program Manager**: Billierae Engelman
 - **Cooperative Research and Development Agreement (CRADA) Partner**: Johnson Controls, Inc. (benchmarking methodology and LEAN Energy Analysis)
-- **BETTER Web Application**: [https://better.lbl.gov](https://better.lbl.gov)
 
 ## Related Projects
 
