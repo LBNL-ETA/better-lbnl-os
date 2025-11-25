@@ -129,19 +129,20 @@ If you use BETTER-LBNL in your research, please cite:
 }
 ```
 
+## Contact
+
+- **Author**: Han Li (hanli@lbl.gov)
+- **Project Manager**: Carolyn Szum (cszum@lbl.gov)
+- **Organization**: Lawrence Berkeley National Laboratory
+- **Project**: [BETTER](https://better.lbl.gov)
+
 ## Acknowledgments
 
 This work was supported by the U.S. Department of Energy's Building Technologies Office.
 
 - **DOE Program Manager**: Billierae Engelman
-- **LBNL Project Manager**: Carolyn Szum
+- **Cooperative Research and Development Agreement (CRADA) Partner**: Johnson Controls, Inc. (benchmarking methodology and LEAN Energy Analysis)
 - **BETTER Web Application**: [https://better.lbl.gov](https://better.lbl.gov)
-
-## Contact
-
-- **Author**: Han Li (hanli@lbl.gov)
-- **Organization**: Lawrence Berkeley National Laboratory
-- **Project**: [BETTER](https://better.lbl.gov)
 
 ## Related Projects
 
