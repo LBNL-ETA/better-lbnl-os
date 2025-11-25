@@ -7,7 +7,7 @@
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 [![Documentation Status](https://readthedocs.org/projects/better-lbnl-os/badge/?version=latest)](https://better-lbnl-os.readthedocs.io/en/latest/?badge=latest)
 
-Open-source Python library for building energy analytics, extracted from BETTER (Building Efficiency Targeting Tool for Energy Retrofits).
+Open-source Python library for building energy analytics, serving as the analytical engine underlying the [BETTER web application](https://better.lbl.gov) (Building Efficiency Targeting Tool for Energy Retrofits).
 
 ## Features
 
@@ -43,34 +43,26 @@ uv pip install -e ".[dev]"
 ## Quick Start
 
 ```python
-from better_lbnl_os import BuildingData, fit_changepoint_model
+from better_lbnl_os import fit_changepoint_model
 import numpy as np
 
-# Create a building
-building = BuildingData(
-    name="Office Building A",
-    floor_area=50000,  # sq ft
-    space_type="Office",
-    location="Berkeley, CA"
-)
-
-# Prepare temperature and energy data
-temperatures = np.array([45, 50, 55, 60, 65, 70, 75, 80])  # °F
-energy_use = np.array([120, 110, 95, 85, 80, 82, 95, 115])  # kWh/day/1000sqft
+# Prepare temperature and energy data (showing heating and cooling patterns)
+temperatures = np.array([30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85])  # °F
+energy_use = np.array([150, 140, 125, 110, 95, 85, 80, 80, 85, 95, 110, 125])  # kBtu/day
 
 # Fit change-point model
 model_result = fit_changepoint_model(temperatures, energy_use)
 
 # Check model quality
 if model_result.is_valid():
-    print(f"Model Type: {model_result.model_type}")
-    print(f"R-squared: {model_result.r_squared:.3f}")
-    print(f"Baseload: {model_result.baseload:.1f}")
+    print(f"Model Type: {model_result.model_type}")  # 5P (heating and cooling)
+    print(f"R-squared: {model_result.r_squared:.3f}")  # 0.995
+    print(f"Baseload: {model_result.baseload:.1f}")  # 80.0
 ```
 
 ## Documentation
 
-Full documentation is available at [https://better-lbnl.readthedocs.io](https://better-lbnl.readthedocs.io)
+Full documentation is available at [https://better-lbnl-os.readthedocs.io](https://better-lbnl-os.readthedocs.io)
 
 ### Key Concepts
 
@@ -81,12 +73,11 @@ Full documentation is available at [https://better-lbnl.readthedocs.io](https://
 
 ## Examples
 
-See the `examples/` directory for Jupyter notebooks demonstrating:
+See the `examples/` directory for:
 
-- Basic change-point model fitting
-- Portfolio benchmarking
-- Building energy analysis workflow
-- Integration with web frameworks
+- `benchmarking_demo.py` - Building benchmarking demonstration
+- `notebooks/explore.ipynb` - Interactive exploration notebook
+- `weather/` - Weather data integration examples
 
 ## Contributing
 
@@ -122,25 +113,29 @@ pytest tests/unit/    # Only unit tests
 
 ## License
 
-This project is licensed under the BSD 3-Clause License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under a modified BSD license with additional DOE government clauses - see the [LICENSE](LICENSE) and [COPYRIGHT](COPYRIGHT) files for details.
 
 ## Citation
 
 If you use BETTER-LBNL in your research, please cite:
 
 ```bibtex
-@software{better_lbnl,
-  author = {Li, Han and others},
-  title = {BETTER-LBNL: Building Energy Analytics Library},
+@software{better_lbnl_os,
+  author = {Li, Han},
+  title = {BETTER-LBNL-OS: Open-Source Building Energy Analytics Library},
   year = {2025},
   publisher = {Lawrence Berkeley National Laboratory},
-  url = {https://github.com/LBNL-ETA/better-lbnl}
+  url = {https://github.com/LBNL-ETA/better-lbnl-os}
 }
 ```
 
 ## Acknowledgments
 
 This work was supported by the U.S. Department of Energy's Building Technologies Office.
+
+- **DOE Program Manager**: Billierae Engelman
+- **LBNL Project Manager**: Carolyn Szum
+- **BETTER Web Application**: [https://better.lbl.gov](https://better.lbl.gov)
 
 ## Contact
 

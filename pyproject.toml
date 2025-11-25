@@ -7,7 +7,7 @@ name = "better-lbnl-os"
 version = "0.1.0"
 description = "Open-source building energy analytics library extracted from BETTER (Building Efficiency Targeting Tool for Energy Retrofits)"
 readme = "README.md"
-license = "BSD-3-Clause"
+license = { file = "LICENSE" }
 authors = [
     { name = "Han Li", email = "hanli@lbl.gov" },
 ]
