@@ -60,7 +60,6 @@ Basic usage::
 
    getting_started
    user_guide
-   api_reference
    examples
    contributing
    changelog
@@ -69,10 +68,12 @@ Basic usage::
    :maxdepth: 1
    :caption: API Reference:
 
-   api/domain
-   api/algorithms
-   api/services
-   api/interfaces
+   api/models
+   api/changepoint
+   api/benchmarking
+   api/recommendations
+   api/savings
+   api/pipeline
 
 Indices and tables
 ==================
