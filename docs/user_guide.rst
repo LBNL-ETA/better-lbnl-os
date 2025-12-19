@@ -5,8 +5,7 @@ Overview
 --------
 
 BETTER-LBNL-OS is the open-source analytical engine underlying the
-`BETTER web application <https://better.lbl.gov>`_ (Building Efficiency Targeting
-Tool for Energy Retrofits). It provides Python APIs for:
+`BETTER web application <https://better.lbl.gov>`_. It provides Python APIs for:
 
 - Change-point model fitting for building energy analysis
 - Statistical benchmarking against peer buildings

@@ -7,14 +7,14 @@
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 [![Documentation Status](https://readthedocs.org/projects/better-lbnl-os/badge/?version=latest)](https://better-lbnl-os.readthedocs.io/en/latest/?badge=latest)
 
-Open-source Python library for building energy analytics, serving as the analytical engine underlying the [BETTER web application](https://better.lbl.gov) (Building Efficiency Targeting Tool for Energy Retrofits).
+Open-source Python library for building energy analytics, serving as the analytical engine underlying the Building Efficiency Targeting Tool for Energy Retrofits (BETTER) web application. BETTER is a software toolkit that enables building operators to quickly, easily identify the most cost-saving energy efficiency measures in buildings and portfolios. BETTER is made possible by support from the U.S. Department of Energy (DOE) Building Technologies Office (BTO).
 
 ## Features
 
 - **Change-point Model Fitting**: Automated fitting of 1P, 3P, and 5P change-point models for building energy analysis
-- **Building Benchmarking**: Statistical comparison of building performance against peer groups
-- **Energy Savings Estimation**: Weather-normalized savings calculations with uncertainty quantification
-- **EE Measure Recommendations**: Rule-based recommendations for energy efficiency improvements
+- **Building Benchmarking**: Statistical comparison of building energy performance against peer groups
+- **Energy Savings Estimation**: Weather-normalized energy savings calculations with uncertainty quantification
+- **Energy Efficiency Measure Recommendations**: Rule-based recommendations for energy efficiency improvements
 - **Portfolio Analytics**: Aggregate analysis across multiple buildings
 
 ## Installation
@@ -113,7 +113,7 @@ pytest tests/unit/    # Only unit tests
 
 ## License
 
-This project is licensed under a modified BSD license with additional DOE government clauses - see the [LICENSE](LICENSE) and [COPYRIGHT](COPYRIGHT) files for details.
+This project is licensed under a modified Berkeley Software Distribution (BSD) license with additional U.S. DOE government clauses - see the [LICENSE](LICENSE) and [COPYRIGHT](COPYRIGHT) files for details.
 
 ## Citation
 
@@ -131,16 +131,15 @@ If you use BETTER-LBNL-OS in your research, please cite:
 
 ## Contact
 
-- **Author**: Han Li (hanli@lbl.gov)
-- **Project Manager**: Carolyn Szum (cszum@lbl.gov)
-- **Organization**: Lawrence Berkeley National Laboratory
+- **Technical Lead**: Han Li (hanli@lbl.gov)
+- **Principal Investigator**: Carolyn Szum (cszum@lbl.gov)
 
 ## Acknowledgments
 
-This work was supported by the U.S. Department of Energy's Building Technologies Office. BETTER is part of the [DOE Building Data Tools](https://buildingdata.energy.gov/) ecosystem.
+This work was supported by the U.S. DOE BTO. BETTER is part of the [U.S. DOE Building Data Tools](https://buildingdata.energy.gov/) portfolio.
 
-- **DOE Program Manager**: Billierae Engelman
-- **Cooperative Research and Development Agreement (CRADA) Partner**: Johnson Controls, Inc. (benchmarking methodology and LEAN Energy Analysis)
+- **U.S. DOE Program Manager**: Billierae Engelman
+- **Cooperative Research and Development Agreement (CRADA) Partner**: Johnson Controls, Inc.
 
 ## Related Projects
 
