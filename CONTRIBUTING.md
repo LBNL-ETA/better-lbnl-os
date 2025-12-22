@@ -1,6 +1,6 @@
-# Contributing to BETTER-LBNL
+# Contributing to BETTER-LBNL-OS
 
-We love your input! We want to make contributing to BETTER-LBNL as easy and transparent as possible, whether it's:
+We love your input! We aim to make contributing to BETTER-LBNL-OS as easy and transparent as possible, whether it's:
 
 - Reporting a bug
 - Discussing the current state of the code
@@ -10,14 +10,14 @@ We love your input! We want to make contributing to BETTER-LBNL as easy and tran
 
 ## Development Process
 
-We use GitHub to host code, to track issues and feature requests, as well as accept pull requests.
+We use GitHub to host the code, track issues and feature requests, and accept pull requests.
 
 1. Fork the repo and create your branch from `main`.
 2. If you've added code that should be tested, add tests.
 3. If you've changed APIs, update the documentation.
 4. Ensure the test suite passes.
 5. Make sure your code lints.
-6. Issue that pull request!
+6. Submit pull request!
 
 ## Development Setup
 
@@ -80,7 +80,7 @@ pre-commit run --all-files
 
 ## Testing
 
-We use pytest for testing. Write tests for any new functionality.
+We use pytest for testing. Please write tests for any new functionality.
 
 ### Running Tests
 
@@ -128,7 +128,7 @@ def test_building_calculate_eui():
 
 ## Documentation
 
-We use Sphinx for documentation. Update docs for any API changes.
+We use Sphinx for documentation. Update documentations for any API changes.
 
 ### Building Documentation
 
@@ -143,7 +143,7 @@ make html
 - Use Google-style docstrings
 - Include type hints
 - Provide examples in docstrings
-- Update API reference for new modules
+- Update the API reference for new or changed modules
 
 Example docstring:
 ```python
@@ -166,10 +166,10 @@ def calculate_eui(self, annual_energy_kwh: float) -> float:
 
 ## Pull Request Process
 
-1. **Update CHANGELOG.md** with details of changes
+1. **Update CHANGELOG.md** with a summary of changes
 2. **Update README.md** if needed
 3. **Ensure all tests pass** locally
-4. **Update documentation** if you changed APIs
+4. **Update documentation** if you APIs were changed
 5. **Request review** from maintainers
 6. **Address feedback** promptly
 
@@ -191,12 +191,12 @@ Examples:
 
 ## Reporting Bugs
 
-Use GitHub issues to report bugs. Include:
+Please use GitHub issues to report bugs. Include:
 
 - **Summary** of the issue
 - **Steps to reproduce**
-  - Be specific!
-  - Give sample code if you can
+  - Steps to reproduce (be specific)
+  - Provide sample code, if possible
 - **Expected behavior**
 - **Actual behavior**
 - **Environment details**
@@ -206,26 +206,26 @@ Use GitHub issues to report bugs. Include:
 
 ## Feature Requests
 
-We love feature requests! Use GitHub issues with:
+We welcome feature requests! Use GitHub issues with:
 
-- **Problem description** - what problem does this solve?
-- **Proposed solution** - how would you like it to work?
-- **Alternatives considered** - what other solutions did you think about?
-- **Additional context** - mockups, examples, etc.
+- **Problem description**: What problem does this solve?
+- **Proposed solution**: How would you like it to work?
+- **Alternatives considered**: What other solutions did you think about?
+- **Additional context**: Mockups, examples, references, etc.
 
 ## Code of Conduct
 
 ### Our Pledge
 
-We pledge to make participation in our project a harassment-free experience for everyone.
+We are committed to providing a harassment-free experience for everyone participating in this project.
 
 ### Our Standards
 
 Examples of behavior that contributes to creating a positive environment:
 
 - Using welcoming and inclusive language
-- Being respectful of differing viewpoints
-- Gracefully accepting constructive criticism
+- Respecting differing viewpoints
+- Accepting constructive criticism gracefully
 - Focusing on what is best for the community
 - Showing empathy towards other community members
 
@@ -243,8 +243,8 @@ Contributors will be recognized in:
 ## Questions?
 
 Feel free to:
-- Open a [discussion](https://github.com/LBNL-ETA/better-lbnl/discussions)
-- Contact the maintainer: hanli@lbl.gov
-- Check existing [issues](https://github.com/LBNL-ETA/better-lbnl/issues)
+- Open a [discussion](https://github.com/LBNL-ETA/better-lbnl-os/discussions)
+- Contact the team: support@lbl.gov
+- Check existing [issues](https://github.com/LBNL-ETA/better-lbnl-os/issues)
 
-Thank you for contributing to BETTER-LBNL! 🎉
+Thank you for contributing to BETTER-LBNL-OS! 🎉

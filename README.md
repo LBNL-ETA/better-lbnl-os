@@ -1,4 +1,4 @@
-# BETTER-LBNL
+# BETTER-LBNL-OS
 
 [![CI](https://github.com/LBNL-ETA/better-lbnl-os/actions/workflows/ci.yml/badge.svg)](https://github.com/LBNL-ETA/better-lbnl-os/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/LBNL-ETA/better-lbnl-os/branch/main/graph/badge.svg)](https://codecov.io/gh/LBNL-ETA/better-lbnl-os)
