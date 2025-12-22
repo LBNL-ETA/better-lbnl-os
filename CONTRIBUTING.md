@@ -213,7 +213,7 @@ We welcome feature requests! Use GitHub issues with:
 - **Alternatives considered**: What other solutions did you think about?
 - **Additional context**: Mockups, examples, references, etc.
 
-## Code of Conduct
+<!-- ## Code of Conduct
 
 ### Our Pledge
 
@@ -229,7 +229,7 @@ Examples of behavior that contributes to creating a positive environment:
 - Focusing on what is best for the community
 - Showing empathy towards other community members
 
-<!-- ### Enforcement
+### Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be reported by contacting the project team at support@lbl.gov. -->
 
