@@ -1,6 +1,6 @@
 # Contributing to BETTER-LBNL-OS
 
-We love your input! We aim to make contributing to BETTER-LBNL-OS as easy and transparent as possible, whether it's:
+We aim to make contributing to BETTER-LBNL-OS as easy and transparent as possible, whether it's:
 
 - Reporting a bug
 - Discussing the current state of the code
@@ -17,7 +17,7 @@ We use GitHub to host the code, track issues and feature requests, and accept pu
 3. If you've changed APIs, update the documentation.
 4. Ensure the test suite passes.
 5. Make sure your code lints.
-6. Submit pull request!
+6. Submit pull request.
 
 ## Development Setup
 
@@ -169,7 +169,7 @@ def calculate_eui(self, annual_energy_kwh: float) -> float:
 1. **Update CHANGELOG.md** with a summary of changes
 2. **Update README.md** if needed
 3. **Ensure all tests pass** locally
-4. **Update documentation** if you APIs were changed
+4. **Update documentation** if APIs were changed
 5. **Request review** from maintainers
 6. **Address feedback** promptly
 
@@ -195,7 +195,7 @@ Please use GitHub issues to report bugs. Include:
 
 - **Summary** of the issue
 - **Steps to reproduce**
-  - Steps to reproduce (be specific)
+  - Steps to reproduce (Be specific)
   - Provide sample code, if possible
 - **Expected behavior**
 - **Actual behavior**
@@ -233,12 +233,12 @@ Examples of behavior that contributes to creating a positive environment:
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be reported by contacting the project team at support@lbl.gov. -->
 
-## Recognition
+<!-- ## Recognition
 
 Contributors will be recognized in:
 - The CHANGELOG.md file
 - The GitHub contributors page
-- Project documentation
+- Project documentation -->
 
 ## Questions?
 
@@ -247,4 +247,4 @@ Feel free to:
 - Contact the team: support@lbl.gov
 - Check existing [issues](https://github.com/LBNL-ETA/better-lbnl-os/issues)
 
-Thank you for contributing to BETTER-LBNL-OS! 🎉
+Thank you for contributing to BETTER-LBNL-OS!
