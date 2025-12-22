@@ -23,7 +23,7 @@ We use GitHub to host the code, track issues and feature requests, and accept pu
 
 ### Prerequisites
 
-- Python 3.9 or higher
+- Python 3.10 or higher
 - [uv](https://github.com/astral-sh/uv) package manager (recommended)
 - Git
 
