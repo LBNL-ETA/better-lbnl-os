@@ -229,9 +229,9 @@ Examples of behavior that contributes to creating a positive environment:
 - Focusing on what is best for the community
 - Showing empathy towards other community members
 
-### Enforcement
+<!-- ### Enforcement
 
-Instances of abusive, harassing, or otherwise unacceptable behavior may be reported by contacting the project team at hanli@lbl.gov.
+Instances of abusive, harassing, or otherwise unacceptable behavior may be reported by contacting the project team at support@lbl.gov. -->
 
 ## Recognition
 
