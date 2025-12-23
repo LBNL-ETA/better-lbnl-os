@@ -7,11 +7,11 @@
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 [![Documentation Status](https://readthedocs.org/projects/better-lbnl-os/badge/?version=latest)](https://better-lbnl-os.readthedocs.io/en/latest/?badge=latest)
 
-Open-source Python library for building energy analytics, serving as the analytical engine underlying the Building Efficiency Targeting Tool for Energy Retrofits (BETTER) web application. BETTER is a software toolkit that enables building operators to quickly, easily identify the most cost-saving energy efficiency measures in buildings and portfolios. BETTER is made possible by support from the U.S. Department of Energy (DOE) Building Technologies Office (BTO).
+Open-source Python library for building energy analytics, serving as the analytical engine underlying the Building Efficiency Targeting Tool for Energy Retrofits ([BETTER](https://better.lbl.gov/)) web application. BETTER is a software toolkit that enables building operators to quickly, easily identify the most cost-saving energy efficiency measures in buildings and portfolios. BETTER is made possible by support from the U.S. Department of Energy (DOE) Building Technologies Office (BTO).
 
 ## Features
 
-- **Change-point Model Fitting**: Automated fitting of 1, 3, 5-parameter (1P/3P/5P) change-point models for building energy analysis
+- **Change-point Model Fitting**: Automated fitting of 1-, 3-, 5-parameter (1P/3P/5P) change-point models for building energy analysis
 - **Building Benchmarking**: Statistical comparison of building energy performance against peer groups
 - **Energy Savings Estimation**: Weather-normalized energy savings calculations with uncertainty quantification
 - **Energy Efficiency Measure Recommendations**: Rule-based recommendations for energy efficiency improvements
@@ -131,6 +131,7 @@ If you use BETTER-LBNL-OS in your research, please cite:
 
 ## Contact
 
+- **Project Inquiries**: support@better.lbl.gov
 - **Technical Lead**: Han Li (hanli@lbl.gov)
 - **Principal Investigator**: Carolyn Szum (cszum@lbl.gov)
 
@@ -143,6 +144,6 @@ This work was supported by the U.S. DOE BTO. BETTER is part of the [U.S. DOE Bui
 
 ## Related Projects
 
-- [BETTER Web Application](https://better.lbl.gov): The full web-based building analysis platform
-- [BuildingSync](https://buildingsync.net): Schema for building data exchange
+- [BETTER Web Application](https://better.lbl.gov): Full web-based building analysis platform
+- [BuildingSync](https://buildingsync.net): Standard schema for building data exchange
 - [SEED Platform](https://seed-platform.org): Standard Energy Efficiency Data Platform

@@ -20,7 +20,7 @@ Welcome to BETTER-LBNL, an open-source Python library for building energy analyt
 Features
 --------
 
-- **Change-point Model Fitting**: Automated fitting of 1, 3, 5-parameter (1P/3P/5P) models
+- **Change-point Model Fitting**: Automated fitting of 1-, 3-, 5-parameter (1P/3P/5P) models
 - **Building Benchmarking**: Statistical performance comparison of building energy performance against peer groups
 - **Energy Savings Estimation**: Weather-normalized energy savings calculations with uncertainty quantification
 - **Energy Efficiency Recommendations**: Rule-based recommendations for energy efficiency improvements
