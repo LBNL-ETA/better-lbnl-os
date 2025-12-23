@@ -15,17 +15,16 @@ BETTER-LBNL Documentation
    :target: https://github.com/LBNL-ETA/better-lbnl/actions
    :alt: CI status
 
-Welcome to BETTER-LBNL, an open-source Python library for building energy analytics extracted from 
-the BETTER (Building Efficiency Targeting Tool for Energy Retrofits) platform.
+Welcome to BETTER-LBNL, an open-source Python library for building energy analytics extracted from the Building Efficiency Targeting Tool for Energy Retrofits (BETTER). BETTER is a software toolkit that enables building operators to quickly, easily identify the most cost-saving energy efficiency measures in buildings and portfolios. BETTER is made possible by support from the U.S. Department of Energy (DOE) Building Technologies Office (BTO).
 
 Features
 --------
 
-- **Change-point Model Fitting**: Automated fitting of 1P, 3P, and 5P models
-- **Building Benchmarking**: Statistical performance comparison
-- **Savings Estimation**: Weather-normalized energy savings calculations
-- **EE Recommendations**: Energy efficiency measure suggestions
-- **Portfolio Analytics**: Multi-building aggregate analysis
+- **Change-point Model Fitting**: Automated fitting of 1, 3, 5-parameter (1P/3P/5P) models
+- **Building Benchmarking**: Statistical performance comparison of building energy performance against peer groups
+- **Energy Savings Estimation**: Weather-normalized energy savings calculations with uncertainty quantification
+- **Energy Efficiency Recommendations**: Rule-based recommendations for energy efficiency improvements
+- **Portfolio Analytics**: Aggregate analysis across multiple buildings
 
 Quick Start
 -----------
@@ -75,7 +74,7 @@ Basic usage::
    api/savings
    api/pipeline
 
-Indices and tables
+Indices and Tables
 ==================
 
 * :ref:`genindex`

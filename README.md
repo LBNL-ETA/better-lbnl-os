@@ -11,7 +11,7 @@ Open-source Python library for building energy analytics, serving as the analyti
 
 ## Features
 
-- **Change-point Model Fitting**: Automated fitting of 1P, 3P, and 5P change-point models for building energy analysis
+- **Change-point Model Fitting**: Automated fitting of 1, 3, 5-parameter (1P/3P/5P) change-point models for building energy analysis
 - **Building Benchmarking**: Statistical comparison of building energy performance against peer groups
 - **Energy Savings Estimation**: Weather-normalized energy savings calculations with uncertainty quantification
 - **Energy Efficiency Measure Recommendations**: Rule-based recommendations for energy efficiency improvements
