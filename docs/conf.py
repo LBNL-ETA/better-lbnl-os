@@ -11,7 +11,7 @@ sys.path.insert(0, os.path.abspath("../src"))
 project = "BETTER-LBNL-OS"
 copyright = f"{datetime.now().year}, Lawrence Berkeley National Laboratory"
 author = "Han Li"
-release = "0.1.0"
+release = "0.1.1"
 
 # General configuration
 extensions = [
