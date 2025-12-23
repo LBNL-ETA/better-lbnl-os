@@ -195,7 +195,7 @@ Please use GitHub issues to report bugs. Include:
 
 - **Summary** of the issue
 - **Steps to reproduce**
-  - Steps to reproduce (Be specific)
+  - Be specific
   - Provide sample code, if possible
 - **Expected behavior**
 - **Actual behavior**
@@ -244,7 +244,7 @@ Contributors will be recognized in:
 
 Feel free to:
 - Open a [discussion](https://github.com/LBNL-ETA/better-lbnl-os/discussions)
-- Contact the team: support@lbl.gov
+- Contact the team: support@better.lbl.gov
 - Check existing [issues](https://github.com/LBNL-ETA/better-lbnl-os/issues)
 
 Thank you for contributing to BETTER-LBNL-OS!
