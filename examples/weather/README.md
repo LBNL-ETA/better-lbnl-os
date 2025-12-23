@@ -1,6 +1,6 @@
 # Weather Module Examples
 
-This directory contains examples demonstrating how to use the BETTER-LBNL weather module for retrieving weather data and performing energy-related calculations.
+This directory contains examples demonstrating how to use the BETTER-LBNL-OS weather module for retrieving weather data and performing energy-related calculations.
 
 ## Examples
 
@@ -34,7 +34,7 @@ Essential for building energy analysts.
 
 ## Running the Examples
 
-Make sure you have the BETTER-LBNL package installed:
+Make sure you have the BETTER-LBNL-OS package installed:
 
 ```bash
 # From the better-lbnl-os directory
@@ -112,4 +112,4 @@ OpenMeteo Commercial Tier:
 
 ## Support
 
-For questions or issues with the weather module, please refer to the main BETTER-LBNL documentation or open an issue on GitHub.
+For questions or issues with the weather module, please refer to the main BETTER-LBNL-OS documentation or open an issue on GitHub.

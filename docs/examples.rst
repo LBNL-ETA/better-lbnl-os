@@ -2,7 +2,7 @@ Examples
 ========
 
 The ``examples/`` directory contains working code samples demonstrating various
-use cases for the BETTER-LBNL library.
+use cases for the BETTER-LBNL-OS library.
 
 Benchmarking Demo
 -----------------

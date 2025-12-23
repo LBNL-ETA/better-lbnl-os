@@ -8,7 +8,7 @@ from datetime import datetime
 sys.path.insert(0, os.path.abspath("../src"))
 
 # Project information
-project = "BETTER-LBNL"
+project = "BETTER-LBNL-OS"
 copyright = f"{datetime.now().year}, Lawrence Berkeley National Laboratory"
 author = "Han Li"
 release = "0.1.0"
@@ -97,8 +97,8 @@ latex_elements = {
 latex_documents = [
     (
         "index",
-        "better-lbnl.tex",
-        "BETTER-LBNL Documentation",
+        "better-lbnl-os.tex",
+        "BETTER-LBNL-OS Documentation",
         "Han Li",
         "manual",
     ),
