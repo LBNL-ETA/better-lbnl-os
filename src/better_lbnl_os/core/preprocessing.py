@@ -175,13 +175,17 @@ def calendarize_utility_bills(
             blocks.append(
                 pd.DataFrame(daily_eui).reset_index().rename(columns={0: "daily_standard_eui"})
             )
+        # Avoid ±Inf from cost/emission ÷ zero consumption (Postgres JSON rejects Infinity).
+        # Zero-denominator months become NaN and are filled by fill_strategy below.
+        consumption_sum = grp["standard_consumption"].sum()
+        safe_consumption = consumption_sum.mask(consumption_sum == 0)
         if "standard_emission" in df.columns:
-            unit_emission = grp["standard_emission"].sum() / grp["standard_consumption"].sum()
+            unit_emission = grp["standard_emission"].sum() / safe_consumption
             blocks.append(
                 pd.DataFrame(unit_emission).reset_index().rename(columns={0: "unit_emission"})
             )
         if "standard_cost" in df.columns:
-            unit_price = grp["standard_cost"].sum() / grp["standard_consumption"].sum()
+            unit_price = grp["standard_cost"].sum() / safe_consumption
             blocks.append(pd.DataFrame(unit_price).reset_index().rename(columns={0: "unit_price"}))
 
         if not blocks:
@@ -290,6 +294,9 @@ def calendarize_utility_bills(
 
     # To YYYY-MM-01 for x-axis consistency
     df_monthly["Year-Month"] = df_monthly["Year-Month"].astype(str) + "-01"
+
+    # Defense in depth: never leave non-finite floats in unit metrics.
+    df_monthly = df_monthly.replace([float("inf"), float("-inf")], float("nan"))
 
     # Fill strategy for unit metrics if present
     if opts.fill_strategy == "mean":
