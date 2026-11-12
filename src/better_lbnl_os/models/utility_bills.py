@@ -1,5 +1,6 @@
 """Utility bill and calendarized data domain models."""
 
+import math
 from datetime import date, datetime
 
 from pydantic import BaseModel, Field, model_validator
@@ -160,10 +161,23 @@ class CalendarizedData(BaseModel):
         detailed_d = data.get("detailed", {})
         aggregated_d = data.get("aggregated", {})
 
+        def clean_float_list(vals: list | None) -> list[float]:
+            out: list[float] = []
+            for v in vals or []:
+                if v is None:
+                    out.append(0.0)
+                else:
+                    fv = float(v)
+                    out.append(fv if math.isfinite(fv) else 0.0)
+            return out
+
+        def clean_series_map(raw: dict | None) -> dict[str, list[float]]:
+            return {k: clean_float_list(vals) for k, vals in (raw or {}).items()}
+
         weather = WeatherSeries(
             months=parse_months(detailed_d.get("v_x") or aggregated_d.get("v_x")),
-            degC=list(weather_d.get("degC", [])),
-            degF=list(weather_d.get("degF", [])),
+            degC=clean_float_list(weather_d.get("degC", [])),
+            degF=clean_float_list(weather_d.get("degF", [])),
         )
 
         detailed = FuelAggregation(
@@ -171,23 +185,23 @@ class CalendarizedData(BaseModel):
             days_in_period=list(
                 aggregated_d.get("ls_n_days", [])
             ),  # No separate days at fuel-level
-            energy_kwh=dict(detailed_d.get("dict_v_energy", {})),
-            cost=dict(detailed_d.get("dict_v_costs", {})),
-            ghg_kg=dict(detailed_d.get("dict_v_ghg", {})),
-            daily_eui_kwh_per_m2=dict(detailed_d.get("dict_v_eui", {})),
-            unit_price_per_kwh=dict(detailed_d.get("dict_v_unit_prices", {})),
-            unit_emission_kg_per_kwh=dict(detailed_d.get("dict_v_ghg_factors", {})),
+            energy_kwh=clean_series_map(detailed_d.get("dict_v_energy", {})),
+            cost=clean_series_map(detailed_d.get("dict_v_costs", {})),
+            ghg_kg=clean_series_map(detailed_d.get("dict_v_ghg", {})),
+            daily_eui_kwh_per_m2=clean_series_map(detailed_d.get("dict_v_eui", {})),
+            unit_price_per_kwh=clean_series_map(detailed_d.get("dict_v_unit_prices", {})),
+            unit_emission_kg_per_kwh=clean_series_map(detailed_d.get("dict_v_ghg_factors", {})),
         )
 
         aggregated = EnergyAggregation(
             months=parse_months(aggregated_d.get("v_x")),
             days_in_period=list(aggregated_d.get("ls_n_days", [])),
-            energy_kwh=dict(aggregated_d.get("dict_v_energy", {})),
-            cost=dict(aggregated_d.get("dict_v_costs", {})),
-            ghg_kg=dict(aggregated_d.get("dict_v_ghg", {})),
-            daily_eui_kwh_per_m2=dict(aggregated_d.get("dict_v_eui", {})),
-            unit_price_per_kwh=dict(aggregated_d.get("dict_v_unit_prices", {})),
-            unit_emission_kg_per_kwh=dict(aggregated_d.get("dict_v_ghg_factors", {})),
+            energy_kwh=clean_series_map(aggregated_d.get("dict_v_energy", {})),
+            cost=clean_series_map(aggregated_d.get("dict_v_costs", {})),
+            ghg_kg=clean_series_map(aggregated_d.get("dict_v_ghg", {})),
+            daily_eui_kwh_per_m2=clean_series_map(aggregated_d.get("dict_v_eui", {})),
+            unit_price_per_kwh=clean_series_map(aggregated_d.get("dict_v_unit_prices", {})),
+            unit_emission_kg_per_kwh=clean_series_map(aggregated_d.get("dict_v_ghg_factors", {})),
         )
 
         return cls(weather=weather, detailed=detailed, aggregated=aggregated)

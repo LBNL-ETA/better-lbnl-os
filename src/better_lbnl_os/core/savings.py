@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 import re
 from collections.abc import Iterable
 from dataclasses import dataclass
@@ -174,8 +175,15 @@ def _ensure_benchmark_dict(benchmark: BenchmarkResult | dict[str, Any]) -> dict[
     raise TypeError("benchmark_input must be BenchmarkResult or dict")
 
 
-def _build_lookup(items: Iterable[str], values: Iterable[float]) -> dict[str, float]:
-    return {month: float(value) for month, value in zip(items, values, strict=False)}
+def _build_lookup(items: Iterable[str], values: Iterable[float | None]) -> dict[str, float]:
+    out: dict[str, float] = {}
+    for month, value in zip(items, values, strict=False):
+        if value is None:
+            out[month] = 0.0
+            continue
+        fval = float(value)
+        out[month] = fval if math.isfinite(fval) else 0.0
+    return out
 
 
 def _build_location_context(
@@ -314,7 +322,7 @@ def _compute_usage_arrays(
 
 
 def _fill_unit_prices(
-    prices: list[float],
+    prices: list[float | None],
     energy_type: str,
     location: LocationSummary,
 ) -> tuple[list[float], str | None]:
@@ -322,7 +330,7 @@ def _fill_unit_prices(
     filled = []
     used_default = False
     for price in prices:
-        if price and price > 0:
+        if price is not None and math.isfinite(price) and price > 0:
             filled.append(float(price))
         elif default_value is not None:
             filled.append(default_value)
@@ -348,7 +356,7 @@ def _fossil_emission_factor(energy_type: str) -> dict[str, float] | None:
 
 
 def _fill_emission_factors(
-    factors: list[float],
+    factors: list[float | None],
     energy_type: str,
     location: LocationSummary,
 ) -> tuple[list[float], str | None]:
@@ -361,7 +369,7 @@ def _fill_emission_factors(
     filled = []
     used_default = False
     for factor in factors:
-        if factor and factor > 0:
+        if factor is not None and math.isfinite(factor) and factor > 0:
             filled.append(float(factor))
         elif default_value is not None:
             filled.append(default_value)

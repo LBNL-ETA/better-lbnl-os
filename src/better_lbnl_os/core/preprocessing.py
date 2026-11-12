@@ -164,11 +164,9 @@ def calendarize_utility_bills(
     def _monthly_normalized(df: pd.DataFrame, floor: float, var: str) -> pd.DataFrame:
         # daily_standard_eui = kWh / floor_area / unique_days_in_month_group
         grp = df.groupby(["Year-Month", var])
-        daily_eui = (
-            (grp["standard_consumption"].sum() / float(floor) / grp["date"].nunique())
-            if floor > 0
-            else None
-        )
+        consumption_sum = grp["standard_consumption"].sum()
+        positive_consumption = consumption_sum.where(consumption_sum > 0)
+        daily_eui = (consumption_sum / float(floor) / grp["date"].nunique()) if floor > 0 else None
 
         blocks = []
         if daily_eui is not None:
@@ -176,12 +174,12 @@ def calendarize_utility_bills(
                 pd.DataFrame(daily_eui).reset_index().rename(columns={0: "daily_standard_eui"})
             )
         if "standard_emission" in df.columns:
-            unit_emission = grp["standard_emission"].sum() / grp["standard_consumption"].sum()
+            unit_emission = grp["standard_emission"].sum() / positive_consumption
             blocks.append(
                 pd.DataFrame(unit_emission).reset_index().rename(columns={0: "unit_emission"})
             )
         if "standard_cost" in df.columns:
-            unit_price = grp["standard_cost"].sum() / grp["standard_consumption"].sum()
+            unit_price = grp["standard_cost"].sum() / positive_consumption
             blocks.append(pd.DataFrame(unit_price).reset_index().rename(columns={0: "unit_price"}))
 
         if not blocks:
@@ -200,7 +198,9 @@ def calendarize_utility_bills(
         if not pivot_values:
             return pd.DataFrame(index=pd.Index([], name="Year-Month"))
 
-        df_monthly = df_monthly.pivot_table(index="Year-Month", columns=var, values=pivot_values)
+        df_monthly = df_monthly.pivot_table(
+            index="Year-Month", columns=var, values=pivot_values, dropna=False
+        )
         df_monthly.columns = [
             f"{var} - {' - '.join(col[::-1]).strip()}" for col in df_monthly.columns.values
         ]
@@ -290,6 +290,10 @@ def calendarize_utility_bills(
 
     # To YYYY-MM-01 for x-axis consistency
     df_monthly["Year-Month"] = df_monthly["Year-Month"].astype(str) + "-01"
+
+    # Strip any non-finite values before mean-imputation and zero-fill so
+    # CalendarizedData never emits NaN or ±Infinity.
+    df_monthly = df_monthly.replace([float("inf"), float("-inf")], float("nan"))
 
     # Fill strategy for unit metrics if present
     if opts.fill_strategy == "mean":
