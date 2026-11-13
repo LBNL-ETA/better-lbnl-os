@@ -356,3 +356,30 @@ class TestCalendarizedData:
         assert len(restored.aggregated.months) == len(original.aggregated.months)
         assert restored.aggregated.days_in_period == original.aggregated.days_in_period
         assert restored.aggregated.energy_kwh == original.aggregated.energy_kwh
+
+    def test_from_legacy_dict_sanitizes_none_and_nonfinite_floats(self):
+        """Legacy dicts with None, NaN, or ±Inf must load cleanly as 0.0."""
+        from better_lbnl_os.models.utility_bills import CalendarizedData
+
+        legacy_dict = {
+            "weather": {"degC": [15.0, None, float("nan")], "degF": [59.0, float("inf"), 60.8]},
+            "detailed": {
+                "v_x": ["2024-01-01", "2024-02-01", "2024-03-01"],
+                "dict_v_unit_prices": {"NATURAL_GAS": [0.04, None, float("inf")]},
+                "dict_v_ghg_factors": {"NATURAL_GAS": [0.18, float("-inf"), float("nan")]},
+            },
+            "aggregated": {
+                "v_x": ["2024-01-01", "2024-02-01", "2024-03-01"],
+                "ls_n_days": [31, 29, 31],
+                "dict_v_unit_prices": {"FOSSIL_FUEL": [0.04, None, float("inf")]},
+                "dict_v_ghg_factors": {"FOSSIL_FUEL": [0.18, float("-inf"), float("nan")]},
+            },
+        }
+
+        restored = CalendarizedData.from_legacy_dict(legacy_dict)
+        assert restored.weather.degC == [15.0, 0.0, 0.0]
+        assert restored.weather.degF == [59.0, 0.0, 60.8]
+        assert restored.detailed.unit_price_per_kwh["NATURAL_GAS"] == [0.04, 0.0, 0.0]
+        assert restored.detailed.unit_emission_kg_per_kwh["NATURAL_GAS"] == [0.18, 0.0, 0.0]
+        assert restored.aggregated.unit_price_per_kwh["FOSSIL_FUEL"] == [0.04, 0.0, 0.0]
+        assert restored.aggregated.unit_emission_kg_per_kwh["FOSSIL_FUEL"] == [0.18, 0.0, 0.0]
