@@ -10,7 +10,7 @@ This library provides:
 - Energy efficiency measure recommendations
 """
 
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 __author__ = "Han Li"
 __email__ = "hanli@lbl.gov"
 

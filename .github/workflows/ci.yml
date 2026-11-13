@@ -3,6 +3,7 @@ name: CI
 on:
   push:
     branches: [main, develop]
+    tags: ["v*"]
   pull_request:
     branches: [main, develop]
   workflow_dispatch:
@@ -145,7 +146,7 @@ jobs:
           sarif_file: 'trivy-results.sarif'
 
       - name: Upload Trivy results as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: always()
         with:
           name: trivy-results
@@ -222,30 +223,54 @@ jobs:
     needs: [lint, type-check, test, docs, build, security]
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
-    
+    permissions:
+      contents: write
+      id-token: write
+
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Download distribution artifact
         uses: actions/download-artifact@v6
         with:
           name: distribution
           path: dist/
-      
+
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-      
+
+      - name: Verify tag matches package version
+        run: |
+          python - <<'PY'
+          import os, pathlib, re, sys, tomllib
+
+          tag_version = os.environ["GITHUB_REF_NAME"].removeprefix("v")
+          pyproject_version = tomllib.loads(pathlib.Path("pyproject.toml").read_text())["project"]["version"]
+          init_text = pathlib.Path("src/better_lbnl_os/__init__.py").read_text()
+          init_version = re.search(r'^__version__\s*=\s*"([^"]+)"', init_text, re.M).group(1)
+
+          if not (tag_version == pyproject_version == init_version):
+              sys.exit(
+                  f"Version mismatch: tag={tag_version}, pyproject.toml={pyproject_version}, __init__.py={init_version}"
+              )
+          print(f"Verified version {tag_version}")
+          PY
+
       - name: Install uv
         uses: astral-sh/setup-uv@v7
-      
+
       - name: Publish to PyPI
         env:
           UV_PUBLISH_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
         run: |
-          uv publish --token $UV_PUBLISH_TOKEN
-      
+          if [ -n "$UV_PUBLISH_TOKEN" ]; then
+            uv publish
+          else
+            uv publish --trusted-publishing always
+          fi
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
