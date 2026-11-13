@@ -20,10 +20,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - N/A
 
 ### Fixed
-- Google forward geocoding keeps the forward coordinates, state, and country when the postal code is missing. A reverse result fills the ZIP code and eGRID subregion only when its country and normalized state match and it is within 25 km
+- N/A
 
 ### Security
 - N/A
+
+## [0.1.2] - 2026-11-13
+
+### Fixed
+- Zero-consumption calendarization no longer emits Infinity unit rates: the fuel column is kept, non-finite rates are stripped, and None or non-finite savings inputs are coerced to finite values
+- Google forward geocoding keeps the forward coordinates, state, and country when the postal code is missing. A reverse result fills the ZIP code and eGRID subregion only when its country and normalized state match and it is within 25 km
 
 ## [0.1.1] - 2025-12-22
 
@@ -40,6 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Basic project structure following hybrid architecture pattern
 - Foundation for extracting core business logic from BETTER Django app
 
-[Unreleased]: https://github.com/LBNL-ETA/better-lbnl-os/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/LBNL-ETA/better-lbnl-os/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/LBNL-ETA/better-lbnl-os/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/LBNL-ETA/better-lbnl-os/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/LBNL-ETA/better-lbnl-os/releases/tag/v0.1.0
