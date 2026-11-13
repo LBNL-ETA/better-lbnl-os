@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - N/A
 
 ### Fixed
-- N/A
+- Google forward geocoding keeps the forward coordinates, state, and country when the postal code is missing. A reverse result fills the ZIP code and eGRID subregion only when its country and normalized state match and it is within 25 km
 
 ### Security
 - N/A
