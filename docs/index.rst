@@ -11,8 +11,8 @@ BETTER-LBNL-OS Documentation
    :target: https://pypi.org/project/better-lbnl-os/
    :alt: Python versions
 
-.. image:: https://github.com/LBNL-ETA/better-lbnl/actions/workflows/ci.yml/badge.svg
-   :target: https://github.com/LBNL-ETA/better-lbnl/actions
+.. image:: https://github.com/LBNL-ETA/better-lbnl-os/actions/workflows/ci.yml/badge.svg
+   :target: https://github.com/LBNL-ETA/better-lbnl-os/actions
    :alt: CI status
 
 Welcome to BETTER-LBNL-OS, an open-source Python library for building energy analytics extracted from the `Building Efficiency Targeting Tool for Energy Retrofits (BETTER) <https://better.lbl.gov>`_. BETTER is a software toolkit that enables building operators to quickly, easily identify the most cost-saving energy efficiency measures in buildings and portfolios. BETTER is made possible by support from the U.S. Department of Energy (DOE) Building Technologies Office (BTO).

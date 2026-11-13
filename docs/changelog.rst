@@ -6,21 +6,25 @@ All notable changes to this project will be documented in this file.
 The format is based on `Keep a Changelog <https://keepachangelog.com/en/1.0.0/>`_,
 and this project adheres to `Semantic Versioning <https://semver.org/spec/v2.0.0.html>`_.
 
-Unreleased
-----------
+0.1.2 - 2026-11-13
+------------------
 
-Added
+Fixed
 ^^^^^
-- Initial project structure and configuration
-- Domain models with business logic (BuildingData, UtilityBillData, etc.)
-- Core algorithm interfaces for change-point modeling
-- Service layer for orchestrating analytics workflows
-- GitHub Actions CI/CD pipeline
-- Sphinx documentation setup
-- Pre-commit hooks for code quality
-- Comprehensive test structure
+- Zero-consumption calendarization no longer emits ``Infinity`` unit rates: the fuel column is kept, non-finite rates are stripped, and ``None`` or non-finite savings inputs are coerced to finite values
+- Google forward geocoding keeps the forward coordinates, state, and country when the postal code is missing. A reverse result fills the ZIP code and eGRID subregion only when its country and normalized state match and it is within 25 km
 
-0.1.0 - 2025-01-21
+0.1.1 - 2025-12-22
+------------------
+
+Changed
+^^^^^^^
+- Updated documentation with expanded project descriptions
+- Added hyperlinks to BETTER web application
+- Corrected project name references to BETTER-LBNL-OS
+- Updated README with clearer feature descriptions
+
+0.1.0 - 2025-12-03
 ------------------
 
 Added
@@ -31,5 +35,7 @@ Added
 
 Links
 -----
-- `Unreleased <https://github.com/LBNL-ETA/better-lbnl-os/compare/v0.1.0...HEAD>`_
-- `0.1.0 <https://github.com/LBNL-ETA/better-lbnl-os/releases/tag/v0.1.0>`_
+- `Unreleased <https://github.com/LBNL-ETA/better-lbnl-os/compare/v0.1.2...HEAD>`_
+- `0.1.2 <https://github.com/LBNL-ETA/better-lbnl-os/releases/tag/v0.1.2>`_
+- `0.1.1 <https://pypi.org/project/better-lbnl-os/0.1.1/>`_
+- `0.1.0 <https://pypi.org/project/better-lbnl-os/0.1.0/>`_
