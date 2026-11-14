@@ -258,20 +258,36 @@ jobs:
           print(f"Verified version {tag_version}")
           PY
 
+      - name: Check if version already exists on PyPI
+        id: pypi_check
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://pypi.org/pypi/better-lbnl-os/${TAG_VERSION}/json")
+          if [ "$STATUS" = "200" ]; then
+            echo "already_published=true" >> "$GITHUB_OUTPUT"
+            echo "Version ${TAG_VERSION} already exists on PyPI; skipping upload."
+          else
+            echo "already_published=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Install uv
+        if: steps.pypi_check.outputs.already_published != 'true'
         uses: astral-sh/setup-uv@v7
 
       - name: Publish to PyPI
+        if: steps.pypi_check.outputs.already_published != 'true'
         env:
           UV_PUBLISH_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
         run: |
           if [ -n "$UV_PUBLISH_TOKEN" ]; then
             uv publish
           else
+            unset UV_PUBLISH_TOKEN
             uv publish --trusted-publishing always
           fi
 
       - name: Create GitHub Release
+        if: steps.pypi_check.outputs.already_published != 'true'
         uses: softprops/action-gh-release@v2
         with:
           files: dist/*
