@@ -6,8 +6,8 @@ All notable changes to this project will be documented in this file.
 The format is based on `Keep a Changelog <https://keepachangelog.com/en/1.0.0/>`_,
 and this project adheres to `Semantic Versioning <https://semver.org/spec/v2.0.0.html>`_.
 
-Unreleased
-----------
+0.1.3 - 2026-11-17
+------------------
 
 Added
 ^^^^^
@@ -46,7 +46,8 @@ Added
 
 Links
 -----
-- `Unreleased <https://github.com/LBNL-ETA/better-lbnl-os/compare/v0.1.2...HEAD>`_
+- `Unreleased <https://github.com/LBNL-ETA/better-lbnl-os/compare/v0.1.3...HEAD>`_
+- `0.1.3 <https://github.com/LBNL-ETA/better-lbnl-os/releases/tag/v0.1.3>`_
 - `0.1.2 <https://github.com/LBNL-ETA/better-lbnl-os/releases/tag/v0.1.2>`_
 - `0.1.1 <https://pypi.org/project/better-lbnl-os/0.1.1/>`_
 - `0.1.0 <https://pypi.org/project/better-lbnl-os/0.1.0/>`_
