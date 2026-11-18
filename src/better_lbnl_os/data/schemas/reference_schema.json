@@ -96,10 +96,10 @@
           "required": ["median", "stdev"],
           "properties": {
             "median": {
-              "type": "number"
+              "type": ["number", "null"]
             },
             "stdev": {
-              "type": "number",
+              "type": ["number", "null"],
               "minimum": 0
             }
           }

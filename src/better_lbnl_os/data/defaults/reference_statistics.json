@@ -1,6 +1,6 @@
 {
-  "version": "1.0.0",
-  "created": "2025-01-21",
+  "version": "1.1.0",
+  "created": "2026-11-17",
   "description": "Default benchmark statistics from BETTER database",
   "entries": [
     {
@@ -385,6 +385,168 @@
       "metadata": {
         "source": "BETTER Database",
         "description": "US Worship facility energy benchmarks"
+      }
+    },
+    {
+      "country_code": "MX",
+      "building_type": "OFFICE",
+      "statistics": {
+        "ELECTRICITY": {
+          "baseload": {
+            "median": 0.169,
+            "stdev": 0.108
+          },
+          "cooling_slope": {
+            "median": 0.019,
+            "stdev": 0.011
+          },
+          "heating_slope": {
+            "median": null,
+            "stdev": null
+          },
+          "cooling_change_point": {
+            "median": 20.239,
+            "stdev": 4.7
+          },
+          "heating_change_point": {
+            "median": null,
+            "stdev": null
+          }
+        },
+        "FOSSIL_FUEL": {
+          "baseload": {
+            "median": null,
+            "stdev": null
+          },
+          "cooling_slope": {
+            "median": null,
+            "stdev": null
+          },
+          "heating_slope": {
+            "median": null,
+            "stdev": null
+          },
+          "cooling_change_point": {
+            "median": null,
+            "stdev": null
+          },
+          "heating_change_point": {
+            "median": null,
+            "stdev": null
+          }
+        }
+      },
+      "metadata": {
+        "source": "BETTER Database",
+        "description": "Mexico Office building energy benchmarks"
+      }
+    },
+    {
+      "country_code": "MX",
+      "building_type": "RESTAURANT",
+      "statistics": {
+        "ELECTRICITY": {
+          "baseload": {
+            "median": 1.674,
+            "stdev": 0.646
+          },
+          "cooling_slope": {
+            "median": 0.103,
+            "stdev": 0.037
+          },
+          "heating_slope": {
+            "median": null,
+            "stdev": null
+          },
+          "cooling_change_point": {
+            "median": 17.347,
+            "stdev": 1.317
+          },
+          "heating_change_point": {
+            "median": null,
+            "stdev": null
+          }
+        },
+        "FOSSIL_FUEL": {
+          "baseload": {
+            "median": null,
+            "stdev": null
+          },
+          "cooling_slope": {
+            "median": null,
+            "stdev": null
+          },
+          "heating_slope": {
+            "median": null,
+            "stdev": null
+          },
+          "cooling_change_point": {
+            "median": null,
+            "stdev": null
+          },
+          "heating_change_point": {
+            "median": null,
+            "stdev": null
+          }
+        }
+      },
+      "metadata": {
+        "source": "BETTER Database",
+        "description": "Mexico Restaurant energy benchmarks"
+      }
+    },
+    {
+      "country_code": "TN",
+      "building_type": "HOTEL",
+      "statistics": {
+        "ELECTRICITY": {
+          "baseload": {
+            "median": 0.4003048553554158,
+            "stdev": 0.3087508321427387
+          },
+          "cooling_slope": {
+            "median": 0.10825939865615405,
+            "stdev": 0.12990917846661557
+          },
+          "heating_slope": {
+            "median": null,
+            "stdev": null
+          },
+          "cooling_change_point": {
+            "median": 18.60790309863264,
+            "stdev": 3.5104193369488197
+          },
+          "heating_change_point": {
+            "median": null,
+            "stdev": null
+          }
+        },
+        "FOSSIL_FUEL": {
+          "baseload": {
+            "median": null,
+            "stdev": null
+          },
+          "cooling_slope": {
+            "median": null,
+            "stdev": null
+          },
+          "heating_slope": {
+            "median": null,
+            "stdev": null
+          },
+          "cooling_change_point": {
+            "median": null,
+            "stdev": null
+          },
+          "heating_change_point": {
+            "median": null,
+            "stdev": null
+          }
+        }
+      },
+      "metadata": {
+        "source": "BETTER Database",
+        "description": "Tunisia Hotel energy benchmarks"
       }
     }
   ]

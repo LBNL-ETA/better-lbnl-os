@@ -6,6 +6,17 @@ All notable changes to this project will be documented in this file.
 The format is based on `Keep a Changelog <https://keepachangelog.com/en/1.0.0/>`_,
 and this project adheres to `Semantic Versioning <https://semver.org/spec/v2.0.0.html>`_.
 
+Unreleased
+----------
+
+Added
+^^^^^
+- Added international reference benchmark statistics for Mexico (``MX`` ``OFFICE``, ``MX`` ``RESTAURANT``) and Tunisia (``TN`` ``HOTEL``) to ``reference_statistics.json``, synced with the BETTER production database
+
+Fixed
+^^^^^
+- Updated ``CoefficientStatistics`` in ``reference_schema.json`` to allow ``null`` values for nullable ``median`` and ``stdev`` fields
+
 0.1.2 - 2026-11-13
 ------------------
 

@@ -2,11 +2,15 @@
 
 import pytest
 
+from better_lbnl_os.constants.building_types import BuildingSpaceType
 from better_lbnl_os.core.benchmarking import (
     benchmark_building,
     benchmark_coefficient,
+    benchmark_with_reference,
     create_statistics_from_models,
+    get_reference_statistics,
     get_target_coefficient_value,
+    list_available_reference_statistics,
 )
 from better_lbnl_os.core.changepoint import ChangePointModelResult
 from better_lbnl_os.models.benchmarking import (
@@ -202,6 +206,58 @@ class TestBenchmarkingFunctions:
 
         with pytest.raises(ValueError):
             benchmark_building({}, BenchmarkStatistics(), 0.0)
+
+
+class TestReferenceStatisticsData:
+    """Test built-in reference statistics coverage (US and international)."""
+
+    def test_list_available_includes_us_and_international_entries(self):
+        """Test that all 10 US and international reference entries are available."""
+        available = set(list_available_reference_statistics())
+        expected = {
+            ("US", BuildingSpaceType.OFFICE),
+            ("US", BuildingSpaceType.K12),
+            ("US", BuildingSpaceType.MULTIFAMILY_HOUSING),
+            ("US", BuildingSpaceType.HOTEL),
+            ("US", BuildingSpaceType.PUBLIC_LIBRARY),
+            ("US", BuildingSpaceType.HOSPITAL),
+            ("US", BuildingSpaceType.WORSHIP_FACILITY),
+            ("MX", BuildingSpaceType.OFFICE),
+            ("MX", BuildingSpaceType.RESTAURANT),
+            ("TN", BuildingSpaceType.HOTEL),
+        }
+        assert available == expected
+
+    def test_benchmark_with_reference_international_types(self):
+        """Test benchmarking against MX OFFICE and TN HOTEL reference statistics."""
+        cp_results = {
+            "ELECTRICITY": ChangePointModelResult(
+                heating_slope=None,
+                heating_change_point=None,
+                baseload=0.30,
+                cooling_change_point=18.0,
+                cooling_slope=0.04,
+                r_squared=0.85,
+                cvrmse=0.12,
+                model_type="3P-C",
+            )
+        }
+
+        mx_result = benchmark_with_reference(
+            change_point_results=cp_results,
+            floor_area=2000.0,
+            country_code="MX",
+            building_type=BuildingSpaceType.OFFICE,
+            savings_target="NOMINAL",
+        )
+        assert mx_result.ELECTRICITY is not None
+        assert mx_result.ELECTRICITY.baseload.sample_median == pytest.approx(0.169)
+        assert mx_result.ELECTRICITY.baseload.rating in ["Good", "Typical", "Poor"]
+        assert mx_result.ELECTRICITY.heating_slope.rating is None
+
+        tn_stats = get_reference_statistics("TN", BuildingSpaceType.HOTEL)
+        assert tn_stats is not None
+        assert tn_stats.ELECTRICITY.baseload.median == pytest.approx(0.4003048553554158)
 
 
 if __name__ == "__main__":
