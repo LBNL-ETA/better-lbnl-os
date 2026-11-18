@@ -25,6 +25,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Security
 - N/A
 
+## [0.1.3] - 2026-11-17
+
+### Added
+- Added international reference benchmark statistics for Mexico (`MX` `OFFICE`, `MX` `RESTAURANT`) and Tunisia (`TN` `HOTEL`) to `reference_statistics.json`, synced with the BETTER production database
+
+### Fixed
+- Updated `CoefficientStatistics` in `reference_schema.json` to allow `null` values for nullable `median` and `stdev` fields
+
 ## [0.1.2] - 2026-11-13
 
 ### Fixed
@@ -46,7 +54,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Basic project structure following hybrid architecture pattern
 - Foundation for extracting core business logic from BETTER Django app
 
-[Unreleased]: https://github.com/LBNL-ETA/better-lbnl-os/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/LBNL-ETA/better-lbnl-os/compare/v0.1.3...HEAD
+[0.1.3]: https://github.com/LBNL-ETA/better-lbnl-os/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/LBNL-ETA/better-lbnl-os/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/LBNL-ETA/better-lbnl-os/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/LBNL-ETA/better-lbnl-os/releases/tag/v0.1.0
